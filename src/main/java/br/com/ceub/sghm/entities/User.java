@@ -1,8 +1,12 @@
 package br.com.ceub.sghm.entities;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +20,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tb_user")
-public class User {
+public class User implements UserDetails {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,11 +56,11 @@ public class User {
     this.id = id;
   }
 
-  public String getUsername() {
+  public String getName() {
     return name;
   }
 
-  public void setUsername(String name) {
+  public void setName(String name) {
     this.name = name;
   }
 
@@ -99,5 +103,15 @@ public void addRole(Role role) {
     if (obj == null || getClass() != obj.getClass()) return false;
     User user = (User) obj;
     return Objects.equals(id, user.id);
+  }
+
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return roles;
+  }
+
+  @Override
+  public String getUsername() {
+    return email;
   }
 }
