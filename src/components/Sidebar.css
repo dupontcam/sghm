@@ -1,0 +1,75 @@
+/* Estilos da Sidebar para o protótipo */
+.sidebar {
+    width: 280px;
+    background-color: #005dbb; /* Azul escuro do mockup */
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.sidebar-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffffff; /* Verde-água do logo */
+    margin-bottom: 5px;
+}
+
+.sidebar-subtitle {
+    font-size: 0.8rem;
+    color: #ccc;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: 5px;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espaço entre ícone e texto */
+    padding: 12px 15px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+    font-size: 0.95rem;
+}
+
+.sidebar-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Estilo para o link da página ativa, usado pelo NavLink */
+.sidebar-menu a.active {
+    background-color: #1976D2; /* Verde-água para destacar */
+    color: #0d1b2a; /* Texto escuro para contraste */
+    font-weight: bold;
+}
+
+/* ESTE É O NOVO BLOCO DE CÓDIGO */
+/* Estilo para os links que ainda não foram implementados */
+.sidebar-menu .disabled-link a {
+    color: #888; /* Cor cinza para indicar inatividade */
+    cursor: not-allowed; /* Muda o cursor do mouse para "não permitido" */
+    background-color: transparent !important; /* Remove qualquer cor de fundo */
+}
+
+/* Garante que o link desabilitado não mude de cor ao passar o mouse */
+.sidebar-menu .disabled-link a:hover {
+    color: #888;
+}
+
