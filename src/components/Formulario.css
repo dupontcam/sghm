@@ -1,33 +1,94 @@
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 20px;
+.form-modal {
+  width: 100%;
 }
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap; /* Permite que os campos quebrem a linha em telas menores */
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 .form-group {
-    display: flex;
-    flex-direction: column;
+  flex: 1; /* Faz os campos dividirem o espaço */
+  display: flex;
+  flex-direction: column;
+  min-width: 200px; /* Largura mínima antes de quebrar a linha */
 }
-.form-group.span-2 {
-    grid-column: span 2;
+
+/* Garante que grupos únicos em uma linha ocupem 100% da largura */
+.form-group.full-width {
+  flex-basis: 100%;
 }
+
 .form-group label {
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
 }
+
 .form-group input,
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Garante que o padding não estoure a largura */
 }
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Estilo para campos desabilitados (como os de auditoria) */
+.form-group input:disabled,
+.form-group select:disabled {
+  background-color: #f4f4f4;
+  color: #888;
+  cursor: not-allowed;
+}
+
+
+/* === NOVOS ESTILOS PARA FIELDSET === */
+/* Adiciona estilo aos grupos de campos */
+
+.form-fieldset {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+  padding-top: 15px;
+  background-color: #fafafa;
+}
+
+.form-fieldset legend {
+  font-weight: 600;
+  color: #0d1b2a; /* Azul escuro */
+  padding: 0 10px; /* Espaçamento lateral */
+  margin-left: 10px; /* Alinha com o padding dos campos */
+  font-size: 1.1rem;
+}
+
+
+/* --- Ações do Formulário --- */
 .form-actions {
-    grid-column: span 2;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
 }

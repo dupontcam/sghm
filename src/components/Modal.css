@@ -1,31 +1,65 @@
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
+
 .modal-content {
-    background-color: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    position: relative;
-    width: 90%;
-    max-width: 600px;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 700px; /* Largura máxima do modal */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+
+  /* === CORREÇÃO DE SCROLL (Altura Máxima) === */
+  /* Define uma altura máxima (90% da tela) */
+  max-height: 90vh; 
+  display: flex;
+  flex-direction: column;
 }
-.modal-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #888;
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 0; /* O espaçamento agora vai no body */
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #0d1b2a;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  font-weight: 300;
+  color: #888;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+}
+
+.modal-body {
+  /* === CORREÇÃO DE SCROLL (Barra de Rolagem) === */
+  /* Adiciona a barra de rolagem SÓ no corpo do modal */
+  overflow-y: auto; 
+  padding-top: 20px;
+  
+  /* Adiciona um padding à direita para a barra de rolagem não cobrir o conteúdo */
+  padding-right: 15px; 
+  margin-right: -15px; /* Compensa o padding para manter o alinhamento */
 }
