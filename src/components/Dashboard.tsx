@@ -92,51 +92,54 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* === Gráficos Reais === */}
-            <div className="charts-container">
-                
-                {/* Gráfico de Barras */}
-                <div className="chart chart-large">
-                    <h4>Tendência de Faturamento (Últimos 6 meses)</h4>
-                    <div style={{ width: '100%', height: 250 }}>
-                        <ResponsiveContainer>
-                            <BarChart data={barChartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                                <XAxis dataKey="name" fontSize={12} />
-                                <YAxis fontSize={12} tickFormatter={(value) => `R$${value/1000}k`} />
-                                <Tooltip formatter={(value) => `R$${(value as number).toLocaleString('pt-BR')}`} />
-                                <Legend />
-                                <Bar dataKey="Faturamento" fill="#007bff" />
-                                <Bar dataKey="Glosado" fill="#dc3545" />
-                            </BarChart>
-                        </ResponsiveContainer>
+            {/* CORREÇÃO: Adicionamos a verificação de perfil aqui */}
+            {userProfile === 'Admin' && (
+                <div className="charts-container">
+                    
+                    {/* Gráfico de Barras */}
+                    <div className="chart chart-large">
+                        <h4>Tendência de Faturamento (Últimos 6 meses)</h4>
+                        <div style={{ width: '100%', height: 250 }}>
+                            <ResponsiveContainer>
+                                <BarChart data={barChartData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                                    <XAxis dataKey="name" fontSize={12} />
+                                    <YAxis fontSize={12} tickFormatter={(value) => `R$${value/1000}k`} />
+                                    <Tooltip formatter={(value) => `R$${(value as number).toLocaleString('pt-BR')}`} />
+                                    <Legend />
+                                    <Bar dataKey="Faturamento" fill="#007bff" />
+                                    <Bar dataKey="Glosado" fill="#dc3545" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                </div>
 
-                {/* Gráfico de Pizza */}
-                <div className="chart chart-small">
-                    <h4>Status dos Pagamentos</h4>
-                    <div style={{ width: '100%', height: 250 }}>
-                         <ResponsiveContainer>
-                            <PieChart>
-                                <Pie
-                                    data={pieData}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    label={(entry) => `${entry.name} (${entry.value})`}
-                                >
-                                    {pieData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={PIE_COLORS[entry.name as keyof typeof PIE_COLORS]} />
-                                    ))}
-                                </Pie>
-                                <PieTooltip formatter={(value) => `${value} consultas`} />
-                            </PieChart>
-                         </ResponsiveContainer>
+                    {/* Gráfico de Pizza */}
+                    <div className="chart chart-small">
+                        <h4>Status dos Pagamentos</h4>
+                        <div style={{ width: '100%', height: 250 }}>
+                            <ResponsiveContainer>
+                                <PieChart>
+                                    <Pie
+                                        data={pieData}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        label={(entry) => `${entry.name} (${entry.value})`}
+                                    >
+                                        {pieData.map((entry) => (
+                                            <Cell key={`cell-${entry.name}`} fill={PIE_COLORS[entry.name as keyof typeof PIE_COLORS]} />
+                                        ))}
+                                    </Pie>
+                                    <PieTooltip formatter={(value) => `${value} consultas`} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
