@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
 import Modal from './Modal';
-import './CadastroMedicos.css'; 
+import './CadastroMedicos.css';
+import './Formulario.css';
 
 type Medico = {
   id: number;

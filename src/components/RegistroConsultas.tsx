@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
 import Modal from './Modal';
 import './RegistroConsultas.css';
+import './Formulario.css';
 
 type Consulta = {
   id: number;
