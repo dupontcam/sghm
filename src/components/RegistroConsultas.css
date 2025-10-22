@@ -1,0 +1,18 @@
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+.status-pago {
+    background-color: #28a745; /* verde */
+}
+.status-pendente {
+    background-color: #ffc107; /* amarelo */
+    color: #333;
+}
+.status-glosado {
+    background-color: #dc3545; /* vermelho */
+}
