@@ -1,108 +1,102 @@
 import React, { useState } from 'react';
-import { FaPen, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import Modal from './Modal';
-import './Formulario.css'; // Importa os estilos do formulário
+import './Formulario.css';
 
-// Tipo de dados para Médico
-interface Medico {
+// Define a estrutura de dados de um Médico
+// CORREÇÃO: Adicionamos 'export' aqui
+export interface Medico {
   id: number;
-  cpf: string; // Novo campo
   nome: string;
   email: string;
+  telefone: string;
   crm: string;
+  cpf: string; // Campo Adicionado
   especialidade: string;
 }
 
-// Dados de exemplo
-const mockMedicos: Medico[] = [
-  { id: 1, nome: 'Dr. Carlos Alberto', email: 'carlos@med.com', crm: '12345-DF', especialidade: 'Cardiologia', cpf: '111.222.333-44' },
-  { id: 2, nome: 'Dra. Karyne Sousa', email: 'karyne@med.com', crm: '54321-DF', especialidade: 'Neurologia', cpf: '444.555.666-77' },
+// --- DADOS DE EXEMPLO (MOCK) ---
+// 'export' já estava correto aqui
+export const mockMedicos: Medico[] = [
+  { id: 1, nome: 'Dr. Carlos Alberto', email: 'carlos@med.com', telefone: '(61) 9999-1111', crm: '12345-DF', cpf: '111.222.333-44', especialidade: 'Cardiologia' },
+  { id: 2, nome: 'Dra. Ana Sousa', email: 'ana@med.com', telefone: '(61) 9999-2222', crm: '54321-DF', cpf: '222.333.444-55', especialidade: 'Dermatologia' },
 ];
 
+// Estado inicial para o formulário
+const formInicial: Medico = {
+  id: 0,
+  nome: '',
+  email: '',
+  telefone: '',
+  crm: '',
+  cpf: '',
+  especialidade: '',
+};
+
 const CadastroMedicos: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [medicos, setMedicos] = useState(mockMedicos);
-  const [medicoParaEditar, setMedicoParaEditar] = useState<Medico | null>(null);
-
-  // Estado inicial do formulário, incluindo os novos campos
-  const estadoInicialFormulario: Medico = {
-    id: 0,
-    nome: '',
-    email: '',
-    crm: '',
-    especialidade: '',
-    cpf: '',
-  };
-
-  const [formData, setFormData] = useState<Medico>(estadoInicialFormulario);
-
-  // Controla se o ID deve ser visível (apenas em modo de edição)
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Medico>(formInicial);
 
-  // Gerenciador de mudanças nos inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+  // Abre o modal para um novo médico
+  const handleNovoMedico = () => {
+    setIsEditing(false);
+    setFormData(formInicial);
+    setIsModalOpen(true);
   };
 
-  // Salva o formulário (simulação)
+  // Abre o modal para editar um médico existente
+  const handleEditarMedico = (medico: Medico) => {
+    setIsEditing(true);
+    setFormData(medico);
+    setIsModalOpen(true);
+  };
+
+  // Fecha o modal e reseta o formulário
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Lida com a exclusão (simulada)
+  const handleExcluirMedico = (id: number) => {
+    // Usamos 'confirm' por ser um protótipo, mas o ideal é um modal de confirmação
+    if (window.confirm('Tem certeza que deseja excluir este médico?')) {
+      setMedicos(medicos.filter(m => m.id !== id));
+    }
+  };
+
+  // Lida com as mudanças nos inputs do formulário
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  // Lida com o submit do formulário (Adicionar ou Editar)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEditing && medicoParaEditar) {
+    if (isEditing) {
       // Lógica de Edição
-      setMedicos(medicos.map(medico =>
-        medico.id === medicoParaEditar.id ? formData : medico
-      ));
-      console.log('Médico atualizado:', formData);
+      setMedicos(medicos.map(m => (m.id === formData.id ? formData : m)));
+      console.log('Médico editado:', formData);
     } else {
-      // Lógica de Criação (simulando um novo ID)
-      const novoMedico = { ...formData, id: Math.floor(Math.random() * 1000) };
+      // Lógica de Criação
+      const novoMedico = { ...formData, id: medicos.length > 0 ? Math.max(...medicos.map(m => m.id)) + 1 : 1 };
       setMedicos([...medicos, novoMedico]);
       console.log('Novo médico salvo:', novoMedico);
     }
     closeModal();
   };
 
-  // Abre o modal para um novo médico
-  const handleNew = () => {
-    setFormData(estadoInicialFormulario);
-    setMedicoParaEditar(null);
-    setIsEditing(false); // Não está editando
-    setIsModalOpen(true);
-  };
-
-  // Abre o modal para editar um médico
-  const handleEdit = (medico: Medico) => {
-    setFormData(medico);
-    setMedicoParaEditar(medico);
-    setIsEditing(true); // Está editando
-    setIsModalOpen(true);
-  };
-
-  // Fecha o modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setIsEditing(false);
-    setMedicoParaEditar(null);
-  };
-
-  // (Simulação) Deleta um médico
-  const handleDelete = (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este médico?')) {
-      setMedicos(medicos.filter(medico => medico.id !== id));
-    }
-  };
-
-
   return (
     <div className="page-container">
       <div className="page-header">
         <h1>Cadastro de Médicos</h1>
-        <button className="btn btn-primary" onClick={handleNew}>
-          Novo Médico
+        <button className="btn btn-primary" onClick={handleNovoMedico}>
+          + Novo Médico
         </button>
       </div>
 
@@ -112,10 +106,10 @@ const CadastroMedicos: React.FC = () => {
             <tr>
               <th>ID</th>
               <th>Nome</th>
-              <th>CPF</th>
               <th>Email</th>
               <th>CRM</th>
-              <th>Especialidade</th>
+              <th>CPF</th>
+              <th>Telefone</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -124,16 +118,16 @@ const CadastroMedicos: React.FC = () => {
               <tr key={medico.id}>
                 <td>{medico.id}</td>
                 <td>{medico.nome}</td>
-                <td>{medico.cpf}</td>
                 <td>{medico.email}</td>
                 <td>{medico.crm}</td>
-                <td>{medico.especialidade}</td>
+                <td>{medico.cpf}</td>
+                <td>{medico.telefone}</td>
                 <td>
-                  <button className="btn-icon" onClick={() => handleEdit(medico)}>
-                    <FaPen />
+                  <button className="btn-icon" title="Editar" onClick={() => handleEditarMedico(medico)}>
+                    <FaEdit />
                   </button>
-                  <button className="btn-icon btn-delete" onClick={() => handleDelete(medico.id)}>
-                    <FaTrash />
+                  <button className="btn-icon btn-delete" title="Excluir" onClick={() => handleExcluirMedico(medico.id)}>
+                    <FaTrashAlt />
                   </button>
                 </td>
               </tr>
@@ -142,90 +136,90 @@ const CadastroMedicos: React.FC = () => {
         </table>
       </div>
 
-      {/* Modal de Adicionar/Editar */}
+      {/* Modal de Inclusão/Edição */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={isEditing ? 'Editar Médico' : 'Novo Médico'}>
         <form onSubmit={handleSubmit} className="form-modal">
-          
-          {/* Campo de ID (somente visível e desabilitado em modo de edição) */}
           {isEditing && (
             <div className="form-group">
-              <label htmlFor="id">ID</label>
-              <input
-                type="text"
-                id="id"
-                name="id"
-                value={formData.id}
-                readOnly
-                disabled
-              />
+              <label>ID do Médico</label>
+              <input type="text" value={formData.id} disabled />
             </div>
           )}
-
           <div className="form-group">
             <label htmlFor="nome">Nome Completo</label>
             <input
-              type="text"
               id="nome"
               name="nome"
+              type="text"
               value={formData.nome}
               onChange={handleChange}
               required
             />
           </div>
-
-          <div className="form-group">
-            <label htmlFor="cpf">CPF</label>
-            <input
-              type="text"
-              id="cpf"
-              name="cpf"
-              value={formData.cpf}
-              onChange={handleChange}
-              placeholder="000.000.000-00"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group half-width">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group half-width">
+              <label htmlFor="telefone">Telefone</label>
+              <input
+                id="telefone"
+                name="telefone"
+                type="text"
+                value={formData.telefone}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group half-width">
               <label htmlFor="crm">CRM</label>
               <input
-                type="text"
                 id="crm"
                 name="crm"
+                type="text"
                 value={formData.crm}
                 onChange={handleChange}
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="especialidade">Especialidade</label>
+            <div className="form-group half-width">
+              <label htmlFor="cpf">CPF</label>
               <input
+                id="cpf"
+                name="cpf"
                 type="text"
-                id="especialidade"
-                name="especialidade"
-                value={formData.especialidade}
+                value={formData.cpf}
                 onChange={handleChange}
                 required
               />
             </div>
           </div>
-          
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancelar</button>
-            <button type="submit" className="btn btn-primary">Salvar</button>
+          <div className="form-group">
+            <label htmlFor="especialidade">Especialidade</label>
+            <input
+              id="especialidade"
+              name="especialidade"
+              type="text"
+              value={formData.especialidade}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-footer">
+            <button type="button" className="btn btn-secondary" onClick={closeModal}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn btn-primary">
+              {isEditing ? 'Salvar Alterações' : 'Salvar Médico'}
+            </button>
           </div>
         </form>
       </Modal>
