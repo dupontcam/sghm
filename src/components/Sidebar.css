@@ -1,7 +1,7 @@
 /* Estilos da Sidebar para o protótipo */
 .sidebar {
     width: 280px;
-    background-color: #005dbb; /* Azul escuro do mockup */
+    background-color: #0d1b2a; /* Azul escuro do mockup */
     color: white;
     padding: 20px;
     box-sizing: border-box;
@@ -18,7 +18,7 @@
 .sidebar-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #ffffff; /* Verde-água do logo */
+    color: #4CAF50; /* Verde-água do logo */
     margin-bottom: 5px;
 }
 
@@ -27,11 +27,19 @@
     color: #ccc;
 }
 
+/* O menu principal agora ocupa o espaço disponível */
 .sidebar-menu {
     list-style: none;
     padding: 0;
     margin: 0;
+    flex-grow: 0; /* Não cresce por padrão */
 }
+
+/* Faz o menu principal crescer, empurrando o footer para baixo */
+.sidebar-menu:first-of-type {
+    flex-grow: 1; 
+}
+
 
 .sidebar-menu li {
     margin-bottom: 5px;
@@ -55,12 +63,11 @@
 
 /* Estilo para o link da página ativa, usado pelo NavLink */
 .sidebar-menu a.active {
-    background-color: #1976D2; /* Verde-água para destacar */
+    background-color: #4CAF50; /* Verde-água para destacar */
     color: #0d1b2a; /* Texto escuro para contraste */
     font-weight: bold;
 }
 
-/* ESTE É O NOVO BLOCO DE CÓDIGO */
 /* Estilo para os links que ainda não foram implementados */
 .sidebar-menu .disabled-link a {
     color: #888; /* Cor cinza para indicar inatividade */
@@ -73,3 +80,41 @@
     color: #888;
 }
 
+/* --- ATUALIZAÇÃO: Estilos do Footer da Sidebar --- */
+
+.sidebar-footer {
+    margin-top: auto; /* Garante que o footer fique embaixo */
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Adicionado flexbox para controlar o espaçamento */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaçamento de 15px entre o "Sair" e o botão de simulação */
+}
+
+/* Botão de simulação de perfil */
+.profile-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid #4CAF50;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+    /* O margin-bottom: 15px; foi removido e substituído pelo 'gap' no footer */
+}
+
+.profile-switcher:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-switcher strong {
+    color: #4CAF50; /* Verde-água */
+}
