@@ -1,0 +1,69 @@
+.backup-card {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-left: 5px solid #007bff; /* Borda azul (Backup) */
+}
+
+.backup-card.restore-card {
+    border-left-color: #dc3545; /* Borda vermelha (Restore) */
+}
+
+.backup-card h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.backup-card p {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.btn-backup {
+    font-size: 1.1rem;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.last-backup-info {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #666;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+/* Feedback de Status */
+.backup-status {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.backup-status.status-idle {
+    background-color: #e6f7ff;
+    border: 1px solid #b3e0ff;
+    color: #0056b3;
+}
+.backup-status.status-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+.backup-status.status-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}

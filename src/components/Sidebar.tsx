@@ -30,18 +30,18 @@ const Sidebar: React.FC = () => {
                         <li>
                             <NavLink to="/financeiro"><FaDollarSign /> Controle Financeiro</NavLink>
                         </li>
-                        {/* ATIVAMOS ESTE LINK, removendo o 'disabled-link' */}
                         <li>
                             <NavLink to="/relatorios"><FaChartBar /> Relatórios</NavLink>
                         </li>
-                        <li className="disabled-link">
+                        {/* 1. Ativando o link de Backup */}
+                        <li>
                             <NavLink to="/backup"><FaDatabase /> Backup e Restauração</NavLink>
                         </li>
                     </>
                 )}
 
-                {/* Itens desabilitados para todos por enquanto */}
-                <li className="disabled-link">
+                {/* 2. Ativando o link de Perfil (visível para todos) */}
+                <li>
                     <NavLink to="/perfil"><FaUser /> Perfil do Usuário</NavLink>
                 </li>
             </ul>
@@ -60,3 +60,4 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
+
