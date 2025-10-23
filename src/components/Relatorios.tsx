@@ -1,30 +1,28 @@
 import React, { useState, useMemo } from 'react';
-import { mockConsultas, Consulta } from './RegistroConsultas';
-import { mockMedicos, Medico } from './CadastroMedicos';
-import { mockPacientes, Paciente } from './CadastroPacientes';
+import { useData } from '../contexts/DataContext'; // 1. Importar o hook useData
+import { Consulta, Medico, Paciente } from '../data/mockData'; // 2. Importar TIPOS
 import './RegistroConsultas.css'; // Reutiliza os estilos de status-badge
 import './ControleFinanceiro.css'; // Reutiliza os estilos dos cards e filtros
 import './Relatorios.css'; // Estilos próprios para impressão
 
-// Lógica para encontrar nomes
-const getPacienteNome = (id: number) => mockPacientes.find((p: Paciente) => p.id === id)?.nome || 'Não encontrado';
-const getMedicoNome = (id: number) => mockMedicos.find((m: Medico) => m.id === id)?.nome || 'Não encontrado';
-
+// 3. Funções de busca usam dados do Contexto
 const Relatorios: React.FC = () => {
+  const { consultas, medicos, pacientes } = useData();
+
   // Estados para os filtros
-  const [filtroMedico, setFiltroMedico] = useState<number>(0); // 0 = Todos
+  const [filtroMedico, setFiltroMedico] = useState<number>(0);
   const [filtroDataInicio, setFiltroDataInicio] = useState<string>('');
   const [filtroDataFim, setFiltroDataFim] = useState<string>('');
-  
-  // Estado para controlar a exibição do relatório
   const [showReport, setShowReport] = useState(false);
 
-  // Lógica de filtragem
+  const getPacienteNome = (id: number) => pacientes.find((p: Paciente) => p.id === id)?.nome || 'Não encontrado';
+  const getMedicoNome = (id: number) => medicos.find((m: Medico) => m.id === id)?.nome || 'Não encontrado';
+
+  // 4. Lógica de filtragem usa dados do Contexto
   const consultasFiltradas = useMemo(() => {
-    // Só filtra se showReport for true
     if (!showReport) return [];
 
-    return mockConsultas.filter(consulta => {
+    return consultas.filter(consulta => {
       // Filtro de Médico
       if (filtroMedico !== 0 && consulta.medicoId !== filtroMedico) {
         return false;
@@ -39,7 +37,7 @@ const Relatorios: React.FC = () => {
       }
       return true;
     });
-  }, [filtroMedico, filtroDataInicio, filtroDataFim, showReport]);
+  }, [consultas, filtroMedico, filtroDataInicio, filtroDataFim, showReport]); // Depende de 'consultas'
 
   // Lógica para os cards de resumo
   const resumoFinanceiro = useMemo(() => {
@@ -66,7 +64,6 @@ const Relatorios: React.FC = () => {
     setShowReport(true);
   };
 
-  // Aciona a impressão do navegador
   const handlePrint = () => {
     window.print();
   };
@@ -77,13 +74,14 @@ const Relatorios: React.FC = () => {
         <h1>Relatórios Financeiros</h1>
       </div>
 
-      {/* Seção de Filtros (escondida na impressão) */}
+      {/* Seção de Filtros */}
       <div className="filter-container no-print">
         <div className="form-group">
           <label htmlFor="filtroMedico">Médico</label>
           <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
             <option value={0}>Todos os Médicos</option>
-            {mockMedicos.map((m: Medico) => (
+            {/* 5. Mapear dados do Contexto */}
+            {medicos.map((m: Medico) => (
               <option key={m.id} value={m.id}>{m.nome}</option>
             ))}
           </select>
@@ -101,7 +99,7 @@ const Relatorios: React.FC = () => {
         </button>
       </div>
 
-      {/* Conteúdo do Relatório (visível apenas após gerar e na impressão) */}
+      {/* Conteúdo do Relatório */}
       {showReport && (
         <div className="report-content" id="report-to-print">
           <div className="report-header">
@@ -115,7 +113,7 @@ const Relatorios: React.FC = () => {
             </button>
           </div>
 
-          {/* Seção de Cards de Resumo */}
+          {/* Cards de Resumo */}
           <div className="summary-cards">
             <div className="summary-card" style={{ borderColor: '#007bff' }}>
               <span>Total Faturado</span>
@@ -150,6 +148,7 @@ const Relatorios: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+                {/* 6. Mapear dados do Contexto */}
                 {consultasFiltradas.map((consulta) => (
                   <tr key={consulta.id}>
                     <td>{consulta.protocolo}</td>

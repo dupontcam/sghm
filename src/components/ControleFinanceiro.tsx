@@ -1,27 +1,28 @@
 import React, { useState, useMemo } from 'react';
-import { mockConsultas, Consulta } from './RegistroConsultas';
-import { mockMedicos, Medico } from './CadastroMedicos';
-import { mockPacientes, Paciente } from './CadastroPacientes';
+import { useData } from '../contexts/DataContext'; // 1. Importar o hook useData
+import { Consulta, Medico, Paciente } from '../data/mockData'; // 2. Importar TIPOS
 import './RegistroConsultas.css'; // Reutiliza os estilos de status-badge
 import './ControleFinanceiro.css'; // Estilos próprios
 
-// Tipos de dados
 type StatusConsulta = Consulta['status'];
 
 const ControleFinanceiro: React.FC = () => {
+  // 3. Obter dados do Contexto
+  const { consultas, medicos, pacientes } = useData();
+
   // Estados para os filtros
-  const [filtroMedico, setFiltroMedico] = useState<number>(0); // 0 = Todos
-  const [filtroStatus, setFiltroStatus] = useState<StatusConsulta | ''>(''); // '' = Todos
+  const [filtroMedico, setFiltroMedico] = useState<number>(0);
+  const [filtroStatus, setFiltroStatus] = useState<StatusConsulta | ''>('');
   const [filtroDataInicio, setFiltroDataInicio] = useState<string>('');
   const [filtroDataFim, setFiltroDataFim] = useState<string>('');
 
-  // Lógica para encontrar nomes (copiado de RegistroConsultas)
-  const getPacienteNome = (id: number) => mockPacientes.find((p: Paciente) => p.id === id)?.nome || 'Não encontrado';
-  const getMedicoNome = (id: number) => mockMedicos.find((m: Medico) => m.id === id)?.nome || 'Não encontrado';
+  // 4. Funções de busca usam dados do Contexto
+  const getPacienteNome = (id: number) => pacientes.find((p: Paciente) => p.id === id)?.nome || 'Não encontrado';
+  const getMedicoNome = (id: number) => medicos.find((m: Medico) => m.id === id)?.nome || 'Não encontrado';
 
-  // Lógica de filtragem
+  // 5. Lógica de filtragem usa dados do Contexto
   const consultasFiltradas = useMemo(() => {
-    return mockConsultas.filter(consulta => {
+    return consultas.filter(consulta => {
       // Filtro de Médico
       if (filtroMedico !== 0 && consulta.medicoId !== filtroMedico) {
         return false;
@@ -40,7 +41,7 @@ const ControleFinanceiro: React.FC = () => {
       }
       return true;
     });
-  }, [filtroMedico, filtroStatus, filtroDataInicio, filtroDataFim]);
+  }, [consultas, filtroMedico, filtroStatus, filtroDataInicio, filtroDataFim]); // Depende de 'consultas'
 
   // Lógica para os cards de resumo
   const resumoFinanceiro = useMemo(() => {
@@ -75,7 +76,8 @@ const ControleFinanceiro: React.FC = () => {
           <label htmlFor="filtroMedico">Médico</label>
           <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
             <option value={0}>Todos os Médicos</option>
-            {mockMedicos.map((m: Medico) => (
+            {/* 6. Mapear dados do Contexto */}
+            {medicos.map((m: Medico) => (
               <option key={m.id} value={m.id}>{m.nome}</option>
             ))}
           </select>
@@ -131,10 +133,10 @@ const ControleFinanceiro: React.FC = () => {
               <th>Tipo Pag.</th>
               <th>Valor (R$)</th>
               <th>Status</th>
-              {/* Adicionar mais colunas se necessário, ex: Repasse */}
             </tr>
           </thead>
           <tbody>
+            {/* 7. Mapear dados do Contexto */}
             {consultasFiltradas.map((consulta) => (
               <tr key={consulta.id}>
                 <td>{consulta.protocolo}</td>

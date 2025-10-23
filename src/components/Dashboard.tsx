@@ -1,25 +1,25 @@
 import React from 'react';
 import '../App.css'; // Estilos dos cards vêm do App.css
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext'; // 1. Importar o hook useData
 import { 
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, 
     PieChart, Pie, Cell, Tooltip as PieTooltip 
 } from 'recharts';
 
-// Importa os dados de exemplo das consultas
-import { mockConsultas } from './RegistroConsultas';
+// 2. Não precisamos mais importar mockConsultas daqui
 
 // --- Processamento de Dados para os Gráficos ---
 
-// 1. Dados para o Gráfico de Pizza (Status dos Pagamentos)
-const processPieData = () => {
+// 3. A função agora recebe as consultas como parâmetro
+const processPieData = (consultas: any[]) => {
     const statusCounts = {
         Pendente: 0,
         Pago: 0,
         Glosado: 0,
     };
 
-    mockConsultas.forEach(consulta => {
+    consultas.forEach(consulta => {
         if (consulta.status === 'Pendente') statusCounts.Pendente++;
         if (consulta.status === 'Pago') statusCounts.Pago++;
         if (consulta.status === 'Glosado') statusCounts.Glosado++;
@@ -29,7 +29,7 @@ const processPieData = () => {
         { name: 'Pendente', value: statusCounts.Pendente },
         { name: 'Pago', value: statusCounts.Pago },
         { name: 'Glosado', value: statusCounts.Glosado },
-    ].filter(entry => entry.value > 0); // Só mostra status que existem
+    ].filter(entry => entry.value > 0);
 };
 
 const PIE_COLORS = {
@@ -38,8 +38,7 @@ const PIE_COLORS = {
     Glosado: '#dc3545',   // Vermelho
 };
 
-// 2. Dados para o Gráfico de Barras (Tendência de Faturamento)
-// (Como os dados de exemplo são estáticos, vamos criar dados fictícios para 6 meses)
+// ... (barChartData continua o mesmo)
 const barChartData = [
     { name: 'Maio', Faturamento: 8200, Glosado: 500 },
     { name: 'Junho', Faturamento: 9500, Glosado: 300 },
@@ -53,7 +52,8 @@ const barChartData = [
 
 const Dashboard: React.FC = () => {
     const { userProfile } = useAuth();
-    const pieData = processPieData();
+    const { consultas } = useData(); // 4. Obter as consultas do Contexto
+    const pieData = processPieData(consultas); // 5. Processar os dados do Contexto
 
     return (
         <div className="page-container">
@@ -87,12 +87,12 @@ const Dashboard: React.FC = () => {
                 )}
                 <div className="card card-2">
                     <span>Consultas Registradas</span>
-                    <strong>{mockConsultas.length}</strong>
+                    {/* 6. Usar o length das consultas do Contexto */}
+                    <strong>{consultas.length}</strong>
                 </div>
             </div>
 
-            {/* === Gráficos Reais === */}
-            {/* CORREÇÃO: Adicionamos a verificação de perfil aqui */}
+            {/* Gráficos Reais */}
             {userProfile === 'Admin' && (
                 <div className="charts-container">
                     
