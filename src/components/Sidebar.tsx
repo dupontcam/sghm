@@ -27,11 +27,11 @@ const Sidebar: React.FC = () => {
                 {/* Itens que só aparecem para o Admin */}
                 {userProfile === 'Admin' && (
                     <>
-                        {/* ATIVAMOS ESTE LINK, removendo o 'disabled-link' */}
                         <li>
                             <NavLink to="/financeiro"><FaDollarSign /> Controle Financeiro</NavLink>
                         </li>
-                        <li className="disabled-link">
+                        {/* ATIVAMOS ESTE LINK, removendo o 'disabled-link' */}
+                        <li>
                             <NavLink to="/relatorios"><FaChartBar /> Relatórios</NavLink>
                         </li>
                         <li className="disabled-link">

@@ -1,0 +1,90 @@
+/* Estilos para a página de Relatórios */
+
+.report-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.report-header {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.report-header h2 {
+    margin: 0;
+}
+
+.report-header p {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.report-footer {
+    border-top: 2px solid #eee;
+    padding-top: 15px;
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: #888;
+    text-align: center;
+}
+
+/* --- Estilos de Impressão --- */
+@media print {
+    /* Esconde tudo que não for o relatório */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Esconde elementos específicos (layout, menu, filtros, botões) */
+    .no-print,
+    .sidebar,
+    .layout-container > .no-print,
+    .page-header.no-print {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Mostra o conteúdo do relatório e seus pais */
+    #report-to-print, #report-to-print * {
+        visibility: visible;
+    }
+
+    /* Ajusta o layout de impressão */
+    #root, .App, .layout-container, .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100%;
+    }
+    
+    #report-to-print {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 1cm; /* Margem de impressão */
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+    }
+
+    /* Melhora a legibilidade da tabela na impressão */
+    .table-container table {
+        font-size: 9pt;
+        width: 100%;
+    }
+
+    .summary-cards {
+        /* Garante que os cards não quebrem no meio da página */
+        page-break-inside: avoid;
+    }
+
+    /* Evita que o header da tabela se separe da primeira linha */
+    thead {
+        display: table-header-group;
+    }
+}
