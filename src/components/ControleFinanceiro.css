@@ -1,11 +1,11 @@
-/* Estilos para a página de Controle Financeiro */
+/* Estilos para a página de Controle Financeiro (Tema Azul) */
 
 .filter-container {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
     padding: 20px;
-    background-color: #fff;
+    background-color: var(--bg-white);
     border-radius: 8px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -16,22 +16,31 @@
     flex-direction: column;
     gap: 5px;
     flex: 1;
-    min-width: 150px; /* Garante que os filtros não fiquem muito espremidos */
+    min-width: 150px;
 }
 
 .filter-container label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #555;
+    color: var(--text-secondary);
 }
 
 .filter-container input,
 .filter-container select {
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     border-radius: 5px;
     font-size: 0.9rem;
+    background-color: #f9f9f9;
 }
+
+.filter-container input:focus,
+.filter-container select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: var(--bg-white);
+}
+
 
 /* Cards de Resumo */
 .summary-cards {
@@ -42,21 +51,32 @@
 }
 
 .summary-card {
-    background-color: #fff;
+    background-color: var(--bg-white);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    border-left: 5px solid #007bff; /* Cor padrão, será sobrescrita inline */
+    border-left: 5px solid var(--primary-color); /* Cor padrão */
+}
+
+/* Cores específicas dos cards de resumo */
+.summary-card.border-paid {
+  border-left-color: var(--status-paid);
+}
+.summary-card.border-glossed {
+  border-left-color: var(--status-glossed);
+}
+.summary-card.border-pending {
+  border-left-color: var(--status-pending);
 }
 
 .summary-card span {
     font-size: 0.9rem;
-    color: #666;
+    color: var(--text-secondary);
     display: block;
     margin-bottom: 5px;
 }
 
 .summary-card strong {
     font-size: 1.75rem;
-    color: #333;
+    color: var(--text-dark);
 }

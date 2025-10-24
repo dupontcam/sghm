@@ -1,54 +1,55 @@
-/* --- Estilos Globais da Aplicação --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+/* Arquivo CSS Global (App.css)
+  Contém todos os estilos de layout, botões, tabelas e cards.
+*/
 
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
-  background-color: #f4f7fa; /* Fundo claro do conteúdo principal */
-}
+/* Reset e Fontes (Movido para index.css) */
 
-.App {
-  width: 100%;
-  min-height: 100vh;
-}
 
-/* --- Layout Principal das Páginas --- */
+/* Layout Principal (Filho do Layout.tsx) */
 .page-container {
   padding: 30px;
+  /* Garante que o conteúdo não encoste no header em telas pequenas */
 }
 
+/* Cabeçalho de cada Página (Ex: "Cadastro de Médicos" + Botão) */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap; /* Permite que o botão quebre linha em telas muito pequenas */
+  gap: 15px; /* Espaçamento caso o botão quebre a linha */
 }
 
 .page-header h1 {
   margin: 0;
   font-size: 1.8rem;
-  color: #333;
+  font-weight: 700;
+  color: var(--text-dark);
 }
 
-/* --- Estilos de Botões Globais --- */
+/* Estilos de Botões Genéricos */
 .btn {
-  padding: 10px 18px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .btn-primary {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--primary-color); /* Azul Primário */
+  color: var(--text-light);
 }
+
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
 }
 
 .btn-secondary {
@@ -59,71 +60,98 @@ body {
   background-color: #5a6268;
 }
 
-.btn-delete {
-  color: #dc3545;
-}
-.btn-delete:hover {
-  color: #a71d2a;
-}
-
+/* Botões de Ação da Tabela (Editar/Excluir) */
 .btn-icon {
   background: none;
   border: none;
   cursor: pointer;
   padding: 5px;
+  margin-right: 8px;
+  color: var(--primary-color); /* Azul */
   font-size: 1rem;
-  color: #555;
-  transition: color 0.2s;
-}
-.btn-icon:hover {
-  color: #007bff;
 }
 
-/* --- Estilos de Tabela --- */
+.btn-icon:hover {
+  color: var(--primary-hover);
+}
+
+.btn-icon.btn-delete {
+  color: #dc3545; /* Vermelho */
+}
+.btn-icon.btn-delete:hover {
+  color: #c82333;
+}
+
+
+/* --- ESTILOS DAS TABELAS --- */
 .table-container {
-  background-color: #ffffff;
+  background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  overflow: hidden; /* Garante que o radius seja aplicado */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border: 1px solid #e0e0e0;
+  
+  /* CORREÇÃO: Adiciona scroll horizontal em telas pequenas */
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px; /* Força a tabela a ser larga, ativando o scroll */
 }
 
 th, td {
-  padding: 16px 20px;
+  padding: 15px;
   text-align: left;
-  border-bottom: 1px solid #eef2f7;
-  font-size: 0.9rem;
+  border-bottom: 1px solid #eee;
+  /* CORREÇÃO: Impede a quebra de linha */
+  white-space: nowrap;
 }
 
-thead th {
-  background-color: #f9fafb;
-  color: #667085;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+th {
+  background-color: #f9f9f9;
+  font-size: 0.85rem;
   font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
 }
 
-tbody tr:last-child td {
+td {
+  font-size: 0.95rem;
+  color: var(--text-dark);
+}
+
+tr:last-child td {
   border-bottom: none;
 }
 
-tbody tr:hover {
-  background-color: #fcfcfd;
+tr:hover {
+  background-color: #f7faff;
 }
 
-td:last-child {
-  text-align: right;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+/* --- BADGES DE STATUS (Consultas) --- */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.status-pendente {
+  background-color: #fff8e1;
+  color: #ffa000;
+}
+.status-pago {
+  background-color: #e8f5e9;
+  color: #28a745;
+}
+.status-glosado {
+  background-color: #fbe9e7;
+  color: #dc3545;
 }
 
-/* --- Estilos dos Cards do Dashboard --- */
+
+/* --- CARDS DO DASHBOARD (VISÃO GERAL) --- */
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -134,114 +162,141 @@ td:last-child {
 .card {
   padding: 20px;
   border-radius: 8px;
-  color: white;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  background-size: cover;
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border: 1px solid #e0e0e0;
 }
 
 .card span {
   font-size: 0.9rem;
+  font-weight: 500;
   display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  z-index: 1;
-  position: relative;
+  margin-bottom: 8px;
 }
 
 .card strong {
-  font-size: 2.2rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  z-index: 1;
-  position: relative;
-  display: block;
 }
 
-/* Cores dos cards */
-.card-1 { background-color: #007bff; }
-.card-2 { background-color: #28a745; }
-.card-3 { background-color: #ffc107; color: #333; }
-.card-4 { background-color: #17a2b8; }
+/* CORREÇÃO: Cores dos cards (Tema Azul Gradiente) */
+.card.card-1 { 
+    background-color: var(--sidebar-hover); /* Azul escuro (hover da sidebar) */
+    color: var(--primary-hover); /* Texto azul escuro */
+    border-color: #cce0ff;
+}
+.card.card-2 {
+    background-color: var(--primary-color); /* Azul primário */
+    color: var(--primary-hover); /* CORREÇÃO: Texto azul escuro */
+    border-color: var(--primary-color);
+}
+.card.card-3 {
+    background-color: #e6f2ff; /* Azul bem claro */
+    color: var(--primary-hover);
+    border-color: var(--sidebar-hover);
+}
+.card.card-4 {
+    background-color: var(--sidebar-bg); /* Azul mais escuro (fundo da sidebar) */
+    color: var(--text-light);
+    border-color: var(--sidebar-bg);
+}
+/* FIM DA CORREÇÃO DOS CARDS */
 
-/* --- Estilos dos Gráficos do Dashboard --- */
+
+/* Gráficos do Dashboard */
 .charts-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 66% para o gráfico de barras, 33% para o de pizza */
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .chart {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border: 1px solid #e0e0e0;
 }
+
 .chart h4 {
-  margin-top: 0;
-  color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
 }
 
-.chart-large {
-  flex: 2 1 400px; /* Ocupa 2/3, min 400px */
-}
-.chart-small {
-  flex: 1 1 300px; /* Ocupa 1/3, min 300px */
+/* Responsividade dos Gráficos */
+@media (max-width: 992px) {
+    .charts-container {
+        grid-template-columns: 1fr; /* Gráficos empilhados em telas menores */
+    }
 }
 
-/* --- ESTILOS DE IMPRESSÃO (NOVO) --- */
+
+/* Estilos de Impressão (para Relatórios) */
 @media print {
-  /* Classe para esconder elementos na impressão */
-  .no-print {
-    display: none !important;
-  }
-
-  /* Esconde o layout principal */
-  .sidebar,
-  .layout-container .page-header {
-    display: none !important;
-  }
-
-  /* Expande o conteúdo principal */
-  .layout-container {
-    display: block !important;
+  body {
+    background-color: #fff !important;
   }
   
-  .main-content {
+  /* Esconde o menu lateral e o cabeçalho do layout na impressão */
+  .sidebar, .layout-header {
+    display: none !important;
+  }
+
+  /* Faz o container da página ocupar 100% */
+  .layout-main {
     width: 100% !important;
-    padding: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
+    overflow-y: visible !important;
   }
 
-  /* Remove sombras e fundos desnecessários */
-  .page-container,
-  .table-container,
-  .chart,
-  .summary-card {
+  .page-container {
+    padding: 0 !important;
+  }
+
+  /* Esconde os botões e filtros na impressão */
+  .page-header button, .filter-container, .profile-switcher {
+    display: none !important;
+  }
+
+  /* Garante que os elementos de relatório sejam visíveis */
+  .report-content, .table-container, .charts-container, .summary-cards {
+    display: block !important;
     box-shadow: none !important;
-    background-color: #fff !important;
-    border: 1px solid #ddd !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 20px 0 !important;
   }
 
-  .table-container {
-    page-break-inside: auto;
+  .report-header h1, .report-header h3 {
+    text-align: center;
+    color: #000;
   }
   
   table {
+    min-width: 100% !important;
+    border: 1px solid #ccc !important;
+  }
+  
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 8px;
+    color: #000;
+  }
+  
+  th {
+    background-color: #eee !important;
+  }
+
+  /* Previne que o gráfico de pizza encolha */
+  .chart-small {
     width: 100%;
-    border-collapse: collapse;
   }
 
-  tr {
+  /* Evita quebra de página dentro de elementos */
+  .card, tr, .chart {
     page-break-inside: avoid;
-    page-break-after: auto;
-  }
-
-  thead {
-    display: table-header-group; /* Garante que o header da tabela repita */
-  }
-
-  tbody {
-    display: table-row-group;
   }
 }
+

@@ -1,38 +1,37 @@
-/* Estilos da Sidebar para o protótipo */
+/* Estilos da Sidebar (Tema Azul) */
 .sidebar {
-    width: 280px;
-    background-color: #0d1b2a; /* Azul escuro do mockup */
-    color: white;
+    width: 300px; /* AJUSTE: Aumentado de 280px */
+    background-color: var(--sidebar-bg); /* Azul escuro do :root */
+    color: var(--text-light);
     padding: 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     height: 100vh;
+    
+    /* AJUSTE: Remove scroll e diminui espaçamentos */
+    /* overflow-y: auto; (Removido) */
 }
 
+/* --- LOGO HEADER --- */
 .sidebar-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px; /* AJUSTE: Diminuído de 30px */
+    padding-bottom: 15px; /* AJUSTE: Diminuído de 20px */
+    border-bottom: 1px solid var(--sidebar-hover);
 }
 
-.sidebar-title {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #4CAF50; /* Verde-água do logo */
-    margin-bottom: 5px;
+.sidebar-logo {
+    max-width: 100%;
+    height: auto;
 }
 
-.sidebar-subtitle {
-    font-size: 0.8rem;
-    color: #ccc;
-}
-
-/* O menu principal agora ocupa o espaço disponível */
+/* --- MENU PRINCIPAL --- */
 .sidebar-menu {
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-grow: 0; /* Não cresce por padrão */
+    flex-grow: 0; 
 }
 
 /* Faz o menu principal crescer, empurrando o footer para baixo */
@@ -40,17 +39,16 @@
     flex-grow: 1; 
 }
 
-
 .sidebar-menu li {
-    margin-bottom: 5px;
+    margin-bottom: 3px; /* AJUSTE: Diminuído de 5px */
 }
 
 .sidebar-menu a {
     display: flex;
     align-items: center;
-    gap: 15px; /* Espaço entre ícone e texto */
-    padding: 12px 15px;
-    color: white;
+    gap: 12px; /* AJUSTE: Diminuído de 15px */
+    padding: 10px 15px; /* AJUSTE: Diminuído de 12px */
+    color: var(--text-light);
     text-decoration: none;
     border-radius: 8px;
     transition: background-color 0.3s, color 0.3s;
@@ -58,39 +56,35 @@
 }
 
 .sidebar-menu a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--sidebar-hover);
 }
 
-/* Estilo para o link da página ativa, usado pelo NavLink */
+/* Estilo para o link da página ativa */
 .sidebar-menu a.active {
-    background-color: #4CAF50; /* Verde-água para destacar */
-    color: #0d1b2a; /* Texto escuro para contraste */
-    font-weight: bold;
+    background-color: var(--sidebar-active); /* Azul primário */
+    color: var(--text-light);
+    font-weight: 600;
 }
 
-/* Estilo para os links que ainda não foram implementados */
+/* Estilo para os links desabilitados */
 .sidebar-menu .disabled-link a {
-    color: #888; /* Cor cinza para indicar inatividade */
-    cursor: not-allowed; /* Muda o cursor do mouse para "não permitido" */
-    background-color: transparent !important; /* Remove qualquer cor de fundo */
+    color: #8899b3; /* Tom de cinza azulado */
+    cursor: not-allowed;
+    background-color: transparent !important;
 }
 
-/* Garante que o link desabilitado não mude de cor ao passar o mouse */
 .sidebar-menu .disabled-link a:hover {
-    color: #888;
+    color: #8899b3;
 }
 
-/* --- ATUALIZAÇÃO: Estilos do Footer da Sidebar --- */
-
+/* --- FOOTER (SAIR E SIMULADOR) --- */
 .sidebar-footer {
-    margin-top: auto; /* Garante que o footer fique embaixo */
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-
-    /* Adicionado flexbox para controlar o espaçamento */
+    margin-top: auto; 
+    padding-top: 15px; /* AJUSTE: Diminuído de 20px */
+    border-top: 1px solid var(--sidebar-hover);
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Espaçamento de 15px entre o "Sair" e o botão de simulação */
+    gap: 10px; /* AJUSTE: Diminuído de 15px */
 }
 
 /* Botão de simulação de perfil */
@@ -100,15 +94,14 @@
     justify-content: center;
     gap: 10px;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid #4CAF50;
+    background-color: var(--sidebar-hover);
+    color: var(--text-light);
+    border: 1px solid var(--sidebar-hover);
     padding: 10px;
     border-radius: 8px;
-    cursor: pointer;
     font-size: 0.9rem;
+    cursor: pointer;
     transition: background-color 0.3s;
-    /* O margin-bottom: 15px; foi removido e substituído pelo 'gap' no footer */
 }
 
 .profile-switcher:hover {
@@ -116,5 +109,6 @@
 }
 
 .profile-switcher strong {
-    color: #4CAF50; /* Verde-água */
+    font-weight: 700;
 }
+

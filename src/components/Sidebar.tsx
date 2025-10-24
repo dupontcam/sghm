@@ -6,6 +6,8 @@ import {
     FaHome, FaRegListAlt, FaUser, FaUserMd, FaUsers, 
     FaDollarSign, FaChartBar, FaDatabase, FaSignOutAlt 
 } from 'react-icons/fa';
+// Importa o logo
+import sghmLogo from '../assets/sghm_logo.png';
 
 const Sidebar: React.FC = () => {
     const { userProfile, toggleProfile } = useAuth();
@@ -13,8 +15,8 @@ const Sidebar: React.FC = () => {
     return (
         <nav className="sidebar">
             <div className="sidebar-header">
-                <h2 className="sidebar-title">SISTEMA DE GERENCIAMENTO<br/>DE HONORÁRIOS MÉDICOS</h2>
-                <span className="sidebar-subtitle">DESDE 2021</span>
+                {/* 1. Usando o Logo */}
+                <img src={sghmLogo} alt="SGHM Logo" className="sidebar-logo" />
             </div>
             
             {/* Menu Principal */}
@@ -27,20 +29,13 @@ const Sidebar: React.FC = () => {
                 {/* Itens que só aparecem para o Admin */}
                 {userProfile === 'Admin' && (
                     <>
-                        <li>
-                            <NavLink to="/financeiro"><FaDollarSign /> Controle Financeiro</NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/relatorios"><FaChartBar /> Relatórios</NavLink>
-                        </li>
-                        {/* 1. Ativando o link de Backup */}
-                        <li>
-                            <NavLink to="/backup"><FaDatabase /> Backup e Restauração</NavLink>
-                        </li>
+                        <li><NavLink to="/financeiro"><FaDollarSign /> Controle Financeiro</NavLink></li>
+                        <li><NavLink to="/relatorios"><FaChartBar /> Relatórios</NavLink></li>
+                        <li><NavLink to="/backup"><FaDatabase /> Backup e Restauração</NavLink></li>
                     </>
                 )}
 
-                {/* 2. Ativando o link de Perfil (visível para todos) */}
+                {/* Rota de Perfil para todos */}
                 <li>
                     <NavLink to="/perfil"><FaUser /> Perfil do Usuário</NavLink>
                 </li>
@@ -60,4 +55,3 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
-

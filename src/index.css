@@ -1,13 +1,41 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* Este ficheiro define as variáveis de cor globais
+  para o novo tema azul, baseado nas imagens fornecidas.
+*/
+
+:root {
+  /* Tema Azul (Baseado nas imagens) */
+  --primary-color: #007bff; /* Azul vibrante para botões e destaques */
+  --primary-dark: #0056b3;  /* Tom mais escuro para hover */
+  
+  --sidebar-bg: #041353;    /* Azul bem escuro para a sidebar (da imagem) */
+  --sidebar-hover: rgba(255, 255, 255, 0.1);
+  --sidebar-active: #007bff; /* Destaque do item de menu ativo */
+  
+  --text-light: #ffffff;
+  --text-dark: #333333;
+  --text-secondary: #555555;
+  
+  --bg-light-gray: #f4f7fa; /* Fundo principal da área de conteúdo */
+  --bg-white: #ffffff;
+  
+  --border-color: #dee2e6;
+  
+  --status-pending: #ffc107;
+  --status-paid: #28a745;
+  --status-glossed: #dc3545;
+  
+  --danger-color: #dc3545;
+  --danger-hover: #c82333;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-light-gray);
+  color: var(--text-dark);
 }
+
