@@ -1,46 +1,105 @@
-# Getting Started with Create React App
+# Sistema de Gestão de Honorários Médicos (SGHM)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este é um protótipo funcional de frontend para um **Sistema de Gestão de Honorários Médicos**, desenvolvido como parte do Projeto Integrador no UniCEUB.
 
-## Available Scripts
+O objetivo principal deste sistema é substituir o uso de planilhas de Excel para a gestão de honorários médicos, oferecendo uma solução mais segura, eficiente e com controle de acesso para gerenciar o faturamento, pagamentos, glosas e repasses a profissionais de saúde.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Funcionalidades Implementadas (Protótipo)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Autenticação:** Simulação de tela de Login.
+- **Controle de Acesso (RBAC):** Simulação de dois perfis de usuário (Administrador e Operador) com diferentes permissões de visualização e acesso.
+- **Dashboard:** Painel inicial com gráficos e estatísticas financeiras (visível apenas para Admin).
+- **CRUD Completo:** Gestão (Criar, Ler, Atualizar, Excluir) de:
+  - Médicos
+  - Pacientes
+  - Registro de Consultas
+- **Integridade Referencial:** O sistema impede a exclusão de médicos ou pacientes que estejam vinculados a consultas existentes.
+- **Feedback ao Usuário:** Modais de confirmação e alerta para ações críticas (como exclusões).
+- **Gestão Financeira (Admin):**
+  - **Controle Financeiro:** Tela para filtrar e analisar o status de todos os pagamentos (Pendente, Pago, Glosado).
+  - **Relatórios:** Geração de relatórios financeiros com base em filtros, com uma visualização otimizada para impressão/PDF.
+- **Telas Adicionais:**
+  - Perfil do Usuário.
+  - Backup e Restauração (Admin).
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+---
 
-### `npm test`
+## 🛠️ Tecnologias Utilizadas
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **React** (v18)
+- **TypeScript**
+- **React Router** (v6) para navegação.
+- **React Context API** para gerenciamento de estado global (Perfis de Usuário e Dados CRUD).
+- **Recharts** para a visualização de gráficos no Dashboard.
+- **React Icons** (v4) para a iconografia.
+- CSS moderno para estilização (Flexbox, Grid).
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🏁 Como Rodar o Projeto Localmente
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Siga estas instruções para configurar e executar o protótipo na sua máquina.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Pré-requisitos
 
-### `npm run eject`
+Antes de começar, você precisará ter os seguintes softwares instalados:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- [**Node.js**](https://nodejs.org/en/) (versão 16 ou superior)
+- [**npm**](https://www.npmjs.com/) (geralmente vem com o Node.js) ou [**Yarn**](https://yarnpkg.com/)
+- [**Git**](https://git-scm.com/)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 1. Clonar o Repositório
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Primeiro, clone o repositório do GitHub para a sua máquina local:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```bash
+git clone https://github.com/seu-usuario/nome-do-repositorio.git
+```
 
-## Learn More
+*(Substitua `https://github.com/seu-usuario/nome-do-repositorio.git` pelo URL real do seu repositório no GitHub)*
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 2. Acessar a Pasta do Projeto
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Navegue até o diretório que você acabou de clonar:
+
+```bash
+cd nome-do-repositorio
+```
+
+*(Substitua `nome-do-repositorio` pelo nome da pasta do seu projeto)*
+
+### 3. Instalar as Dependências
+
+Dentro da pasta do projeto, execute o seguinte comando para instalar todas as bibliotecas e pacotes necessários (React, Recharts, etc.) listados no arquivo `package.json`:
+
+```bash
+npm install
+```
+
+*(Se você usa Yarn, o comando é `yarn install`)*
+
+### 4. Executar o Protótipo
+
+Após a instalação ser concluída, inicie o servidor de desenvolvimento:
+
+```bash
+npm start
+```
+
+O comando irá iniciar o projeto e abrirá automaticamente uma aba no seu navegador padrão, apontando para **http://localhost:3000**.
+
+O protótipo estará 100% funcional neste endereço.
+
+---
+
+## ℹ️ Nota sobre o Protótipo
+
+- **Simulação de Perfil:** No rodapé do menu lateral (sidebar), você encontrará um botão para alternar entre os perfis **Admin** e **Operador** e testar as restrições de acesso.
+- **Persistência de Dados:** Os dados são gerenciados em memória (React Context) e são lidos do arquivo `src/data/mockData.ts`. As alterações (novos médicos, consultas, etc.) são interativas, mas **serão perdidas se você atualizar a página (F5)**, pois o sistema ainda não está conectado a um banco de dados.
+
+---
+
+Este projeto foi desenvolvido com foco em usabilidade, controle de acesso e simulação de um ambiente real de gestão médica.
+
