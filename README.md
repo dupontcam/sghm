@@ -103,3 +103,9 @@ O protótipo estará 100% funcional neste endereço.
 
 Este projeto foi desenvolvido com foco em usabilidade, controle de acesso e simulação de um ambiente real de gestão médica.
 
+## Participantes do Grupo:
+
+- CARLOS ALBERTO MORALES DUPONT
+- DANIEL TORRES SOUZA
+- DIONISMAR RODRIGUES
+- KARYNE SOARES SOUSA
