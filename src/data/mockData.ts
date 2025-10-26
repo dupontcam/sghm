@@ -47,7 +47,8 @@ export const mockMedicos: Medico[] = [
   { id: 3, nome: 'Dr. João Silva', email: 'joao@med.com', telefone: '(61) 9999-3333', crm: '67890-DF', 
     especialidade: 'Pediatria', cpf: '333.444.555-66' },
   { id: 4, nome: 'Dra. Maria Fernanda', email: 'maria@med.com', telefone: '(61) 9999-4444', crm: '98765-DF', especialidade: 'Ginecologia', cpf: '444.555.666-77' },
-  { id: 5, nome: 'Dr. Pedro Henrique', email: 'pedro@med.com', telefone: '(61) 9999-5555', crm: '13579-DF', especialidade: 'Ortopedia', cpf: '555.666.777-88' }
+  { id: 5, nome: 'Dr. Pedro Henrique', email: 'pedro@med.com', telefone: '(61) 9999-5555', crm: '13579-DF', especialidade: 'Ortopedia', cpf: '555.666.777-88' },
+  { id: 6, nome: 'Dra. Ana Paula', email: 'ana@med.com', telefone: '(61) 9999-6666', crm: '24680-DF', especialidade: 'Oftalmologia', cpf: '666.777.888-99' }
 ];
 
 export const mockPacientes: Paciente[] = [
