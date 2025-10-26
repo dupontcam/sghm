@@ -6,9 +6,10 @@ interface AlertModalProps {
   onClose: () => void;
   title: string;
   message: string;
+  isHtml?: boolean; // Nova prop opcional para indicar se a mensagem contém HTML
 }
 
-const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, title, message }) => {
+const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, title, message, isHtml = false }) => {
   if (!isOpen) {
     return null;
   }
@@ -21,7 +22,11 @@ const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, title, message
           <button className="feedback-modal-close" onClick={onClose}>&times;</button>
         </div>
         <div className="feedback-modal-body">
-          <p>{message}</p>
+          {isHtml ? (
+            <p dangerouslySetInnerHTML={{ __html: message }} />
+          ) : (
+            <p>{message}</p>
+          )}
         </div>
         <div className="feedback-modal-footer" style={{ justifyContent: 'flex-end' }}>
           {/* Apenas um botão de "OK" */}

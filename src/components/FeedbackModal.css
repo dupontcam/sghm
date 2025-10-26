@@ -55,6 +55,11 @@
     color: var(--text-secondary);
     line-height: 1.5;
     margin: 0;
+
+     /* --- CORREÇÃO AQUI --- */
+    /* white-space: pre-wrap; diz ao CSS para respeitar as quebras de linha (\n) 
+       e os espaços da string, mas ainda quebrar a linha (wrap) se o texto for muito longo. */
+    white-space: pre-wrap;
 }
 
 .feedback-modal-footer {
