@@ -10,6 +10,25 @@ const app = express();
 app.use(cors()); // Habilita o CORS para permitir requisições do frontend
 app.use(express.json()); // Habilita o servidor a entender JSON no corpo das requisições
 
+// Dentro de backend/server.js
+
+// ... (depois de app.use(express.json());)
+
+// --- Carregar Rotas ---
+const medicoRoutes = require('./routes/medicos');
+const pacienteRoutes = require('./routes/pacientes');
+const consultaRoutes = require('./routes/consultas');
+
+// --- Usar Rotas ---
+// Monta as rotas de médicos sob o prefixo /api/medicos
+app.use('/api/medicos', medicoRoutes); 
+// Monta as rotas de pacientes sob o prefixo /api/pacientes
+app.use('/api/pacientes', pacienteRoutes); 
+// Monta as rotas de consultas sob o prefixo /api/consultas
+app.use('/api/consultas', consultaRoutes); 
+
+// ... (antes de app.listen(PORT, ...))
+
 // 4. Definir a Porta
 // Usará a porta definida no .env ou 5000 como padrão
 const PORT = process.env.PORT || 5000; 
