@@ -52,8 +52,8 @@ app.use('/api/medicos', medicosRoutes);
 // Suas rotas placeholder (elas vão falhar se você não injetar o prisma nelas)
 // Recomendo comentar as duas linhas abaixo até você atualizar
 // 'pacientes.js' e 'consultas.js' com a lógica do Prisma.
-// app.use('/api/pacientes', pacientesRoutes);
-// app.use('/api/consultas', consultasRoutes);
+app.use('/api/pacientes', pacientesRoutes);
+app.use('/api/consultas', consultasRoutes);
 
 // --- Inicialização do Servidor ---
 
