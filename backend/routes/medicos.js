@@ -1,60 +1,30 @@
-// sghm/backend/routes/medicos.js
 const express = require('express');
 const router = express.Router();
+const { PrismaClient } = require('@prisma/client');
 
-// --- Rotas CRUD para /api/medicos ---
-// Note que não precisamos mais importar 'prisma' aqui,
-// pois ele está vindo via `req.prisma` (injetado no server.js)
+// Inicializa o Prisma Client
+// (Assumindo que está no mesmo nível do server.js que inicializa o prisma)
+const prisma = new PrismaClient();
 
-// GET /api/medicos (Listar todos os médicos)
-router.get('/', async (req, res) => {
-  const prisma = req.prisma;
-  
-  try {
-    const medicos = await prisma.medicos.findMany({
-         orderBy: {
-           nome_medico: 'asc'
-         }
-    });
-    res.json(medicos);
-  } catch (error) {
-    console.error("Erro ao buscar médicos:", error);
-    res.status(500).json({ error: 'Erro ao buscar médicos' });
-  }
-});
-
-// GET /api/medicos/:id (Buscar um médico por ID)
-router.get('/:id', async (req, res) => {
-  const prisma = req.prisma;
-  const { id } = req.params;
-
-  try {
-    const medico = await prisma.medicos.findUnique({
-      where: { id: parseInt(id) },
-    });
-    
-    if (!medico) {
-      return res.status(44).json({ error: 'Médico não encontrado' });
-    }
-    
-    res.json(medico);
-  } catch (error) {
-    console.error("Erro ao buscar médico:", error);
-    res.status(500).json({ error: 'Erro ao buscar médico' });
-  }
-});
-
-// POST /api/medicos (Criar um novo médico)
+/*
+ * ====================================================================
+ * ROTA: POST /api/medicos
+ * DESCRIÇÃO: Cria um novo médico
+ * ====================================================================
+ */
 router.post('/', async (req, res) => {
-  const prisma = req.prisma;
+  // Pega os dados do corpo da requisição (JSON)
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
 
-  // Validação simples (em um projeto real, usar Zod ou Joi)
+  // Validação básica (Exemplo: CRM é obrigatório)
   if (!nome_medico || !crm) {
-    return res.status(400).json({ error: 'Nome do médico e CRM são obrigatórios' });
+    return res.status(400).json({
+      error: 'Campos obrigatórios (nome_medico, crm) não foram preenchidos.',
+    });
   }
 
   try {
+    // Tenta criar o novo médico no banco de dados
     const novoMedico = await prisma.medicos.create({
       data: {
         nome_medico,
@@ -63,30 +33,88 @@ router.post('/', async (req, res) => {
         cnpj_cpf,
         email,
         telefone,
+        // As colunas 'criado_em' e 'atualizado_em' serão preenchidas
+        // automaticamente pelo banco de dados (DEFAULT NOW())
       },
     });
-    // Retorna 201 (Created) e o objeto criado
+
+    // Retorna o médico recém-criado com status 201 (Created)
     res.status(201).json(novoMedico);
   } catch (error) {
-    console.error("Erro ao criar médico:", error);
-    // Código 'P2002' é o erro de violação de constraint única (ex: CRM ou email duplicado)
-    if (error.code === 'P2002') {
-        const field = error.meta.target.join(', ');
-        return res.status(409).json({ error: `Já existe um médico com este ${field}.` });
+    console.error('Erro ao criar médico:', error);
+    // Tratamento de erro (ex: CRM duplicado)
+    if (error.code === 'P2002' && error.meta?.target?.includes('crm')) {
+      return res.status(409).json({ error: 'CRM já cadastrado.' });
     }
-    res.status(500).json({ error: 'Erro ao criar médico' });
+    // Erro genérico
+    res.status(500).json({ error: 'Erro interno ao criar médico.' });
   }
 });
 
-// PUT /api/medicos/:id (Atualizar um médico existente)
+/*
+ * ====================================================================
+ * ROTA: GET /api/medicos
+ * DESCRIÇÃO: Lista todos os médicos
+ * ====================================================================
+ */
+router.get('/', async (req, res) => {
+  try {
+    const medicos = await prisma.medicos.findMany({
+      // Opcional: ordenar por nome
+      orderBy: {
+        nome_medico: 'asc',
+      },
+    });
+    res.status(200).json(medicos);
+  } catch (error) {
+    console.error('Erro ao listar médicos:', error);
+    res.status(500).json({ error: 'Erro interno ao listar médicos.' });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: GET /api/medicos/:id
+ * DESCRIÇÃO: Busca um médico específico pelo ID
+ * ====================================================================
+ */
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const medico = await prisma.medicos.findUnique({
+      where: {
+        id: parseInt(id), // Converte o ID da URL para número
+      },
+    });
+
+    // Se o médico não for encontrado, retorna 404
+    if (!medico) {
+      return res.status(404).json({ error: 'Médico não encontrado.' });
+    }
+
+    res.status(200).json(medico);
+  } catch (error) {
+    console.error('Erro ao buscar médico:', error);
+    res.status(500).json({ error: 'Erro interno ao buscar médico.' });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: PUT /api/medicos/:id
+ * DESCRIÇÃO: Atualiza um médico existente
+ * ====================================================================
+ */
 router.put('/:id', async (req, res) => {
-  const prisma = req.prisma;
   const { id } = req.params;
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
 
   try {
     const medicoAtualizado = await prisma.medicos.update({
-      where: { id: parseInt(id) },
+      where: {
+        id: parseInt(id),
+      },
       data: {
         nome_medico,
         especialidade,
@@ -94,53 +122,64 @@ router.put('/:id', async (req, res) => {
         cnpj_cpf,
         email,
         telefone,
-        // O Prisma só atualiza campos que não são 'undefined'
+        atualizado_em: new Date(), // Atualiza o timestamp
       },
     });
-    res.json(medicoAtualizado);
+
+    res.status(200).json(medicoAtualizado);
   } catch (error) {
-    console.error("Erro ao atualizar médico:", error);
-     // Código 'P2025' é erro de "não encontrado" para atualização
+    console.error('Erro ao atualizar médico:', error);
+    // Erro P2025: O registro que você tentou atualizar não existe
     if (error.code === 'P2025') {
-        return res.status(404).json({ error: 'Médico não encontrado para atualização' });
+      return res.status(404).json({ error: 'Médico não encontrado.' });
     }
-    if (error.code === 'P2002') {
-        const field = error.meta.target.join(', ');
-        return res.status(409).json({ error: `Já existe um médico com este ${field}.` });
+    // Erro P2002: CRM duplicado ao tentar atualizar
+    if (error.code === 'P2002' && error.meta?.target?.includes('crm')) {
+      return res.status(409).json({ error: 'CRM já cadastrado em outro registro.' });
     }
-    res.status(500).json({ error: 'Erro ao atualizar médico' });
+    res.status(500).json({ error: 'Erro interno ao atualizar médico.' });
   }
 });
 
-// DELETE /api/medicos/:id (Deletar um médico)
+/*
+ * ====================================================================
+ * ROTA: DELETE /api/medicos/:id
+ * DESCRIÇÃO: Deleta um médico
+ * ====================================================================
+ */
 router.delete('/:id', async (req, res) => {
-  const prisma = req.prisma;
   const { id } = req.params;
 
   try {
     await prisma.medicos.delete({
-      where: { id: parseInt(id) },
+      where: {
+        id: parseInt(id),
+      },
     });
-    // Retorna 204 (No Content)
+
+    // Retorna 204 No Content (Sucesso, sem corpo de resposta)
     res.status(204).send();
   } catch (error) {
-    console.error("Erro ao deletar médico:", error);
-    
-    // Código 'P2025' é erro de "não encontrado" para deleção
+    console.error('Erro ao deletar médico:', error);
+
+    // Erro P2025: O registro que você tentou deletar não existe
     if (error.code === 'P2025') {
-        return res.status(404).json({ error: 'Médico não encontrado para deleção' });
+      return res.status(404).json({ error: 'Médico não encontrado.' });
     }
-    // Código 'P2003' é erro de violação de chave estrangeira (ex: médico com consultas)
+
+    // Erro P2003: Restrição de chave estrangeira (Integridade Referencial)
+    // Isso acontece se o médico estiver vinculado a uma consulta
     if (error.code === 'P2003') {
-        return res.status(409).json({ error: 'Não é possível deletar este médico pois ele está associado a consultas.' });
+      return res.status(400).json({
+        error:
+          'Não é possível excluir este médico, pois ele está associado a uma ou mais consultas.',
+      });
     }
-    res.status(500).json({ error: 'Erro ao deletar médico' });
+
+    res.status(500).json({ error: 'Erro interno ao deletar médico.' });
   }
 });
 
-
-module.exports = router;
-
-
 // Exporta o router para ser usado no server.js
 module.exports = router;
+
