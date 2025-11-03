@@ -1,50 +1,71 @@
-// 1. Importar as dependências
+// sghm/backend/server.js
+
+// Importações principais
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config(); // Carrega as variáveis do arquivo .env
+// IMPORTANTE: Carrega as variáveis do arquivo .env para 'process.env'
+require('dotenv').config(); 
 
-// 2. Criar a aplicação Express
+// Importa o cliente Prisma
+const { PrismaClient } = require('@prisma/client');
+// Cria uma instância ÚNICA do Prisma (Singleton).
+// Isso é uma boa prática para evitar múltiplas conexões
+const prisma = new PrismaClient();
+
+// Importação das rotas
+// Nossos arquivos de rotas vão esperar receber o 'prisma'
+const medicosRoutes = require('./routes/medicos');
+const pacientesRoutes = require('./routes/pacientes'); // Seu placeholder
+const consultasRoutes = require('./routes/consultas'); // Seu placeholder
+
+// Inicialização do App Express
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// 3. Configurar Middlewares
-app.use(cors()); // Habilita o CORS para permitir requisições do frontend
-app.use(express.json()); // Habilita o servidor a entender JSON no corpo das requisições
+// --- Middlewares ---
 
-// Dentro de backend/server.js
+// 1. CORS: Permite que o seu frontend React (ex: localhost:3000)
+// se comunique com este backend (localhost:5000)
+app.use(cors());
 
-// ... (depois de app.use(express.json());)
+// 2. JSON Parser: Permite que o Express entenda requisições com corpo (body) em JSON
+app.use(express.json());
 
-// --- Carregar Rotas ---
-const medicoRoutes = require('./routes/medicos');
-const pacienteRoutes = require('./routes/pacientes');
-const consultaRoutes = require('./routes/consultas');
-
-// --- Usar Rotas ---
-// Monta as rotas de médicos sob o prefixo /api/medicos
-app.use('/api/medicos', medicoRoutes); 
-// Monta as rotas de pacientes sob o prefixo /api/pacientes
-app.use('/api/pacientes', pacienteRoutes); 
-// Monta as rotas de consultas sob o prefixo /api/consultas
-app.use('/api/consultas', consultaRoutes); 
-
-// ... (antes de app.listen(PORT, ...))
-
-// 4. Definir a Porta
-// Usará a porta definida no .env ou 5000 como padrão
-const PORT = process.env.PORT || 5000; 
-
-// 5. Rota de Teste (Exemplo)
-// Quando alguém acessar a raiz "/", envia uma mensagem
-app.get('/', (req, res) => {
-  res.send('API do SGHM está rodando!');
+// 3. Middleware para injetar o Prisma no 'req'
+// Isso evita ter que importar o prisma em todos os arquivos de rota
+app.use((req, res, next) => {
+  req.prisma = prisma;
+  next();
 });
 
-// --- Futuras Configurações ---
-// TODO: Configurar a conexão com o banco de dados PostgreSQL (usando 'pg')
-// TODO: Importar e usar os arquivos de rotas (ex: app.use('/api/medicos', medicoRoutes);)
-// --- Fim das Futuras Configurações ---
+// --- Rotas da API ---
 
-// 6. Iniciar o Servidor
+// Rota de "saúde" básica para verificar se o servidor está online
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'API está online e conectada!' });
+});
+
+// Rotas principais da aplicação
+// Todo request para /api/medicos será gerenciado por 'medicosRoutes'
+app.use('/api/medicos', medicosRoutes);
+
+// Suas rotas placeholder (elas vão falhar se você não injetar o prisma nelas)
+// Recomendo comentar as duas linhas abaixo até você atualizar
+// 'pacientes.js' e 'consultas.js' com a lógica do Prisma.
+// app.use('/api/pacientes', pacientesRoutes);
+// app.use('/api/consultas', consultasRoutes);
+
+// --- Inicialização do Servidor ---
+
 app.listen(PORT, () => {
-  console.log(`Servidor backend rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`API disponível em http://localhost:${PORT}`);
 });
+
+// --- Gerenciamento de Desligamento (Boa Prática) ---
+// Garante que o Prisma feche a conexão com o banco ao desligar o app
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit();
+});
+
