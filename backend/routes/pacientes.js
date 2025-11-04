@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { authenticateToken } = require('../middleware/auth');
 
 // Inicializa o Prisma Client
 const prisma = new PrismaClient();
@@ -11,7 +12,7 @@ const prisma = new PrismaClient();
  * DESCRIÇÃO: Cria um novo paciente
  * ====================================================================
  */
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   const {
     nome_paciente,
     cpf,
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
  * DESCRIÇÃO: Lista todos os pacientes
  * ====================================================================
  */
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const pacientes = await prisma.pacientes.findMany({
       orderBy: {
@@ -81,7 +82,7 @@ router.get('/', async (req, res) => {
  * DESCRIÇÃO: Busca um paciente específico pelo ID
  * ====================================================================
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -108,7 +109,7 @@ router.get('/:id', async (req, res) => {
  * DESCRIÇÃO: Atualiza um paciente existente
  * ====================================================================
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const {
     nome_paciente,
@@ -158,7 +159,7 @@ router.put('/:id', async (req, res) => {
  * DESCRIÇÃO: Deleta um paciente
  * ====================================================================
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {

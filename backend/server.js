@@ -24,6 +24,10 @@ app.get('/api', (req, res) => {
   res.json({ message: 'API do SGHM está funcionando!' });
 });
 
+// Importa e usa as rotas de Autenticação (SEM middleware de auth)
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
 // Importa e usa as rotas de Médicos
 const medicosRoutes = require('./routes/medicos');
 app.use('/api/medicos', medicosRoutes);

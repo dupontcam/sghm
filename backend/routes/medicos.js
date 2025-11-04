@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { authenticateToken } = require('../middleware/auth');
 
 // Inicializa o Prisma Client
 // (Assumindo que está no mesmo nível do server.js que inicializa o prisma)
@@ -12,7 +13,7 @@ const prisma = new PrismaClient();
  * DESCRIÇÃO: Cria um novo médico
  * ====================================================================
  */
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   // Pega os dados do corpo da requisição (JSON)
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
 
@@ -57,7 +58,7 @@ router.post('/', async (req, res) => {
  * DESCRIÇÃO: Lista todos os médicos
  * ====================================================================
  */
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const medicos = await prisma.medicos.findMany({
       // Opcional: ordenar por nome
@@ -78,7 +79,7 @@ router.get('/', async (req, res) => {
  * DESCRIÇÃO: Busca um médico específico pelo ID
  * ====================================================================
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -106,7 +107,7 @@ router.get('/:id', async (req, res) => {
  * DESCRIÇÃO: Atualiza um médico existente
  * ====================================================================
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
 
@@ -147,7 +148,7 @@ router.put('/:id', async (req, res) => {
  * DESCRIÇÃO: Deleta um médico
  * ====================================================================
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {

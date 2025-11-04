@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { authenticateToken } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
 
@@ -11,7 +12,7 @@ const prisma = new PrismaClient();
  * QUERY PARAMS: medico_id, data_inicio, data_fim, status_pagamento
  * ====================================================================
  */
-router.get('/financeiro', async (req, res) => {
+router.get('/financeiro', authenticateToken, async (req, res) => {
   const { medico_id, data_inicio, data_fim, status_pagamento } = req.query;
 
   try {
@@ -109,7 +110,7 @@ router.get('/financeiro', async (req, res) => {
  * DESCRIÇÃO: Dados para o dashboard (estatísticas gerais)
  * ====================================================================
  */
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     // Estatísticas gerais
     const [
@@ -209,7 +210,7 @@ router.get('/dashboard', async (req, res) => {
  * QUERY PARAMS: data_inicio, data_fim
  * ====================================================================
  */
-router.get('/resumo-periodo', async (req, res) => {
+router.get('/resumo-periodo', authenticateToken, async (req, res) => {
   const { data_inicio, data_fim } = req.query;
 
   if (!data_inicio || !data_fim) {

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
+const { authenticateToken } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
 
@@ -10,7 +11,7 @@ const prisma = new PrismaClient();
  * DESCRIÇÃO: Estatísticas gerais rápidas para cards do dashboard
  * ====================================================================
  */
-router.get('/resumo', async (req, res) => {
+router.get('/resumo', authenticateToken, async (req, res) => {
   try {
     const [
       totalConsultas,
@@ -81,7 +82,7 @@ router.get('/resumo', async (req, res) => {
  * DESCRIÇÃO: Top 5 médicos por faturamento
  * ====================================================================
  */
-router.get('/medicos-top', async (req, res) => {
+router.get('/medicos-top', authenticateToken, async (req, res) => {
   try {
     const topMedicos = await prisma.consultas.groupBy({
       by: ['medico_id'],
@@ -138,7 +139,7 @@ router.get('/medicos-top', async (req, res) => {
  * DESCRIÇÃO: Faturamento dos últimos 12 meses
  * ====================================================================
  */
-router.get('/faturamento-mensal', async (req, res) => {
+router.get('/faturamento-mensal', authenticateToken, async (req, res) => {
   try {
     const umAnoAtras = new Date();
     umAnoAtras.setFullYear(umAnoAtras.getFullYear() - 1);
