@@ -86,11 +86,44 @@ router.post('/', async (req, res) => {
  * ====================================================================
  * ROTA: GET /api/consultas
  * DESCRIÇÃO: Lista todas as consultas com dados do médico e paciente
+ * QUERY PARAMS: medico_id, paciente_id, status_pagamento, data_inicio, data_fim
  * ====================================================================
  */
 router.get('/', async (req, res) => {
+  const { medico_id, paciente_id, status_pagamento, data_inicio, data_fim } = req.query;
+
   try {
+    // Construir filtros dinâmicos
+    const where = {};
+
+    if (medico_id && medico_id !== '0') {
+      where.medico_id = parseInt(medico_id);
+    }
+
+    if (paciente_id && paciente_id !== '0') {
+      where.paciente_id = parseInt(paciente_id);
+    }
+
+    if (status_pagamento && status_pagamento !== '') {
+      where.status_pagamento = status_pagamento;
+    }
+
+    if (data_inicio) {
+      where.data_consulta = {
+        ...where.data_consulta,
+        gte: new Date(data_inicio)
+      };
+    }
+
+    if (data_fim) {
+      where.data_consulta = {
+        ...where.data_consulta,
+        lte: new Date(data_fim)
+      };
+    }
+
     const consultas = await prisma.consultas.findMany({
+      where,
       orderBy: {
         data_consulta: 'desc', // Mais recentes primeiro
       },
@@ -101,10 +134,26 @@ router.get('/', async (req, res) => {
         usuario_alteracao: true,
       },
     });
-    res.status(200).json(consultas);
+    
+    res.status(200).json({
+      success: true,
+      data: consultas,
+      total: consultas.length,
+      filtros: {
+        medico_id: medico_id || null,
+        paciente_id: paciente_id || null,
+        status_pagamento: status_pagamento || null,
+        data_inicio: data_inicio || null,
+        data_fim: data_fim || null
+      }
+    });
   } catch (error) {
     console.error('Erro ao listar consultas:', error);
-    res.status(500).json({ error: 'Erro interno ao listar consultas.' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Erro interno ao listar consultas.',
+      details: error.message 
+    });
   }
 });
 
