@@ -1,11 +1,5 @@
 -- Script de criação das tabelas para o projeto SGHM
 -- Compatível com PostgreSQL
--- language: postgresql
-
--- Criar ENUMs primeiro
-CREATE TYPE role_usuario AS ENUM ('ADMIN', 'OPERADOR');
-CREATE TYPE tipo_pagamento AS ENUM ('PARTICULAR', 'PLANO_SAUDE');
-CREATE TYPE status_pagamento AS ENUM ('PENDENTE', 'PAGO', 'GLOSA');
 
 -- Tabela 1: Usuários do Sistema (Admin, Operador)
 CREATE TABLE usuarios (

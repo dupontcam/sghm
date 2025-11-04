@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.sql": "postgresql",
+        "schema.sql": "postgresql"
+    },
+    "sql.dialect": "postgresql",
+    "sqltools.useNodeRuntime": true,
+    "mssql.enableSqlLint": false
+}
