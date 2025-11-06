@@ -112,22 +112,28 @@ router.put('/:id', authenticateToken, async (req, res) => {
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
 
   try {
+    // Construir objeto de dados apenas com campos não undefined
+    const updateData = { updated_at: new Date() };
+    
+    if (nome_medico !== undefined) updateData.nome_medico = nome_medico;
+    if (especialidade !== undefined) updateData.especialidade = especialidade;
+    if (crm !== undefined) updateData.crm = crm;
+    if (cnpj_cpf !== undefined) updateData.cnpj_cpf = cnpj_cpf;
+    if (email !== undefined) updateData.email = email;
+    if (telefone !== undefined) updateData.telefone = telefone;
+
     const medicoAtualizado = await prisma.medicos.update({
       where: {
         id: parseInt(id),
       },
-      data: {
-        nome_medico,
-        especialidade,
-        crm,
-        cnpj_cpf,
-        email,
-        telefone,
-        atualizado_em: new Date(), // Atualiza o timestamp
-      },
+      data: updateData,
     });
 
-    res.status(200).json(medicoAtualizado);
+    res.status(200).json({
+      success: true,
+      message: 'Médico atualizado com sucesso',
+      data: medicoAtualizado
+    });
   } catch (error) {
     console.error('Erro ao atualizar médico:', error);
     // Erro P2025: O registro que você tentou atualizar não existe

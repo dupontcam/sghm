@@ -79,11 +79,16 @@ router.get('/resumo', authenticateToken, async (req, res) => {
 /*
  * ====================================================================
  * ROTA: GET /api/estatisticas/medicos-top
- * DESCRIÇÃO: Top 5 médicos por faturamento
+ * DESCRIÇÃO: Top médicos por número de consultas (com parâmetro limit opcional)
  * ====================================================================
  */
 router.get('/medicos-top', authenticateToken, async (req, res) => {
   try {
+    // Pega o parâmetro limit da query string (padrão: 5)
+    const limit = parseInt(req.query.limit) || 5;
+    
+    console.log(`[API] Buscando top ${limit} médicos por número de consultas`);
+    
     const topMedicos = await prisma.consultas.groupBy({
       by: ['medico_id'],
       _sum: {
@@ -91,12 +96,14 @@ router.get('/medicos-top', authenticateToken, async (req, res) => {
         valor_recebido: true
       },
       _count: true,
-      orderBy: {
-        _sum: {
-          valor_bruto: 'desc'
+      orderBy: [
+        {
+          _count: {
+            medico_id: 'desc'  // Ordenar pela contagem de medico_id
+          }
         }
-      },
-      take: 5
+      ],
+      take: limit
     });
 
     // Buscar nomes dos médicos
@@ -111,16 +118,27 @@ router.get('/medicos-top', authenticateToken, async (req, res) => {
           medico_id: item.medico_id,
           nome: medico?.nome_medico || 'Não encontrado',
           especialidade: medico?.especialidade || 'N/A',
-          total_consultas: item._count,
+          total_consultas: item._count,  // Quando _count: true, retorna um número
           valor_faturado: parseFloat(item._sum.valor_bruto || 0),
-          valor_recebido: parseFloat(item._sum.valor_recebido || 0)
+          valor_recebido: parseFloat(item._sum.valor_recebido || 0),
+          posicao: null  // Será preenchido depois
         };
       })
     );
 
+    // Adicionar posição no ranking
+    const medicosComPosicao = medicosComNomes.map((medico, index) => ({
+      ...medico,
+      posicao: index + 1
+    }));
+
+    console.log(`[API] Retornando top ${medicosComPosicao.length} médicos`);
+
     res.status(200).json({
       success: true,
-      data: medicosComNomes
+      data: medicosComPosicao,
+      total_retornados: medicosComPosicao.length,
+      limite_solicitado: limit
     });
 
   } catch (error) {
@@ -128,6 +146,81 @@ router.get('/medicos-top', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Erro interno ao buscar top médicos.',
+      details: error.message
+    });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: GET /api/estatisticas/medicos-faturamento
+ * DESCRIÇÃO: Top médicos por faturamento (valor_bruto)
+ * ====================================================================
+ */
+router.get('/medicos-faturamento', authenticateToken, async (req, res) => {
+  try {
+    // Pega o parâmetro limit da query string (padrão: 5)
+    const limit = parseInt(req.query.limit) || 5;
+    
+    console.log(`[API] Buscando top ${limit} médicos por faturamento`);
+    
+    const topMedicos = await prisma.consultas.groupBy({
+      by: ['medico_id'],
+      _sum: {
+        valor_bruto: true,
+        valor_recebido: true
+      },
+      _count: true,
+      orderBy: [
+        {
+          _sum: {
+            valor_bruto: 'desc'  // Ordenar por faturamento (descendente)
+          }
+        }
+      ],
+      take: limit
+    });
+
+    // Buscar nomes dos médicos
+    const medicosComNomes = await Promise.all(
+      topMedicos.map(async (item) => {
+        const medico = await prisma.medicos.findUnique({
+          where: { id: item.medico_id },
+          select: { nome_medico: true, especialidade: true }
+        });
+
+        return {
+          medico_id: item.medico_id,
+          nome: medico?.nome_medico || 'Não encontrado',
+          especialidade: medico?.especialidade || 'N/A',
+          total_consultas: item._count,  // Quando _count: true, retorna um número
+          valor_faturado: parseFloat(item._sum.valor_bruto || 0),
+          valor_recebido: parseFloat(item._sum.valor_recebido || 0),
+          posicao: null
+        };
+      })
+    );
+
+    // Adicionar posição no ranking
+    const medicosComPosicao = medicosComNomes.map((medico, index) => ({
+      ...medico,
+      posicao: index + 1
+    }));
+
+    console.log(`[API] Retornando top ${medicosComPosicao.length} médicos por faturamento`);
+
+    res.status(200).json({
+      success: true,
+      data: medicosComPosicao,
+      total_retornados: medicosComPosicao.length,
+      limite_solicitado: limit
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar top médicos por faturamento:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao buscar top médicos por faturamento.',
       details: error.message
     });
   }

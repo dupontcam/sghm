@@ -16,22 +16,25 @@ router.post('/', authenticateToken, async (req, res) => {
   const {
     medico_id,
     paciente_id,
+    usuario_inclusao_id,
+    usuario_alteracao_id,
     data_consulta,
     tipo_pagamento,
     status_pagamento,
     valor_bruto,
-    valor_pago, // Nome antigo (vem do body)
-    glosa_valor, // Nome antigo (vem do body)
+    valor_recebido,
+    valor_glosa,
+    data_recebimento,
     consultorio,
     protocolo,
     descricao_procedimento,
   } = req.body;
 
   // Validação básica (Campos obrigatórios)
-  if (!medico_id || !paciente_id || !data_consulta || !valor_bruto || !protocolo) {
+  if (!medico_id || !paciente_id || !data_consulta || !valor_bruto || !protocolo || !usuario_inclusao_id || !usuario_alteracao_id) {
     return res.status(400).json({
       error:
-        'Campos obrigatórios (medico_id, paciente_id, data_consulta, valor_bruto, protocolo) não foram preenchidos.',
+        'Campos obrigatórios (medico_id, paciente_id, usuario_inclusao_id, usuario_alteracao_id, data_consulta, valor_bruto, protocolo) não foram preenchidos.',
     });
   }
 
@@ -42,9 +45,9 @@ router.post('/', authenticateToken, async (req, res) => {
         medico: { connect: { id: parseInt(medico_id) } },
         paciente: { connect: { id: parseInt(paciente_id) } },
 
-        // Conecta as relações de Usuário (singular)
-        usuario_inclusao: { connect: { id: 1 } },
-        usuario_alteracao: { connect: { id: 1 } }, // Workaround para NOT NULL
+        // Conecta as relações de Usuário
+        usuario_inclusao: { connect: { id: parseInt(usuario_inclusao_id) } },
+        usuario_alteracao: { connect: { id: parseInt(usuario_alteracao_id) } },
 
         // Outros campos da consulta
         data_consulta: new Date(data_consulta),
@@ -52,10 +55,10 @@ router.post('/', authenticateToken, async (req, res) => {
         status_pagamento,
         valor_bruto: parseFloat(valor_bruto),
 
-        // CORREÇÃO DE NOMENCLATURA:
-        valor_recebido: valor_pago ? parseFloat(valor_pago) : null, // Mapeia valor_pago -> valor_recebido
-        valor_glosa: glosa_valor ? parseFloat(glosa_valor) : null, // Mapeia glosa_valor -> valor_glosa
-        // data_recebimento (só no PUT)
+        // Campos opcionais de pagamento
+        valor_recebido: valor_recebido ? parseFloat(valor_recebido) : null,
+        valor_glosa: valor_glosa ? parseFloat(valor_glosa) : null,
+        data_recebimento: data_recebimento ? new Date(data_recebimento) : null,
 
         consultorio,
         protocolo,
