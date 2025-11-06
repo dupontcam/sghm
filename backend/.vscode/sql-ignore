@@ -1,0 +1,14 @@
+# Configuração para ignorar problemas específicos em arquivos SQL
+# Este arquivo ajuda o VS Code a entender que certos "erros" são normais em PostgreSQL
+
+# Ignorar warnings sobre:
+schema.sql
+*.sql
+*.psql
+*.postgresql
+
+# Tipos de problemas a ignorar:
+# - CREATE TYPE (ENUMs do PostgreSQL)
+# - SERIAL (tipo específico do PostgreSQL) 
+# - Sintaxe específica do PostgreSQL
+# - Comandos DDL avançados

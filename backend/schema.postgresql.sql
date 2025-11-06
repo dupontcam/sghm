@@ -1,12 +1,6 @@
 -- Script de criação das tabelas para o projeto SGHM
--- Sistema de Gestão de Honorários Médicos
--- Compatível com PostgreSQL 16+
--- @language: postgresql
--- @dialect: postgresql
--- @version: 2.0
-
--- Configurações para o VS Code
--- sqlfluff:off
+-- Compatível com PostgreSQL
+-- language: postgresql
 
 -- Criar ENUMs primeiro
 CREATE TYPE role_usuario AS ENUM ('ADMIN', 'OPERADOR');

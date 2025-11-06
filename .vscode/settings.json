@@ -1,9 +1,48 @@
 {
+    // Configurações para arquivos SQL PostgreSQL
     "files.associations": {
         "*.sql": "postgresql",
+        "*.psql": "postgresql", 
+        "*.postgresql": "postgresql",
         "schema.sql": "postgresql"
     },
+    
+    // Configurar dialeto SQL
     "sql.dialect": "postgresql",
+    "sql.format.keywordCase": "upper",
+    "sql.format.identifierCase": "lower",
+    "sql.validate": false,
+    
+    // Configurações para SQLTools
     "sqltools.useNodeRuntime": true,
-    "mssql.enableSqlLint": false
+    "sqltools.connections": [
+        {
+            "name": "SGHM PostgreSQL",
+            "driver": "PostgreSQL",
+            "server": "localhost",
+            "port": 5432,
+            "database": "sghm_db",
+            "username": "sghm",
+            "password": "sghm123"
+        }
+    ],
+    
+    // Desabilitar linters conflitantes
+    "mssql.enableSqlLint": false,
+    
+    // Configuração por tipo de arquivo
+    "[sql]": {
+        "editor.formatOnSave": false
+    },
+    
+    "[postgresql]": {
+        "editor.formatOnSave": false
+    },
+    
+    // Configurações de problemas
+    "problems.decorations.enabled": true,
+    "problems.showCurrentInStatus": true,
+    
+    // Desabilitar validação de esquemas para arquivos SQL
+    "sqltools.disableRollbackConfirmation": true
 }
