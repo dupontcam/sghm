@@ -1,6 +1,6 @@
-# 🏥 SGHM Backend - Sistema de Gestão Hospitalar
+# 🏥 SGHM Backend - Sistema de Gestão de Honorários Médicos
 
-Sistema completo de gestão hospitalar com API RESTful, autenticação JWT e relatórios financeiros.
+Sistema completo de gestão de honorários médicos com API RESTful, autenticação JWT e relatórios financeiros.
 
 ## 🚀 Início Rápido
 

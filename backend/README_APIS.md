@@ -1,4 +1,4 @@
-# � API Completa SGHM Backend - Sistema de Gestão Hospitalar
+# 🔐 API Completa SGHM Backend - Sistema de Gestão de Honorários Médicos
 
 Esta documentação descreve **todas as APIs implementadas** incluindo autenticação JWT, relatórios financeiros, estatísticas e CRUD completo do sistema SGHM.
 

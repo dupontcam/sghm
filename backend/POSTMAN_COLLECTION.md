@@ -1,6 +1,6 @@
 # 🧪 SGHM Backend - Postman Collection
 
-Collection completa para testar todos os endpoints da API SGHM.
+Collection completa para testar todos os endpoints da API SGHM - Sistema de Gestão de Honorários Médicos.
 
 ## 📁 Como Importar no Postman
 
@@ -14,7 +14,7 @@ Collection completa para testar todos os endpoints da API SGHM.
 {
   "info": {
     "name": "SGHM Backend API",
-    "description": "API completa do Sistema de Gestão Hospitalar com JWT",
+    "description": "API completa do Sistema de Gestão de Honorários Médicos com JWT",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
