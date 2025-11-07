@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireAdmin, requireAuth } = require('../middleware/auth');
 
 const prisma = new PrismaClient();
 
@@ -373,6 +373,397 @@ router.post('/logout', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor'
+    });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: POST /api/auth/create-user
+ * DESCRIÇÃO: Permite ao Admin criar novos usuários (Operadores)
+ * ACESSO: Apenas ADMIN
+ * ====================================================================
+ */
+router.post('/create-user', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { email, senha, nome_completo, role = 'OPERADOR' } = req.body;
+
+    // Validação de entrada
+    if (!email || !senha || !nome_completo) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email, senha e nome completo são obrigatórios',
+        code: 'MISSING_FIELDS'
+      });
+    }
+
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Formato de email inválido',
+        code: 'INVALID_EMAIL'
+      });
+    }
+
+    // Validar força da senha
+    if (senha.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Senha deve ter pelo menos 6 caracteres',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Validar role
+    if (!['ADMIN', 'OPERADOR'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Role deve ser ADMIN ou OPERADOR',
+        code: 'INVALID_ROLE'
+      });
+    }
+
+    // Verificar se email já existe
+    const usuarioExistente = await prisma.usuarios.findUnique({
+      where: { email }
+    });
+
+    if (usuarioExistente) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email já está sendo usado por outro usuário',
+        code: 'EMAIL_ALREADY_EXISTS'
+      });
+    }
+
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(senha, 12);
+
+    // Criar usuário
+    const novoUsuario = await prisma.usuarios.create({
+      data: {
+        email,
+        senha: hashedPassword,
+        nome_completo,
+        role
+      },
+      select: {
+        id: true,
+        email: true,
+        nome_completo: true,
+        role: true,
+        created_at: true
+      }
+    });
+
+    console.log(`[AUTH] Admin ${req.user.email} criou usuário: ${email} (${role})`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuário criado com sucesso',
+      user: novoUsuario,
+      created_by: {
+        id: req.user.id,
+        email: req.user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar usuário:', error);
+    
+    if (error.code === 'P2002') {
+      return res.status(409).json({
+        success: false,
+        error: 'Email já está sendo usado',
+        code: 'DUPLICATE_EMAIL'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao criar usuário',
+      details: error.message
+    });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: PUT /api/auth/change-password
+ * DESCRIÇÃO: Permite ao usuário alterar sua própria senha
+ * ACESSO: ADMIN e OPERADOR (apenas própria conta)
+ * ====================================================================
+ */
+router.put('/change-password', authenticateToken, requireAuth, async (req, res) => {
+  try {
+    const { senha_atual, nova_senha } = req.body;
+
+    // Validação de entrada
+    if (!senha_atual || !nova_senha) {
+      return res.status(400).json({
+        success: false,
+        error: 'Senha atual e nova senha são obrigatórias',
+        code: 'MISSING_PASSWORDS'
+      });
+    }
+
+    // Validar força da nova senha
+    if (nova_senha.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nova senha deve ter pelo menos 6 caracteres',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Buscar usuário atual com senha
+    const usuario = await prisma.usuarios.findUnique({
+      where: { id: req.user.id }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuário não encontrado',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Verificar senha atual
+    const senhaValida = await bcrypt.compare(senha_atual, usuario.senha);
+    if (!senhaValida) {
+      return res.status(400).json({
+        success: false,
+        error: 'Senha atual incorreta',
+        code: 'INVALID_CURRENT_PASSWORD'
+      });
+    }
+
+    // Verificar se nova senha é diferente da atual
+    const mesmaSenha = await bcrypt.compare(nova_senha, usuario.senha);
+    if (mesmaSenha) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nova senha deve ser diferente da senha atual',
+        code: 'SAME_PASSWORD'
+      });
+    }
+
+    // Hash da nova senha
+    const hashedNewPassword = await bcrypt.hash(nova_senha, 12);
+
+    // Atualizar senha
+    await prisma.usuarios.update({
+      where: { id: req.user.id },
+      data: { 
+        senha: hashedNewPassword,
+        updated_at: new Date()
+      }
+    });
+
+    console.log(`[AUTH] Usuário ${req.user.email} alterou sua senha`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Senha alterada com sucesso',
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        nome_completo: req.user.nome_completo
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao alterar senha',
+      details: error.message
+    });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: GET /api/auth/users
+ * DESCRIÇÃO: Lista todos os usuários (Admin only)
+ * ACESSO: Apenas ADMIN
+ * ====================================================================
+ */
+router.get('/users', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const usuarios = await prisma.usuarios.findMany({
+      select: {
+        id: true,
+        email: true,
+        nome_completo: true,
+        role: true,
+        created_at: true,
+        updated_at: true
+      },
+      orderBy: [
+        { role: 'asc' },
+        { nome_completo: 'asc' }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: usuarios,
+      total: usuarios.length,
+      requested_by: {
+        id: req.user.id,
+        email: req.user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao listar usuários:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao listar usuários',
+      details: error.message
+    });
+  }
+});
+
+/*
+ * ====================================================================
+ * ROTA: PUT /api/auth/users/:id
+ * DESCRIÇÃO: Permite ao Admin atualizar dados de usuários
+ * ACESSO: Apenas ADMIN
+ * ====================================================================
+ */
+router.put('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, nome_completo, role } = req.body;
+
+    // Validar ID
+    const userId = parseInt(id);
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID de usuário inválido',
+        code: 'INVALID_USER_ID'
+      });
+    }
+
+    // Verificar se usuário existe
+    const usuarioExistente = await prisma.usuarios.findUnique({
+      where: { id: userId }
+    });
+
+    if (!usuarioExistente) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuário não encontrado',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Preparar dados para atualização
+    const dadosAtualizacao = {};
+
+    if (email) {
+      // Validar formato do email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Formato de email inválido',
+          code: 'INVALID_EMAIL'
+        });
+      }
+
+      // Verificar se email já está sendo usado por outro usuário
+      const emailEmUso = await prisma.usuarios.findFirst({
+        where: {
+          email,
+          id: { not: userId }
+        }
+      });
+
+      if (emailEmUso) {
+        return res.status(409).json({
+          success: false,
+          error: 'Email já está sendo usado por outro usuário',
+          code: 'EMAIL_ALREADY_EXISTS'
+        });
+      }
+
+      dadosAtualizacao.email = email;
+    }
+
+    if (nome_completo) {
+      dadosAtualizacao.nome_completo = nome_completo;
+    }
+
+    if (role) {
+      if (!['ADMIN', 'OPERADOR'].includes(role)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Role deve ser ADMIN ou OPERADOR',
+          code: 'INVALID_ROLE'
+        });
+      }
+      dadosAtualizacao.role = role;
+    }
+
+    // Não permitir que admin remova seu próprio role de admin
+    if (userId === req.user.id && role === 'OPERADOR') {
+      return res.status(400).json({
+        success: false,
+        error: 'Não é possível remover seu próprio acesso de administrador',
+        code: 'CANNOT_DEMOTE_SELF'
+      });
+    }
+
+    dadosAtualizacao.updated_at = new Date();
+
+    // Atualizar usuário
+    const usuarioAtualizado = await prisma.usuarios.update({
+      where: { id: userId },
+      data: dadosAtualizacao,
+      select: {
+        id: true,
+        email: true,
+        nome_completo: true,
+        role: true,
+        created_at: true,
+        updated_at: true
+      }
+    });
+
+    console.log(`[AUTH] Admin ${req.user.email} atualizou usuário ID ${userId}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Usuário atualizado com sucesso',
+      user: usuarioAtualizado,
+      updated_by: {
+        id: req.user.id,
+        email: req.user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    
+    if (error.code === 'P2002') {
+      return res.status(409).json({
+        success: false,
+        error: 'Email já está sendo usado',
+        code: 'DUPLICATE_EMAIL'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao atualizar usuário',
+      details: error.message
     });
   }
 });

@@ -139,6 +139,98 @@ Collection completa para testar todos os endpoints da API SGHM - Sistema de Gest
               "path": ["auth", "logout"]
             }
           }
+        },
+        {
+          "name": "Criar Usuário (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"operador.novo@sghm.com\",\n  \"senha\": \"operador123\",\n  \"nome_completo\": \"João Silva Operador\",\n  \"role\": \"OPERADOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/auth/create-user",
+              "host": ["{{baseURL}}"],
+              "path": ["auth", "create-user"]
+            }
+          }
+        },
+        {
+          "name": "Listar Usuários (Admin Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/auth/users",
+              "host": ["{{baseURL}}"],
+              "path": ["auth", "users"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Usuário (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"novo.email@sghm.com\",\n  \"nome_completo\": \"Nome Atualizado\",\n  \"role\": \"OPERADOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/auth/users/2",
+              "host": ["{{baseURL}}"],
+              "path": ["auth", "users", "2"]
+            }
+          }
+        },
+        {
+          "name": "Alterar Própria Senha",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senha_atual\": \"senhaAtual123\",\n  \"nova_senha\": \"novaSenhaSegura456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/auth/change-password",
+              "host": ["{{baseURL}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
         }
       ]
     },

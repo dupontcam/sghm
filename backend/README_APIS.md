@@ -64,18 +64,47 @@ POST /api/auth/logout
 Authorization: Bearer {access_token}
 ```
 
-### **👥 Registro de Usuário**
+### **� Gestão de Usuários (Admin)**
+
+#### **Criar Usuário (Admin Only)**
 ```http
-POST /api/auth/register
+POST /api/auth/create-user
+Authorization: Bearer {admin_token}
 ```
 
 **Body (JSON):**
 ```json
 {
-  "email": "novo@sghm.com",
-  "password": "senha123",
-  "nome": "Novo Usuário",
-  "role": "user"
+  "email": "operador@sghm.com",
+  "senha": "senha123",
+  "nome_completo": "José Silva Operador",
+  "role": "OPERADOR"
+}
+```
+
+#### **Listar Usuários (Admin Only)**
+```http
+GET /api/auth/users
+Authorization: Bearer {admin_token}
+```
+
+#### **Atualizar Usuário (Admin Only)**
+```http
+PUT /api/auth/users/{id}
+Authorization: Bearer {admin_token}
+```
+
+#### **Alterar Própria Senha (Todos)**
+```http
+PUT /api/auth/change-password
+Authorization: Bearer {access_token}
+```
+
+**Body (JSON):**
+```json
+{
+  "senha_atual": "senhaAtual123",
+  "nova_senha": "novaSenha456"
 }
 ```
 
