@@ -6,23 +6,29 @@ O objetivo principal deste sistema é substituir o uso de planilhas de Excel par
 
 ---
 
-## 🚀 Funcionalidades Implementadas (Protótipo)
+## � **FUNCIONALIDADES V3.0**
 
-- **Autenticação:** Simulação de tela de Login.
-- **Controle de Acesso (RBAC):** Simulação de dois perfis de usuário (Administrador e Operador) com diferentes permissões de visualização e acesso.
-- **Dashboard:** Painel inicial com gráficos e estatísticas financeiras (visível apenas para Admin).
-- **CRUD Completo:** Gestão (Criar, Ler, Atualizar, Excluir) de:
-  - Médicos
-  - Pacientes
-  - Registro de Consultas
-- **Integridade Referencial:** O sistema impede a exclusão de médicos ou pacientes que estejam vinculados a consultas existentes.
-- **Feedback ao Usuário:** Modais de confirmação e alerta para ações críticas (como exclusões).
-- **Gestão Financeira (Admin):**
-  - **Controle Financeiro:** Tela para filtrar e analisar o status de todos os pagamentos (Pendente, Pago, Glosado).
-  - **Relatórios:** Geração de relatórios financeiros com base em filtros, com uma visualização otimizada para impressão/PDF.
-- **Telas Adicionais:**
-  - Perfil do Usuário.
-  - Backup e Restauração (Admin).
+### **🏥 Gestão de Planos de Saúde**
+- ✅ **CRUD Completo:** Criar, listar, editar, excluir planos
+- ✅ **6 Planos Configurados:** Unimed, Bradesco, Amil, SUS, SulAmérica, Particular
+- ✅ **Tipos de Plano:** PUBLICO, PRIVADO, COOPERATIVA, SEGURADORA
+- ✅ **Estatísticas:** Total de honorários e consultas por plano
+- ✅ **Filtros Avançados:** Por nome, tipo, ativo/inativo
+
+### **💰 Gestão de Honorários Médicos**
+- ✅ **Dashboard Financeiro:** Estatísticas dos últimos 30 dias
+- ✅ **Controle de Status:** PENDENTE → ENVIADO → PAGO/GLOSADO  
+- ✅ **Gestão de Glosas:** Motivos detalhados e controle de perdas
+- ✅ **Relatórios Médicos:** Individuais por período e plano
+- ✅ **Filtros:** Por médico, plano, status, período
+- ✅ **Cálculos:** Taxa de glosa automática (atual: 2.96%)
+
+### **📊 Dashboard e Relatórios**
+- ✅ **Visão Geral:** Total processado, pendente, pago, glosado
+- ✅ **Estatísticas:** R$ 1.275,00 total atual, 37 endpoints funcionais
+- ✅ **Rankings:** Top médicos por valor e consultas
+- ✅ **Análise Temporal:** Comparações mensais e semanais
+- ✅ **Exportação:** Dados estruturados para relatórios
 
 ---
 
