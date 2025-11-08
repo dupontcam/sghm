@@ -48,6 +48,14 @@ app.use('/api/relatorios', relatoriosRoutes);
 const estatisticasRoutes = require('./routes/estatisticas');
 app.use('/api/estatisticas', estatisticasRoutes);
 
+// Importa e usa as rotas de Planos de Saúde
+const planosRoutes = require('./routes/planos');
+app.use('/api/planos', planosRoutes);
+
+// Importa e usa as rotas de Honorários
+const honorariosRoutes = require('./routes/honorarios');
+app.use('/api/honorarios', honorariosRoutes);
+
 // --- Inicialização do Servidor ---
 app.listen(PORT, () => {
   console.log(`[servidor] API rodando na porta ${PORT}`);

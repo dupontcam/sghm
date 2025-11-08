@@ -22,10 +22,24 @@ enum tipo_pagamento {
   PLANO_SAUDE
 }
 
+enum tipo_plano {
+  PARTICULAR
+  CONVENIO
+  SUS
+}
+
 enum status_pagamento {
   PENDENTE
   PAGO
   GLOSA
+}
+
+enum status_honorario {
+  PENDENTE
+  ENVIADO
+  PAGO
+  GLOSADO
+  CANCELADO
 }
 
 // --- Models (Tabelas) ---
@@ -49,15 +63,17 @@ model usuarios {
 
 // Model para a tabela 'medicos'
 model medicos {
-  id            Int         @id @default(autoincrement())
-  nome_medico   String      @db.VarChar(100)
-  especialidade String?     @db.VarChar(100)
-  crm           String      @unique @db.VarChar(20)
-  cnpj_cpf      String?     @db.VarChar(18)
-  email         String?     @db.VarChar(100)
-  telefone      String?     @db.VarChar(20)
-  created_at    DateTime    @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime    @default(now()) @db.Timestamptz(6)
+  id                 Int         @id @default(autoincrement())
+  nome_medico        String      @db.VarChar(100)
+  especialidade      String?     @db.VarChar(100)
+  crm                String      @unique @db.VarChar(20)
+  cnpj_cpf           String?     @db.VarChar(18)
+  email              String?     @db.VarChar(100)
+  telefone           String?     @db.VarChar(20)
+  percentual_repasse Decimal?    @default(70.00) @db.Decimal(5, 2)
+  dados_bancarios    String?     @db.Text
+  created_at         DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relacionamento: Um médico pode ter muitas consultas
   consultas consultas[]
@@ -65,19 +81,38 @@ model medicos {
 
 // Model para a tabela 'pacientes'
 model pacientes {
-  id                 Int         @id @default(autoincrement())
-  nome_paciente      String      @db.VarChar(100)
-  data_nascimento    DateTime?   @db.Date
-  cpf                String?     @unique(map: "pacientes_cpf_key") @db.VarChar(14)
-  email              String?     @db.VarChar(100)
-  telefone           String?     @db.VarChar(20)
-  plano_saude        String?     @db.VarChar(100)
-  numero_carteirinha String?     @db.VarChar(50)
-  created_at         DateTime    @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime    @default(now()) @db.Timestamptz(6)
+  id              Int       @id @default(autoincrement())
+  nome_paciente   String    @db.VarChar(100)
+  data_nascimento DateTime? @db.Date
+  cpf             String?   @unique(map: "pacientes_cpf_key") @db.VarChar(14)
+  email           String?   @db.VarChar(100)
+  telefone        String?   @db.VarChar(20)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relacionamento: Um paciente pode ter muitas consultas
   consultas consultas[]
+}
+
+// Model para a tabela 'planos_saude'
+model planos_saude {
+  id                        Int         @id @default(autoincrement())
+  nome_plano               String      @db.VarChar(100)
+  codigo_operadora         String?     @db.VarChar(20)
+  tipo_plano               tipo_plano  @default(CONVENIO)
+  prazo_pagamento_dias     Int         @default(30)
+  valor_consulta_padrao    Decimal     @default(100.00) @db.Decimal(10, 2)
+  percentual_glosa_historica Decimal   @default(5.00) @db.Decimal(5, 2)
+  ativo                    Boolean     @default(true)
+  created_at               DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relacionamentos
+  consultas consultas[]
+  honorarios honorarios[]
+
+  @@index([tipo_plano])
+  @@index([ativo])
 }
 
 // Model para a tabela 'consultas'
@@ -86,30 +121,78 @@ model consultas {
   data_consulta          DateTime         @db.Date
   protocolo              String           @unique @db.VarChar(50)
   consultorio            String?          @db.VarChar(100)
-  tipo_pagamento         tipo_pagamento
+  tipo_pagamento         tipo_pagamento?
   valor_bruto            Decimal          @db.Decimal(10, 2)
   valor_glosa            Decimal?         @default(0.00) @db.Decimal(10, 2)
   valor_recebido         Decimal?         @default(0.00) @db.Decimal(10, 2)
   data_recebimento       DateTime?        @db.Date
   status_pagamento       status_pagamento @default(PENDENTE)
   descricao_procedimento String?          @db.VarChar(255)
+  plano_saude_id         Int?
+  numero_carteirinha     String?          @db.VarChar(50)
+  tem_honorario          Boolean          @default(false)
   medico_id              Int
   paciente_id            Int
   usuario_inclusao_id    Int
   usuario_alteracao_id   Int
   created_at             DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
 
   // Relacionamentos com as outras tabelas
-  medico            medicos  @relation(fields: [medico_id], references: [id], onDelete: Restrict)
-  paciente          pacientes @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
-  usuario_alteracao usuarios @relation("consultas_alteradas_por", fields: [usuario_alteracao_id], references: [id], onDelete: Restrict)
-  usuario_inclusao  usuarios @relation("consultas_incluidas_por", fields: [usuario_inclusao_id], references: [id], onDelete: Restrict)
+  medico            medicos       @relation(fields: [medico_id], references: [id], onDelete: Restrict)
+  paciente          pacientes     @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  plano_saude       planos_saude? @relation(fields: [plano_saude_id], references: [id], onDelete: Restrict)
+  usuario_alteracao usuarios      @relation("consultas_alteradas_por", fields: [usuario_alteracao_id], references: [id], onDelete: Restrict)
+  usuario_inclusao  usuarios      @relation("consultas_incluidas_por", fields: [usuario_inclusao_id], references: [id], onDelete: Restrict)
+
+  // Relacionamento com honorários
+  honorarios honorarios[]
 
   // Índices para otimizar buscas
   @@index([medico_id])
   @@index([paciente_id])
+  @@index([plano_saude_id])
   @@index([usuario_inclusao_id])
   @@index([usuario_alteracao_id])
+  @@index([data_consulta])
+  @@index([status_pagamento])
+}
+
+// Model para a tabela 'honorarios' - Controle Financeiro Unificado
+model honorarios {
+  id                   Int             @id @default(autoincrement())
+  consulta_id          Int             @unique
+  plano_saude_id       Int
+  
+  // Dados financeiros essenciais
+  valor_consulta       Decimal         @db.Decimal(10, 2)
+  valor_glosa          Decimal         @default(0.00) @db.Decimal(10, 2)
+  valor_liquido        Decimal         @db.Decimal(10, 2) // Calculado: valor_consulta - valor_glosa
+  valor_repasse_medico Decimal         @db.Decimal(10, 2) // Calculado: valor_liquido * percentual
+  
+  // Controle de status
+  status_pagamento     status_honorario @default(PENDENTE)
+  data_pagamento       DateTime?        @db.Date
+  
+  // Controle de glosas (simplificado)
+  motivo_glosa         String?          @db.VarChar(255)
+  data_glosa           DateTime?        @db.Date
+  
+  // Metadados
+  numero_guia          String?          @db.VarChar(50)
+  observacoes          String?          @db.Text
+  created_at           DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relacionamentos
+  consulta             consultas        @relation(fields: [consulta_id], references: [id], onDelete: Cascade)
+  plano_saude          planos_saude     @relation(fields: [plano_saude_id], references: [id], onDelete: Restrict)
+
+  // Índices essenciais
+  @@index([consulta_id])
+  @@index([plano_saude_id])
+  @@index([status_pagamento])
+  @@index([data_pagamento])
+  @@index([created_at])
 }
 

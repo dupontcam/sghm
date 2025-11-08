@@ -235,6 +235,349 @@ Collection completa para testar todos os endpoints da API SGHM - Sistema de Gest
       ]
     },
     {
+      "name": "🏥 Planos de Saúde",
+      "item": [
+        {
+          "name": "Listar Planos de Saúde",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/planos",
+              "host": ["{{baseURL}}"],
+              "path": ["planos"]
+            }
+          }
+        },
+        {
+          "name": "Planos com Filtros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/planos?ativo=true&tipo_plano=CONVENIO",
+              "host": ["{{baseURL}}"],
+              "path": ["planos"],
+              "query": [
+                {
+                  "key": "ativo",
+                  "value": "true"
+                },
+                {
+                  "key": "tipo_plano",
+                  "value": "CONVENIO"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Plano por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/planos/1",
+              "host": ["{{baseURL}}"],
+              "path": ["planos", "1"]
+            }
+          }
+        },
+        {
+          "name": "Criar Plano de Saúde (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome_plano\": \"Novo Convênio XYZ\",\n  \"codigo_operadora\": \"12345\",\n  \"tipo_plano\": \"CONVENIO\",\n  \"valor_consulta_padrao\": 125.00,\n  \"percentual_glosa_historica\": 5.5,\n  \"prazo_pagamento_dias\": 45,\n  \"observacoes\": \"Plano empresarial com cobertura completa\",\n  \"ativo\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/planos",
+              "host": ["{{baseURL}}"],
+              "path": ["planos"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Plano de Saúde (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome_plano\": \"Unimed Atualizado\",\n  \"valor_consulta_padrao\": 130.00,\n  \"percentual_glosa_historica\": 3.2,\n  \"prazo_pagamento_dias\": 35\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/planos/1",
+              "host": ["{{baseURL}}"],
+              "path": ["planos", "1"]
+            }
+          }
+        },
+        {
+          "name": "Deletar Plano de Saúde (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/planos/1",
+              "host": ["{{baseURL}}"],
+              "path": ["planos", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Honorários Médicos",
+      "item": [
+        {
+          "name": "Listar Honorários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/honorarios",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios"]
+            }
+          }
+        },
+        {
+          "name": "Honorários com Filtros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/honorarios?status_pagamento=PENDENTE&plano_saude_id=2&page=1&limit=10",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios"],
+              "query": [
+                {
+                  "key": "status_pagamento",
+                  "value": "PENDENTE"
+                },
+                {
+                  "key": "plano_saude_id",
+                  "value": "2"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard de Honorários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/honorarios/dashboard",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Buscar Honorário por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/honorarios/1",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios", "1"]
+            }
+          }
+        },
+        {
+          "name": "Criar Honorário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"consulta_id\": 5,\n  \"plano_saude_id\": 2,\n  \"valor_consulta\": 120.00,\n  \"valor_glosa\": 0.00,\n  \"status_pagamento\": \"PENDENTE\",\n  \"numero_guia\": \"GUIA-2025-001\",\n  \"observacoes\": \"Consulta cardiológica de rotina\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/honorarios",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Status de Pagamento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status_pagamento\": \"PAGO\",\n  \"data_pagamento\": \"2025-11-08\",\n  \"valor_glosa\": 0.00,\n  \"observacoes\": \"Pagamento processado com sucesso\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/honorarios/1",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios", "1"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Glosa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status_pagamento\": \"GLOSADO\",\n  \"valor_glosa\": 25.50,\n  \"motivo_glosa\": \"Documentação incompleta - falta relatório médico\",\n  \"data_glosa\": \"2025-11-08\",\n  \"observacoes\": \"Reenviar com documentação completa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseURL}}/honorarios/2",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios", "2"]
+            }
+          }
+        },
+        {
+          "name": "Relatório Médico Individual",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/honorarios/relatorio-medico/2?data_inicio=2025-10-01&data_fim=2025-11-30",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios", "relatorio-medico", "2"],
+              "query": [
+                {
+                  "key": "data_inicio",
+                  "value": "2025-10-01"
+                },
+                {
+                  "key": "data_fim",
+                  "value": "2025-11-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deletar Honorário (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseURL}}/honorarios/1",
+              "host": ["{{baseURL}}"],
+              "path": ["honorarios", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "👥 Pacientes",
       "item": [
         {
@@ -582,18 +925,32 @@ Collection completa para testar todos os endpoints da API SGHM - Sistema de Gest
    - O token será automaticamente salvo nas variáveis
 2. Teste `🔐 Autenticação > Perfil do Usuário`
 
-#### **Passo 2: CRUD Básico**
+#### **Passo 2: Configuração Base**
+1. `🏥 Planos de Saúde > Listar Planos de Saúde`
+2. `🏥 Planos de Saúde > Planos com Filtros`
+3. `🏥 Planos de Saúde > Criar Plano de Saúde` (se admin)
+
+#### **Passo 3: CRUD Básico**
 1. `👥 Pacientes > Listar Pacientes`
 2. `👥 Pacientes > Criar Paciente`
 3. `🩺 Médicos > Listar Médicos`
 4. `🩺 Médicos > Criar Médico`
 
-#### **Passo 3: Consultas**
+#### **Passo 4: Consultas**
 1. `📅 Consultas > Listar Consultas`
 2. `📅 Consultas > Consultas com Filtros`
 3. `📅 Consultas > Criar Consulta`
 
-#### **Passo 4: Relatórios**
+#### **Passo 5: Gestão de Honorários**
+1. `💰 Honorários Médicos > Listar Honorários`
+2. `💰 Honorários Médicos > Dashboard de Honorários`
+3. `💰 Honorários Médicos > Honorários com Filtros`
+4. `💰 Honorários Médicos > Criar Honorário`
+5. `💰 Honorários Médicos > Atualizar Status de Pagamento`
+6. `💰 Honorários Médicos > Registrar Glosa`
+7. `💰 Honorários Médicos > Relatório Médico Individual`
+
+#### **Passo 6: Relatórios e Estatísticas**
 1. `📈 Relatórios > Dashboard Principal`
 2. `📈 Relatórios > Relatório Financeiro`
 3. `📊 Estatísticas > Resumo Geral`
@@ -615,7 +972,14 @@ O script de teste no `Login` automaticamente salva o token. Se o token expirar:
 
 ### **Filtros Complexos**
 ```
+# Consultas
 GET {{baseURL}}/consultas?medico_id=2&status_pagamento=PAGO&data_inicio=2025-01-01&limit=10
+
+# Honorários com múltiplos filtros
+GET {{baseURL}}/honorarios?status_pagamento=PENDENTE&medico_id=2&data_inicio=2025-10-01&data_fim=2025-11-30&page=1&limit=20
+
+# Planos de saúde ativos por tipo
+GET {{baseURL}}/planos?ativo=true&tipo_plano=CONVENIO&search=Unimed
 ```
 
 ### **Estatísticas com Limites**
@@ -626,7 +990,39 @@ GET {{baseURL}}/estatisticas/medicos-faturamento?limit=3
 
 ### **Relatórios por Período**
 ```
+# Relatório financeiro geral
 GET {{baseURL}}/relatorios/financeiro?data_inicio=2025-11-01&data_fim=2025-11-30&status_pagamento=PENDENTE
+
+# Relatório específico por médico
+GET {{baseURL}}/honorarios/relatorio-medico/2?data_inicio=2025-10-01&data_fim=2025-11-08
+```
+
+### **Dashboard Completo**
+```
+# Dashboard de honorários (30 dias)
+GET {{baseURL}}/honorarios/dashboard
+
+# Resumo geral do sistema
+GET {{baseURL}}/estatisticas/resumo
+```
+
+### **Testes de Fluxo de Pagamento**
+```
+# 1. Criar honorário
+POST {{baseURL}}/honorarios
+Body: {"consulta_id": 5, "plano_saude_id": 2, "valor_consulta": 120.00}
+
+# 2. Atualizar para ENVIADO
+PUT {{baseURL}}/honorarios/1
+Body: {"status_pagamento": "ENVIADO"}
+
+# 3. Processar pagamento
+PUT {{baseURL}}/honorarios/1
+Body: {"status_pagamento": "PAGO", "data_pagamento": "2025-11-08"}
+
+# 4. Ou registrar glosa
+PUT {{baseURL}}/honorarios/2
+Body: {"status_pagamento": "GLOSADO", "valor_glosa": 25.50, "motivo_glosa": "Documentação incompleta"}
 ```
 
 ## 🔧 Troubleshooting
@@ -642,8 +1038,35 @@ GET {{baseURL}}/relatorios/financeiro?data_inicio=2025-11-01&data_fim=2025-11-30
 - Verifique se a `baseURL` está correta
 - Confirme se todas as rotas estão implementadas
 
+### **Problemas com Honorários/Planos**
+- Verifique se os IDs de consulta/plano existem antes de criar honorários
+- Confirme que o médico tem consultas associadas para relatórios
+
 ---
 
-**Collection atualizada:** 06/11/2025  
-**Versão:** 2.0  
-**Compatível com:** SGHM Backend v2.0
+**Collection atualizada:** 08/11/2025  
+**Versão:** 3.0  
+**Compatível com:** SGHM Backend v3.0  
+
+## 🆕 **Novidades da Versão 3.0**
+
+✅ **Planos de Saúde:** CRUD completo para gestão de operadoras  
+✅ **Honorários Médicos:** Sistema completo de controle financeiro  
+✅ **Dashboard Avançado:** Estatísticas detalhadas dos últimos 30 dias  
+✅ **Relatórios Médicos:** Relatórios individuais por médico e período  
+✅ **Gestão de Glosas:** Controle completo de glosas e motivos  
+✅ **Múltiplos Status:** PENDENTE, ENVIADO, PAGO, GLOSADO, CANCELADO  
+
+**APIs Implementadas:**
+- 🔐 8 endpoints de autenticação
+- 🏥 6 endpoints de planos de saúde  
+- 💰 9 endpoints de honorários médicos
+- 👥 2 endpoints de pacientes
+- 🩺 2 endpoints de médicos  
+- 📅 3 endpoints de consultas
+- 📊 4 endpoints de estatísticas
+- 📈 3 endpoints de relatórios
+
+**Total:** 37 endpoints funcionais
+
+**Status do Sistema:** ✅ **100% Funcional e Testado**
