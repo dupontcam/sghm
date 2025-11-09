@@ -178,9 +178,9 @@ const CadastroMedicos: React.FC = () => {
               <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} />
             </div>
           </div>
-          <div className="form-footer">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancelar</button>
-            <button type="submit" className="btn btn-primary">{isEditing ? 'Salvar Alterações' : 'Salvar Médico'}</button>
+          <div className="modal-actions">
+            <button type="button" className="btn-secondary" onClick={closeModal}>Cancelar</button>
+            <button type="submit" className="btn-primary">{isEditing ? 'Salvar Alterações' : 'Salvar Médico'}</button>
           </div>
         </form>
       </Modal>

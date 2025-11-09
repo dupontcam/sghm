@@ -176,9 +176,9 @@ const CadastroPacientes: React.FC = () => {
               <input id="carteirinha" name="carteirinha" type="text" value={formData.carteirinha} onChange={handleChange} />
             </div>
           </div>
-          <div className="form-footer">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancelar</button>
-            <button type="submit" className="btn btn-primary">{isEditing ? 'Salvar Alterações' : 'Salvar Paciente'}</button>
+          <div className="modal-actions">
+            <button type="button" className="btn-secondary" onClick={closeModal}>Cancelar</button>
+            <button type="submit" className="btn-primary">{isEditing ? 'Salvar Alterações' : 'Salvar Paciente'}</button>
           </div>
         </form>
       </Modal>

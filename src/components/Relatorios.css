@@ -43,7 +43,11 @@
     .no-print,
     .sidebar,
     .layout-container > .no-print,
-    .page-header.no-print {
+    .page-header.no-print,
+    .btn,
+    button,
+    input,
+    select {
         display: none !important;
         visibility: hidden !important;
     }
@@ -54,37 +58,75 @@
     }
 
     /* Ajusta o layout de impressão */
-    #root, .App, .layout-container, .main-content {
+    html, body {
+        overflow: hidden !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    #root, .App, .layout-container, .main-content, .page-container {
         padding: 0 !important;
         margin: 0 !important;
-        width: 100%;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border: none !important;
     }
     
     #report-to-print {
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
+        width: 100% !important;
+        height: auto !important;
         margin: 0;
         padding: 1cm; /* Margem de impressão */
         box-shadow: none;
         border: none;
         border-radius: 0;
+        overflow: visible !important;
+    }
+
+    /* Remove qualquer scroll da tabela */
+    .table-container {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
     }
 
     /* Melhora a legibilidade da tabela na impressão */
     .table-container table {
         font-size: 9pt;
         width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .table-container table th,
+    .table-container table td {
+        padding: 8px;
+        color: #000;
+    }
+    
+    th {
+        background-color: #eee !important;
     }
 
+    /* Garante que os cards não quebrem no meio da página */
     .summary-cards {
-        /* Garante que os cards não quebrem no meio da página */
         page-break-inside: avoid;
+        overflow: visible !important;
     }
 
     /* Evita que o header da tabela se separe da primeira linha */
     thead {
         display: table-header-group;
+    }
+
+    /* Remove barras de rolagem de todos os elementos */
+    * {
+        overflow: visible !important;
+        max-height: none !important;
     }
 }

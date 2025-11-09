@@ -28,6 +28,12 @@
   color: var(--text-dark);
 }
 
+.page-header p {
+  margin: 5px 0 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 /* Estilos de Botões Genéricos */
 .btn {
   padding: 10px 20px;
@@ -60,6 +66,14 @@
   background-color: #5a6268;
 }
 
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
 /* Botões de Ação da Tabela (Editar/Excluir) */
 .btn-icon {
   background: none;
@@ -80,6 +94,25 @@
 }
 .btn-icon.btn-delete:hover {
   color: #c82333;
+}
+
+/* --- ESTILOS PARA MODAL ACTIONS --- */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e1e5e9;
+}
+
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e1e5e9;
 }
 
 
@@ -297,6 +330,169 @@ tr:hover {
   /* Evita quebra de página dentro de elementos */
   .card, tr, .chart {
     page-break-inside: avoid;
+  }
+}
+
+/* === NOVOS ESTILOS PARA DASHBOARD V3.0 === */
+
+/* Cards de estatísticas com informação adicional */
+.card small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 5px;
+  font-weight: 400;
+}
+
+.card-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Estatísticas resumidas */
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.summary-item {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.summary-item h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.summary-item span {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+/* Ranking de médicos */
+.ranking-list {
+  padding: 15px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.ranking-item:last-child {
+  border-bottom: none;
+}
+
+.ranking-position {
+  width: 30px;
+  height: 30px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.ranking-info {
+  flex: 1;
+}
+
+.ranking-name {
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.ranking-stats {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.ranking-stats span {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
+.ranking-stats small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.no-data {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Responsividade para novos elementos */
+@media (max-width: 768px) {
+  .summary-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .ranking-list {
+    max-height: 200px;
+  }
+  
+  .ranking-item {
+    gap: 10px;
+  }
+  
+  .ranking-position {
+    width: 25px;
+    height: 25px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === CORREÇÕES ESPECÍFICAS PARA IMPRESSÃO === */
+@media print {
+  /* Remove todas as barras de rolagem na impressão */
+  * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
+  .table-container {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  
+  .ranking-list {
+    overflow: visible !important;
+    max-height: none !important;
   }
 }
 

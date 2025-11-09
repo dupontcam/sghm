@@ -8,9 +8,9 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    
-    /* AJUSTE: Remove scroll e diminui espaçamentos */
-    /* overflow-y: auto; (Removido) */
+    overflow: hidden; /* CORREÇÃO: Evitar scroll interno */
+    position: relative; /* CORREÇÃO: Garante posicionamento correto */
+    min-height: 100vh; /* CORREÇÃO: Garante altura mínima completa */
 }
 
 /* --- LOGO HEADER --- */
@@ -31,12 +31,13 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-grow: 0; 
 }
 
 /* Faz o menu principal crescer, empurrando o footer para baixo */
 .sidebar-menu:first-of-type {
-    flex-grow: 1; 
+    flex: 1; /* CORREÇÃO: Mudança de flex-grow para flex */
+    overflow-y: auto; /* CORREÇÃO: Scroll apenas no menu principal */
+    margin-bottom: 20px; /* CORREÇÃO: Espaçamento fixo para o footer */
 }
 
 .sidebar-menu li {
@@ -80,16 +81,20 @@
 /* --- FOOTER (SAIR E SIMULADOR) --- */
 .sidebar-footer {
     margin-top: auto; 
-    padding-top: 15px; /* AJUSTE: Diminuído de 20px */
+    padding-top: 15px;
     border-top: 1px solid var(--sidebar-hover);
     display: flex;
     flex-direction: column;
-    gap: 10px; /* AJUSTE: Diminuído de 15px */
+    gap: 10px;
+    flex-shrink: 0; /* CORREÇÃO: Evita que o footer seja comprimido */
+    background-color: var(--sidebar-bg); /* Mantém fundo consistente */
+    width: 100%; /* CORREÇÃO: Garante largura completa */
+    position: relative; /* CORREÇÃO: Posicionamento consistente */
 }
 
 /* Botão de simulação de perfil */
 .profile-switcher {
-    display: flex;
+    display: flex !important; /* CORREÇÃO: Força exibição */
     align-items: center;
     justify-content: center;
     gap: 10px;
@@ -102,6 +107,8 @@
     font-size: 0.9rem;
     cursor: pointer;
     transition: background-color 0.3s;
+    visibility: visible !important; /* CORREÇÃO: Garante visibilidade */
+    opacity: 1 !important; /* CORREÇÃO: Garante opacidade total */
 }
 
 .profile-switcher:hover {
@@ -110,5 +117,40 @@
 
 .profile-switcher strong {
     font-weight: 700;
+}
+
+/* === MEDIA QUERIES PARA RESPONSIVIDADE === */
+@media (max-height: 800px) {
+  .sidebar-menu:first-of-type {
+    max-height: calc(100vh - 180px);
+  }
+  
+  .sidebar-footer {
+    padding-top: 10px;
+  }
+  
+  .profile-switcher {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .sidebar-header {
+    margin-bottom: 15px;
+  }
+  
+  .sidebar-menu li {
+    margin-bottom: 2px;
+  }
+  
+  .sidebar-menu a {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .sidebar-menu:first-of-type {
+    max-height: calc(100vh - 150px);
+  }
 }
 

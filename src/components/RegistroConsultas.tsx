@@ -361,11 +361,11 @@ const RegistroConsultas: React.FC = () => {
             </div>
           </fieldset>
 
-          <div className="form-footer">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>
+          <div className="modal-actions">
+            <button type="button" className="btn-secondary" onClick={closeModal}>
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn-primary">
               {isEditing ? 'Salvar Alterações' : 'Salvar Consulta'}
             </button>
           </div>

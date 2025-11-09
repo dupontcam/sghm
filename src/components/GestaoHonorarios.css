@@ -1,0 +1,452 @@
+/* Gestão de Honorários */
+.gestao-honorarios-container {
+  padding: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.header-info h1 {
+  color: #2c3e50;
+  margin: 0 0 5px 0;
+  font-size: 2rem;
+}
+
+.header-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.stat-item {
+  font-weight: 500;
+}
+
+/* Filtros */
+.filtros-container {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.filtros-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filtros-row:last-child {
+  margin-bottom: 0;
+}
+
+.filtro-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+  flex: 1;
+}
+
+.filtro-grupo label {
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.filtro-grupo input,
+.filtro-grupo select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.filtro-grupo input:focus,
+.filtro-grupo select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input svg {
+  position: absolute;
+  left: 10px;
+  color: #6c757d;
+  z-index: 1;
+}
+
+.search-input input {
+  padding-left: 35px;
+}
+
+.filtro-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Cards de Estatísticas */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border-left: 4px solid #ccc;
+}
+
+.stat-card.total {
+  border-left-color: #007bff;
+}
+
+.stat-card.pendente {
+  border-left-color: #ffc107;
+}
+
+.stat-card.pago {
+  border-left-color: #28a745;
+}
+
+.stat-card.glosado {
+  border-left-color: #dc3545;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Tabela de Honorários */
+.honorarios-table-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.honorarios-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.honorarios-table th {
+  background: #f8f9fa;
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 0.9rem;
+}
+
+.honorarios-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 0.9rem;
+}
+
+.honorario-row:hover {
+  background: #f8f9fa;
+}
+
+.honorario-row.status-pendente {
+  border-left: 4px solid #ffc107;
+}
+
+.honorario-row.status-enviado {
+  border-left: 4px solid #17a2b8;
+}
+
+.honorario-row.status-pago {
+  border-left: 4px solid #28a745;
+}
+
+.honorario-row.status-glosado {
+  border-left: 4px solid #dc3545;
+}
+
+.valor {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Status */
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-text {
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.status-pendente {
+  color: #856404;
+  background: #fff3cd;
+}
+
+.status-enviado {
+  color: #0c5460;
+  background: #d1ecf1;
+}
+
+.status-pago {
+  color: #155724;
+  background: #d4edda;
+}
+
+.status-glosado {
+  color: #721c24;
+  background: #f8d7da;
+}
+
+/* Ícones de Status */
+.status-pendente svg {
+  color: #ffc107;
+}
+
+.status-enviado svg {
+  color: #17a2b8;
+}
+
+.status-pago svg {
+  color: #28a745;
+}
+
+.status-glosado svg {
+  color: #dc3545;
+}
+
+/* Ações */
+.actions-container {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.btn-icon {
+  padding: 6px;
+  border: none;
+  background: none;
+  color: #6c757d;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.btn-icon:hover {
+  background: #e9ecef;
+}
+
+.btn-icon.edit:hover {
+  color: #007bff;
+}
+
+.btn-icon.delete:hover {
+  color: #dc3545;
+}
+
+.btn-icon.success:hover {
+  color: #28a745;
+}
+
+.btn-icon.danger:hover {
+  color: #dc3545;
+}
+
+/* Estado vazio */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-state svg {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Botões */
+.btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #545b62;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .honorarios-table-container {
+    overflow-x: auto;
+  }
+  
+  .honorarios-table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filtros-row {
+    flex-direction: column;
+  }
+  
+  .filtro-grupo {
+    min-width: 100%;
+  }
+  
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .header-stats {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .actions-container {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+}
