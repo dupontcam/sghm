@@ -26,7 +26,7 @@ const formInicial: Omit<Consulta, 'id'> = {
 
 const RegistroConsultas: React.FC = () => {
   const { 
-    consultas, addConsulta, updateConsulta, deleteConsulta, 
+    consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta, 
     medicos, pacientes 
   } = useData();
   
@@ -126,7 +126,8 @@ const RegistroConsultas: React.FC = () => {
           dataAlteracao: new Date().toISOString(),
       } as Omit<Consulta, 'id'>; 
 
-      addConsulta(novaConsulta);
+      // Usar a nova função que cria honorário automaticamente
+      addConsultaComHonorario(novaConsulta);
     }
     closeModal();
   };

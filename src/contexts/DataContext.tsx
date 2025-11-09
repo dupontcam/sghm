@@ -30,6 +30,7 @@ interface DataContextType {
   // Consultas
   consultas: Consulta[];
   addConsulta: (consulta: Omit<Consulta, 'id'>) => void;
+  addConsultaComHonorario: (consulta: Omit<Consulta, 'id'>) => void; // Nova função
   updateConsulta: (consulta: Consulta) => void;
   deleteConsulta: (id: number) => void;
 
@@ -125,6 +126,53 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const addConsulta = (consulta: Omit<Consulta, 'id'>) => {
     const novaConsulta = { ...consulta, id: getNextId(consultas) };
     setConsultas([...consultas, novaConsulta]);
+  };
+
+  // Nova função para criar consulta com honorário automático
+  const addConsultaComHonorario = (consulta: Omit<Consulta, 'id'>) => {
+    const novaConsulta = { ...consulta, id: getNextId(consultas) };
+    setConsultas(prev => [...prev, novaConsulta]);
+
+    // Criar honorário automaticamente se for por convênio
+    if (consulta.tipoPagamento === 'convenio') {
+      // Buscar paciente para obter convênio
+      const paciente = pacientes.find(p => p.id === consulta.pacienteId);
+      
+      if (paciente) {
+        // Buscar plano de saúde pelo nome do convênio
+        const plano = planosSaude.find(p => 
+          p.nome.toLowerCase().includes(paciente.convenio.toLowerCase()) ||
+          paciente.convenio.toLowerCase().includes(p.nome.toLowerCase())
+        );
+
+        if (plano) {
+          // Calcular data de vencimento (30 dias após a consulta)
+          const dataConsulta = new Date(consulta.dataConsulta);
+          const dataVencimento = new Date(dataConsulta);
+          dataVencimento.setDate(dataVencimento.getDate() + 30);
+
+          // Criar honorário
+          const novoHonorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'> = {
+            medicoId: consulta.medicoId,
+            consultaId: novaConsulta.id,
+            planoSaudeId: plano.id,
+            dataConsulta: consulta.dataConsulta,
+            valor: consulta.valorProcedimento,
+            status: 'PENDENTE',
+            motivo: `Honorário automático da consulta ${consulta.protocolo} - ${consulta.especialidade}`
+          };
+
+          // Adicionar o honorário usando a função existente
+          addHonorario(novoHonorario);
+
+          console.log(`✅ Honorário criado automaticamente para consulta ${consulta.protocolo}`);
+        } else {
+          console.warn(`⚠️ Plano de saúde não encontrado para o convênio: ${paciente.convenio}`);
+        }
+      }
+    } else {
+      console.log(`ℹ️ Consulta particular criada - honorário não gerado automaticamente`);
+    }
   };
 
   const updateConsulta = (consultaAtualizada: Consulta) => {
@@ -225,7 +273,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const value = {
     medicos, addMedico, updateMedico, deleteMedico,
     pacientes, addPaciente, updatePaciente, deletePaciente,
-    consultas, addConsulta, updateConsulta, deleteConsulta,
+    consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta,
     planosSaude, addPlanoSaude, updatePlanoSaude, deletePlanoSaude, getPlanoSaudeById,
     honorarios, addHonorario, updateHonorario, deleteHonorario, 
     getHonorariosByMedico, getHonorariosByPlano,

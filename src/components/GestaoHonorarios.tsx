@@ -76,20 +76,6 @@ const GestaoHonorarios: React.FC = () => {
   }, [honorariosFiltrados]);
 
   // Abrir modal para novo honorário
-  const handleNovoHonorario = () => {
-    setEditingHonorario(null);
-    setFormData({
-      medicoId: 0,
-      consultaId: 0,
-      planoSaudeId: 0,
-      dataConsulta: '',
-      valor: 0,
-      status: 'PENDENTE',
-      motivo: ''
-    });
-    setIsModalOpen(true);
-  };
-
   // Abrir modal para editar honorário
   const handleEditarHonorario = (honorario: Honorario) => {
     setEditingHonorario(honorario);
@@ -105,25 +91,25 @@ const GestaoHonorarios: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Salvar honorário
+  // Salvar honorário (apenas edição)
   const handleSalvarHonorario = () => {
+    if (!editingHonorario) {
+      alert('Erro: Nenhum honorário sendo editado.');
+      return;
+    }
+
     if (!formData.medicoId || !formData.planoSaudeId || !formData.dataConsulta || !formData.valor) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
-    if (editingHonorario) {
-      // Editar honorário existente
-      const honorarioAtualizado: Honorario = {
-        ...editingHonorario,
-        ...formData,
-        updatedAt: new Date().toISOString()
-      };
-      updateHonorario(honorarioAtualizado);
-    } else {
-      // Criar novo honorário
-      addHonorario(formData);
-    }
+    // Editar honorário existente
+    const honorarioAtualizado: Honorario = {
+      ...editingHonorario,
+      ...formData,
+      updatedAt: new Date().toISOString()
+    };
+    updateHonorario(honorarioAtualizado);
 
     setIsModalOpen(false);
     resetForm();
@@ -204,9 +190,9 @@ const GestaoHonorarios: React.FC = () => {
             <span className="stat-item">{estatisticasFiltradas.quantidade} honorários</span>
           </div>
         </div>
-        <button className="btn-primary" onClick={handleNovoHonorario}>
-          <FaPlus /> Novo Honorário
-        </button>
+        <div className="header-note">
+          <span>💡 Honorários são criados automaticamente ao registrar consultas por convênio</span>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -257,7 +243,7 @@ const GestaoHonorarios: React.FC = () => {
           </div>
         </div>
 
-        <div className="filtros-row">
+        <div className="filtros-row filtros-row-secondary">
           <div className="filtro-grupo">
             <label>Data Início:</label>
             <input
@@ -276,11 +262,15 @@ const GestaoHonorarios: React.FC = () => {
             />
           </div>
           
-          <div className="filtro-actions">
-            <button className="btn-secondary" onClick={handleLimparFiltros}>
-              <FaFilter /> Limpar Filtros
-            </button>
+          <div className="filtro-grupo filtro-actions-container">
+            <div className="filtro-actions">
+              <button className="btn-secondary" onClick={handleLimparFiltros}>
+                <FaFilter /> Limpar Filtros
+              </button>
+            </div>
           </div>
+          
+          <div className="filtro-grupo"></div> {/* Espaço vazio para alinhamento */}
         </div>
       </div>
 
@@ -396,7 +386,7 @@ const GestaoHonorarios: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingHonorario ? 'Editar Honorário' : 'Novo Honorário'}
+        title="Editar Honorário"
       >
         <div className="form-group">
           <label>Médico *:</label>
