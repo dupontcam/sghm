@@ -30,7 +30,7 @@ interface DataContextType {
   // Consultas
   consultas: Consulta[];
   addConsulta: (consulta: Omit<Consulta, 'id'>) => void;
-  addConsultaComHonorario: (consulta: Omit<Consulta, 'id'>) => void; // Nova função
+  addConsultaComHonorario: (consulta: Omit<Consulta, 'id'>) => void;
   updateConsulta: (consulta: Consulta) => void;
   deleteConsulta: (id: number) => void;
 
@@ -88,16 +88,15 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setMedicos(medicos.map(m => (m.id === medicoAtualizado.id ? medicoAtualizado : m)));
   };
 
-  // 3. ATUALIZAÇÃO DA LÓGICA
   const deleteMedico = (id: number): boolean => { 
     const consultasAssociadas = consultas.some(c => c.medicoId === id);
     if (consultasAssociadas) {
       console.warn(`Tentativa de excluir Médico ID ${id} bloqueada: Existem consultas associadas.`);
-      return false; // Retorna 'false' (falha)
+      return false;
     }
     
     setMedicos(medicos.filter((m: Medico) => m.id !== id));
-    return true; // Retorna 'true' (sucesso)
+    return true;
   };
 
   // --- Funções CRUD: Pacientes ---
@@ -110,16 +109,15 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setPacientes(pacientes.map(p => (p.id === pacienteAtualizado.id ? pacienteAtualizado : p)));
   };
 
-  // 4. ATUALIZAÇÃO DA LÓGICA
   const deletePaciente = (id: number): boolean => {
     const consultasAssociadas = consultas.some(c => c.pacienteId === id);
     if (consultasAssociadas) {
       console.warn(`Tentativa de excluir Paciente ID ${id} bloqueada: Existem consultas associadas.`);
-      return false; // Retorna 'false' (falha)
+      return false;
     }
 
     setPacientes(pacientes.filter((p: Paciente) => p.id !== id));
-    return true; // Retorna 'true' (sucesso)
+    return true;
   };
 
   // --- Funções CRUD: Consultas ---
@@ -146,11 +144,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         );
 
         if (plano) {
-          // Calcular data de vencimento (30 dias após a consulta)
-          const dataConsulta = new Date(consulta.dataConsulta);
-          const dataVencimento = new Date(dataConsulta);
-          dataVencimento.setDate(dataVencimento.getDate() + 30);
-
           // Criar honorário
           const novoHonorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'> = {
             medicoId: consulta.medicoId,
@@ -242,6 +235,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setHonorarios(honorarios.filter(h => h.id !== id));
   };
 
+  // --- Funções de Consulta ---
   const getHonorariosByMedico = (medicoId: number): Honorario[] => {
     return honorarios.filter(h => h.medicoId === medicoId);
   };
@@ -272,11 +266,16 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   // --- Valor do Contexto ---
   const value = {
     medicos, addMedico, updateMedico, deleteMedico,
+    // Pacientes
     pacientes, addPaciente, updatePaciente, deletePaciente,
+    // Consultas
     consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta,
+    // Planos de Saúde
     planosSaude, addPlanoSaude, updatePlanoSaude, deletePlanoSaude, getPlanoSaudeById,
+    // Honorários
     honorarios, addHonorario, updateHonorario, deleteHonorario, 
     getHonorariosByMedico, getHonorariosByPlano,
+    // Dashboard
     getDashboardStats
   };
 
