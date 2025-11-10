@@ -2,7 +2,10 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Medico, mockMedicos, 
   Paciente, mockPacientes, 
-  Consulta, mockConsultas 
+  Consulta, mockConsultas,
+  PlanoSaude, mockPlanosSaude,
+  Honorario, mockHonorarios,
+  DashboardStats
 } from '../data/mockData';
 
 // --- Helper para gerar novo ID ---
@@ -16,19 +19,38 @@ interface DataContextType {
   medicos: Medico[];
   addMedico: (medico: Omit<Medico, 'id'>) => void;
   updateMedico: (medico: Medico) => void;
-  deleteMedico: (id: number) => boolean; // 1. MUDANÇA: Retorna boolean
+  deleteMedico: (id: number) => boolean;
   
   // Pacientes
   pacientes: Paciente[];
   addPaciente: (paciente: Omit<Paciente, 'id'>) => void;
   updatePaciente: (paciente: Paciente) => void;
-  deletePaciente: (id: number) => boolean; // 2. MUDANÇA: Retorna boolean
+  deletePaciente: (id: number) => boolean;
 
   // Consultas
   consultas: Consulta[];
   addConsulta: (consulta: Omit<Consulta, 'id'>) => void;
+  addConsultaComHonorario: (consulta: Omit<Consulta, 'id'>) => void;
   updateConsulta: (consulta: Consulta) => void;
   deleteConsulta: (id: number) => void;
+
+  // Planos de Saúde
+  planosSaude: PlanoSaude[];
+  addPlanoSaude: (plano: Omit<PlanoSaude, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updatePlanoSaude: (plano: PlanoSaude) => void;
+  deletePlanoSaude: (id: number) => boolean;
+  getPlanoSaudeById: (id: number) => PlanoSaude | undefined;
+
+  // Honorários
+  honorarios: Honorario[];
+  addHonorario: (honorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateHonorario: (honorario: Honorario) => void;
+  deleteHonorario: (id: number) => void;
+  getHonorariosByMedico: (medicoId: number) => Honorario[];
+  getHonorariosByPlano: (planoId: number) => Honorario[];
+
+  // Dashboard
+  getDashboardStats: () => DashboardStats;
 }
 
 // --- Criação do Contexto ---
@@ -53,6 +75,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const [medicos, setMedicos] = useState<Medico[]>(mockMedicos);
   const [pacientes, setPacientes] = useState<Paciente[]>(mockPacientes);
   const [consultas, setConsultas] = useState<Consulta[]>(mockConsultas);
+  const [planosSaude, setPlanosSaude] = useState<PlanoSaude[]>(mockPlanosSaude);
+  const [honorarios, setHonorarios] = useState<Honorario[]>(mockHonorarios);
 
   // --- Funções CRUD: Médicos ---
   const addMedico = (medico: Omit<Medico, 'id'>) => {
@@ -110,13 +134,167 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const deleteConsulta = (id: number) => {
     setConsultas(consultas.filter((c: Consulta) => c.id !== id));
+    // Remover honorários associados
+    setHonorarios(honorarios.filter(h => h.consultaId !== id));
+  };
+
+  // Nova função para criar consulta com honorário automático
+  const addConsultaComHonorario = (consulta: Omit<Consulta, 'id'>) => {
+    const novaConsulta = { ...consulta, id: getNextId(consultas) };
+    setConsultas(prev => [...prev, novaConsulta]);
+
+    // Criar honorário automaticamente se for por convênio
+    if (consulta.tipoPagamento === 'convenio') {
+      // Buscar paciente para obter convênio
+      const paciente = pacientes.find(p => p.id === consulta.pacienteId);
+      
+      if (paciente) {
+        // Buscar plano de saúde pelo nome do convênio
+        const plano = planosSaude.find(p => 
+          p.nome.toLowerCase().includes(paciente.convenio.toLowerCase()) ||
+          paciente.convenio.toLowerCase().includes(p.nome.toLowerCase())
+        );
+
+        if (plano) {
+          // Calcular data de vencimento (30 dias após a consulta)
+          const dataConsulta = new Date(consulta.dataConsulta);
+
+          // Criar honorário
+          const novoHonorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'> = {
+            medicoId: consulta.medicoId,
+            consultaId: novaConsulta.id,
+            planoSaudeId: plano.id,
+            dataConsulta: consulta.dataConsulta,
+            valor: consulta.valorProcedimento,
+            status: 'PENDENTE',
+            motivo: `Honorário automático da consulta ${consulta.protocolo} - ${consulta.especialidade}`
+          };
+
+          // Adicionar o honorário
+          const honorarioComId = { 
+            ...novoHonorario, 
+            id: getNextId(honorarios),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          setHonorarios(prev => [...prev, honorarioComId]);
+
+          console.log(`✅ Honorário criado automaticamente para consulta ${consulta.protocolo}`);
+        } else {
+          console.warn(`⚠️ Plano de saúde não encontrado para o convênio: ${paciente.convenio}`);
+        }
+      }
+    } else {
+      console.log(`ℹ️ Consulta particular criada - honorário não gerado automaticamente`);
+    }
+  };
+
+  // --- Funções CRUD: Planos de Saúde ---
+  const addPlanoSaude = (plano: Omit<PlanoSaude, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const novoPlano = { 
+      ...plano, 
+      id: getNextId(planosSaude), 
+      createdAt: now,
+      updatedAt: now
+    };
+    setPlanosSaude([...planosSaude, novoPlano]);
+  };
+
+  const updatePlanoSaude = (planoAtualizado: PlanoSaude) => {
+    setPlanosSaude(planosSaude.map(p => (p.id === planoAtualizado.id ? planoAtualizado : p)));
+  };
+
+  const deletePlanoSaude = (id: number): boolean => {
+    const honorariosAssociados = honorarios.some(h => h.planoSaudeId === id);
+    if (honorariosAssociados) {
+      console.warn(`Tentativa de excluir Plano ID ${id} bloqueada: Existem honorários associados.`);
+      return false;
+    }
+    
+    setPlanosSaude(planosSaude.filter(p => p.id !== id));
+    return true;
+  };
+
+  const getPlanoSaudeById = (id: number): PlanoSaude | undefined => {
+    return planosSaude.find(p => p.id === id);
+  };
+
+  // --- Funções CRUD: Honorários ---
+  const addHonorario = (honorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const novoHonorario = { 
+      ...honorario, 
+      id: getNextId(honorarios),
+      createdAt: now,
+      updatedAt: now
+    };
+    setHonorarios([...honorarios, novoHonorario]);
+  };
+
+  const updateHonorario = (honorarioAtualizado: Honorario) => {
+    setHonorarios(honorarios.map(h => (h.id === honorarioAtualizado.id ? honorarioAtualizado : h)));
+  };
+
+  const deleteHonorario = (id: number) => {
+    setHonorarios(honorarios.filter(h => h.id !== id));
+  };
+
+  const getHonorariosByMedico = (medicoId: number): Honorario[] => {
+    return honorarios.filter(h => h.medicoId === medicoId);
+  };
+
+  const getHonorariosByPlano = (planoId: number): Honorario[] => {
+    return honorarios.filter(h => h.planoSaudeId === planoId);
+  };
+
+  // --- Função Dashboard Stats ---
+  const getDashboardStats = (): DashboardStats => {
+    const totalProcessado = honorarios
+      .filter(h => h.status === 'PAGO')
+      .reduce((total, h) => total + h.valor, 0);
+
+    const totalPendente = honorarios
+      .filter(h => h.status === 'PENDENTE')
+      .reduce((total, h) => total + h.valor, 0);
+
+    const totalPago = honorarios
+      .filter(h => h.status === 'PAGO')
+      .reduce((total, h) => total + h.valor, 0);
+
+    const totalGlosado = honorarios
+      .filter(h => h.status === 'GLOSADO')
+      .reduce((total, h) => total + h.valor, 0);
+
+    const quantidadeTotal = honorarios.length;
+    const quantidadeGlosada = honorarios.filter(h => h.status === 'GLOSADO').length;
+    const taxaGlosa = quantidadeTotal > 0 ? (quantidadeGlosada / quantidadeTotal) * 100 : 0;
+
+    return {
+      totalProcessado,
+      totalPendente,
+      totalPago,
+      totalGlosado,
+      taxaGlosa,
+      quantidadeHonorarios: quantidadeTotal
+    };
   };
 
   // --- Valor do Contexto ---
   const value = {
+    // Médicos
     medicos, addMedico, updateMedico, deleteMedico,
+    // Pacientes
     pacientes, addPaciente, updatePaciente, deletePaciente,
-    consultas, addConsulta, updateConsulta, deleteConsulta
+    // Consultas
+    consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta,
+    // Planos de Saúde
+    planosSaude, addPlanoSaude, updatePlanoSaude, deletePlanoSaude, getPlanoSaudeById,
+    // Honorários
+    honorarios, addHonorario, updateHonorario, deleteHonorario, 
+    getHonorariosByMedico, getHonorariosByPlano,
+    // Dashboard
+    getDashboardStats
   };
 
   return (

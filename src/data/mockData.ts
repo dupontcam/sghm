@@ -39,6 +39,43 @@ export interface Consulta {
   descricaoProcedimento: string;
 }
 
+export interface PlanoSaude {
+  id: number;
+  nome: string;
+  tipo: 'PUBLICO' | 'PRIVADO' | 'COOPERATIVA' | 'SEGURADORA';
+  ativo: boolean;
+  createdAt: string;
+  updatedAt: string;
+  totalHonorarios?: number;
+  totalConsultas?: number;
+}
+
+export interface Honorario {
+  id: number;
+  medicoId: number;
+  consultaId: number;
+  planoSaudeId: number;
+  dataConsulta: string;
+  valor: number;
+  status: 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO';
+  motivo?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Dados relacionados para exibição
+  medico?: Medico;
+  planoSaude?: PlanoSaude;
+  consulta?: Consulta;
+}
+
+export interface DashboardStats {
+  totalProcessado: number;
+  totalPendente: number;
+  totalPago: number;
+  totalGlosado: number;
+  taxaGlosa: number;
+  quantidadeHonorarios: number;
+}
+
 // --- DADOS DE EXEMPLO (MOCK DATA) ---
 
 export const mockMedicos: Medico[] = [
@@ -119,5 +156,35 @@ export const mockConsultas: Consulta[] = [
     descricaoProcedimento: 'Exame de vista', status: 'Pendente',
     usuarioInclusao: 'operador@sghm.com', dataInclusao: '2025-10-08T09:00:00Z',
     usuarioAlteracao: 'operador@sghm.com', dataAlteracao: '2025-10-08T09:00:00Z'
+  }
+];
+
+export const mockPlanosSaude: PlanoSaude[] = [
+  { id: 1, nome: 'Unimed DF', tipo: 'COOPERATIVA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 2, nome: 'Bradesco Saúde', tipo: 'SEGURADORA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 3, nome: 'Amil', tipo: 'SEGURADORA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 4, nome: 'SUS', tipo: 'PUBLICO', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 5, nome: 'SulAmérica Saúde', tipo: 'SEGURADORA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 6, nome: 'Particular', tipo: 'PRIVADO', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' }
+];
+
+// --- HONORÁRIOS (MOCK DATA) ---
+export const mockHonorarios: Honorario[] = [
+  { 
+    id: 1, medicoId: 1, consultaId: 1, planoSaudeId: 2, dataConsulta: '2025-10-01', 
+    valor: 350.00, status: 'PENDENTE', createdAt: '2025-10-02T10:00:00Z', updatedAt: '2025-10-02T10:00:00Z' 
+  },
+  { 
+    id: 2, medicoId: 2, consultaId: 2, planoSaudeId: 6, dataConsulta: '2025-10-03', 
+    valor: 450.00, status: 'PAGO', createdAt: '2025-10-03T11:00:00Z', updatedAt: '2025-10-03T11:00:00Z' 
+  },
+  { 
+    id: 3, medicoId: 1, consultaId: 3, planoSaudeId: 5, dataConsulta: '2025-10-04', 
+    valor: 350.00, status: 'GLOSADO', motivo: 'Procedimento não autorizado', 
+    createdAt: '2025-10-04T14:00:00Z', updatedAt: '2025-10-04T14:00:00Z' 
+  },
+  { 
+    id: 4, medicoId: 3, consultaId: 4, planoSaudeId: 2, dataConsulta: '2025-10-05', 
+    valor: 400.00, status: 'ENVIADO', createdAt: '2025-10-05T10:00:00Z', updatedAt: '2025-10-05T10:00:00Z' 
   }
 ];
