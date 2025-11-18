@@ -56,8 +56,9 @@ const transformMedicoFromBackend = (medico: any) => ({
 // --- API de Médicos ---
 export const medicosAPI = {
   getAll: async () => {
-    const data = await fetchAPI('/medicos');
-    return data.map(transformMedicoFromBackend);
+    const response = await fetchAPI('/medicos');
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformMedicoFromBackend) : [];
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/medicos/${id}`);
@@ -98,8 +99,9 @@ const transformPacienteFromBackend = (paciente: any) => ({
 // --- API de Pacientes ---
 export const pacientesAPI = {
   getAll: async () => {
-    const data = await fetchAPI('/pacientes');
-    return data.map(transformPacienteFromBackend);
+    const response = await fetchAPI('/pacientes');
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformPacienteFromBackend) : [];
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/pacientes/${id}`);
@@ -120,7 +122,10 @@ export const pacientesAPI = {
 
 // --- API de Consultas ---
 export const consultasAPI = {
-  getAll: () => fetchAPI('/consultas'),
+  getAll: async () => {
+    const response = await fetchAPI('/consultas');
+    return response.data || response;
+  },
   getById: (id: number) => fetchAPI(`/consultas/${id}`),
   create: (data: any) => fetchAPI('/consultas', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => fetchAPI(`/consultas/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -129,7 +134,10 @@ export const consultasAPI = {
 
 // --- API de Planos de Saúde ---
 export const planosAPI = {
-  getAll: () => fetchAPI('/planos'),
+  getAll: async () => {
+    const response = await fetchAPI('/planos');
+    return response.data?.planos || response.planos || response.data || response;
+  },
   getById: (id: number) => fetchAPI(`/planos/${id}`),
   create: (data: any) => fetchAPI('/planos', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => fetchAPI(`/planos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -138,7 +146,11 @@ export const planosAPI = {
 
 // --- API de Honorários ---
 export const honorariosAPI = {
-  getAll: () => fetchAPI('/honorarios'),
+  getAll: async () => {
+    const response = await fetchAPI('/honorarios');
+    // Backend retorna { success, data: { honorarios, pagination, ... } }
+    return response.data?.honorarios || response.honorarios || [];
+  },
   getById: (id: number) => fetchAPI(`/honorarios/${id}`),
   getByMedico: (medicoId: number) => fetchAPI(`/honorarios/medico/${medicoId}`),
   getByPlano: (planoId: number) => fetchAPI(`/honorarios/plano/${planoId}`),
@@ -153,7 +165,11 @@ export const honorariosAPI = {
 
 // --- API de Estatísticas ---
 export const estatisticasAPI = {
-  getDashboard: () => fetchAPI('/estatisticas/dashboard'),
+  getDashboard: async () => {
+    const response = await fetchAPI('/estatisticas/resumo');
+    // Retornar dados em formato compatível com DashboardStats
+    return response.data || response;
+  },
 };
 
 // --- API de Autenticação ---
