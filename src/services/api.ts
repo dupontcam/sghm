@@ -25,27 +25,96 @@ const fetchAPI = async (endpoint: string, options?: RequestInit) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-    throw new Error(error.message || `Erro ${response.status}`);
+    const errorMessage = error.error || error.message || `Erro ${response.status}`;
+    console.error('Erro na API:', { endpoint, status: response.status, error });
+    throw new Error(errorMessage);
   }
 
   return response.json();
 };
 
+// --- Transformadores de dados ---
+const transformMedicoToBackend = (medico: any) => ({
+  nome_medico: medico.nome,
+  especialidade: medico.especialidade,
+  crm: medico.crm,
+  cnpj_cpf: medico.cpf,
+  email: medico.email,
+  telefone: medico.telefone,
+});
+
+const transformMedicoFromBackend = (medico: any) => ({
+  id: medico.id,
+  nome: medico.nome_medico,
+  especialidade: medico.especialidade,
+  crm: medico.crm,
+  cpf: medico.cnpj_cpf,
+  email: medico.email,
+  telefone: medico.telefone,
+});
+
 // --- API de Médicos ---
 export const medicosAPI = {
-  getAll: () => fetchAPI('/medicos'),
-  getById: (id: number) => fetchAPI(`/medicos/${id}`),
-  create: (data: any) => fetchAPI('/medicos', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: any) => fetchAPI(`/medicos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getAll: async () => {
+    const data = await fetchAPI('/medicos');
+    return data.map(transformMedicoFromBackend);
+  },
+  getById: async (id: number) => {
+    const data = await fetchAPI(`/medicos/${id}`);
+    return transformMedicoFromBackend(data);
+  },
+  create: (data: any) => 
+    fetchAPI('/medicos', { 
+      method: 'POST', 
+      body: JSON.stringify(transformMedicoToBackend(data)) 
+    }).then(transformMedicoFromBackend),
+  update: (id: number, data: any) => 
+    fetchAPI(`/medicos/${id}`, { 
+      method: 'PUT', 
+      body: JSON.stringify(transformMedicoToBackend(data)) 
+    }).then(transformMedicoFromBackend),
   delete: (id: number) => fetchAPI(`/medicos/${id}`, { method: 'DELETE' }),
 };
 
+const transformPacienteToBackend = (paciente: any) => ({
+  nome_paciente: paciente.nome,
+  data_nascimento: paciente.dataNascimento || null,
+  cpf: paciente.cpf,
+  email: paciente.email,
+  telefone: paciente.telefone,
+});
+
+const transformPacienteFromBackend = (paciente: any) => ({
+  id: paciente.id,
+  nome: paciente.nome_paciente,
+  dataNascimento: paciente.data_nascimento,
+  cpf: paciente.cpf,
+  email: paciente.email,
+  telefone: paciente.telefone,
+  convenio: paciente.convenio || '',
+  carteirinha: paciente.carteirinha || '',
+});
+
 // --- API de Pacientes ---
 export const pacientesAPI = {
-  getAll: () => fetchAPI('/pacientes'),
-  getById: (id: number) => fetchAPI(`/pacientes/${id}`),
-  create: (data: any) => fetchAPI('/pacientes', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: any) => fetchAPI(`/pacientes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getAll: async () => {
+    const data = await fetchAPI('/pacientes');
+    return data.map(transformPacienteFromBackend);
+  },
+  getById: async (id: number) => {
+    const data = await fetchAPI(`/pacientes/${id}`);
+    return transformPacienteFromBackend(data);
+  },
+  create: (data: any) => 
+    fetchAPI('/pacientes', { 
+      method: 'POST', 
+      body: JSON.stringify(transformPacienteToBackend(data)) 
+    }).then(transformPacienteFromBackend),
+  update: (id: number, data: any) => 
+    fetchAPI(`/pacientes/${id}`, { 
+      method: 'PUT', 
+      body: JSON.stringify(transformPacienteToBackend(data)) 
+    }).then(transformPacienteFromBackend),
   delete: (id: number) => fetchAPI(`/pacientes/${id}`, { method: 'DELETE' }),
 };
 
