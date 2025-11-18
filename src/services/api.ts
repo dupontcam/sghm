@@ -167,8 +167,29 @@ export const honorariosAPI = {
 export const estatisticasAPI = {
   getDashboard: async () => {
     const response = await fetchAPI('/estatisticas/resumo');
-    // Retornar dados em formato compatível com DashboardStats
-    return response.data || response;
+    const data = response.data || response;
+    
+    // Transformar para o formato esperado pelo frontend
+    if (data.financeiro) {
+      return {
+        totalProcessado: data.financeiro.valorTotal || 0,
+        totalPendente: data.financeiro.valorPendente || 0,
+        totalPago: data.financeiro.valorPago || 0,
+        totalGlosado: data.financeiro.valorGlosado || 0,
+        taxaGlosa: data.financeiro.taxaGlosa || 0,
+        quantidadeHonorarios: data.contadores?.totalConsultas || 0,
+      };
+    }
+    
+    // Fallback para evitar erros
+    return {
+      totalProcessado: 0,
+      totalPendente: 0,
+      totalPago: 0,
+      totalGlosado: 0,
+      taxaGlosa: 0,
+      quantidadeHonorarios: 0,
+    };
   },
 };
 
