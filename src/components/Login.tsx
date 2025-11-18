@@ -1,20 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
-import AlertModal from './AlertModal'; 
+import AlertModal from './AlertModal';
+import { authAPI } from '../services/api';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    // 2. Criar um estado para o modal de instruções, começando como 'true'
-    const [isHelpModalOpen, setIsHelpModalOpen] = useState(true);
+    // 2. Criar um estado para o modal de instruções, começando como 'false' agora
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Login com:', email, password);
-        navigate('/dashboard');
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authAPI.login(email, password);
+            console.log('Login bem-sucedido:', response);
+            navigate('/dashboard');
+        } catch (err: any) {
+            console.error('Erro no login:', err);
+            setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -31,6 +45,18 @@ const Login: React.FC = () => {
                         <span className="login-subtitle">DESDE 2021</span>
                         
                         <h2 className="login-header">LOGIN</h2>
+                        {error && (
+                            <div style={{ 
+                                color: '#d32f2f', 
+                                backgroundColor: '#ffebee', 
+                                padding: '10px', 
+                                borderRadius: '4px', 
+                                marginBottom: '15px',
+                                fontSize: '14px'
+                            }}>
+                                {error}
+                            </div>
+                        )}
                         <form onSubmit={handleLogin}>
                             <div className="input-group">
                                 <input 
@@ -38,6 +64,7 @@ const Login: React.FC = () => {
                                     placeholder="Email" 
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
+                                    disabled={loading}
                                     required 
                                 />
                             </div>
@@ -47,10 +74,13 @@ const Login: React.FC = () => {
                                     placeholder="Senha" 
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    disabled={loading}
                                     required 
                                 />
                             </div>
-                            <button type="submit" className="login-button">Entrar</button>
+                            <button type="submit" className="login-button" disabled={loading}>
+                                {loading ? 'Entrando...' : 'Entrar'}
+                            </button>
                         </form>
                     </div>
                 </div>

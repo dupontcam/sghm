@@ -1,12 +1,24 @@
 // Configuração da API
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
+// Gerenciamento de Token
+const TOKEN_KEY = 'sghm_token';
+
+export const tokenManager = {
+  getToken: () => localStorage.getItem(TOKEN_KEY),
+  setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
+  removeToken: () => localStorage.removeItem(TOKEN_KEY),
+};
+
 // Helper para fazer requisições
 const fetchAPI = async (endpoint: string, options?: RequestInit) => {
+  const token = tokenManager.getToken();
+  
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   });
@@ -73,4 +85,23 @@ export const honorariosAPI = {
 // --- API de Estatísticas ---
 export const estatisticasAPI = {
   getDashboard: () => fetchAPI('/estatisticas/dashboard'),
+};
+
+// --- API de Autenticação ---
+export const authAPI = {
+  login: async (email: string, senha: string) => {
+    const response = await fetchAPI('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    });
+    if (response.data?.token) {
+      tokenManager.setToken(response.data.token);
+    }
+    return response;
+  },
+  logout: () => {
+    tokenManager.removeToken();
+    return fetchAPI('/auth/logout', { method: 'POST' });
+  },
+  me: () => fetchAPI('/auth/me'),
 };
