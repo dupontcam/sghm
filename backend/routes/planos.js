@@ -49,6 +49,8 @@ router.get('/', authenticateToken, requireAuth, async (req, res) => {
       ]
     });
 
+    console.log(`GET /planos - ${planos.length} planos encontrados`);
+
     // Estatísticas básicas
     const stats = await prisma.planos_saude.aggregate({
       _count: { id: true },
@@ -170,6 +172,8 @@ router.get('/:id', authenticateToken, requireAuth, async (req, res) => {
  */
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('POST /planos - Body recebido:', JSON.stringify(req.body, null, 2));
+    
     const {
       nome_plano,
       codigo_operadora,
@@ -234,9 +238,12 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 
   } catch (error) {
     console.error('Erro ao criar plano de saúde:', error);
+    console.error('Stack trace:', error.stack);
+    console.error('Error message:', error.message);
     res.status(500).json({
       success: false,
       error: 'Erro interno no servidor',
+      details: error.message,
       code: 'INTERNAL_ERROR'
     });
   }

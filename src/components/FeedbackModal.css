@@ -20,20 +20,57 @@
 
 .feedback-modal-content {
     background: var(--bg-white);
-    padding: 20px;
-    border-radius: 8px;
+    padding: 30px;
+    border-radius: 12px;
     width: 90%;
-    max-width: 400px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    max-width: 450px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 
 .feedback-modal-header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.feedback-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.feedback-icon-success {
+    background-color: #d4edda;
+    color: #28a745;
+}
+
+.feedback-icon-error {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+.feedback-modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.feedback-success .feedback-modal-header h3 {
+    color: #28a745;
+}
+
+.feedback-error .feedback-modal-header h3 {
+    color: #dc3545;
 }
 
 .feedback-modal-header h2 {
@@ -50,24 +87,54 @@
     color: #888;
 }
 
+.feedback-modal-body {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
 .feedback-modal-body p {
     font-size: 1rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.6;
     margin: 0;
-
-     /* --- CORREÇÃO AQUI --- */
-    /* white-space: pre-wrap; diz ao CSS para respeitar as quebras de linha (\n) 
-       e os espaços da string, mas ainda quebrar a linha (wrap) se o texto for muito longo. */
     white-space: pre-wrap;
 }
 
 .feedback-modal-footer {
     display: flex;
-    justify-content: space-between; 
+    justify-content: center; 
     gap: 10px;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
+}
+
+.feedback-modal-footer .btn {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-error {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-error:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 

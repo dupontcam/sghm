@@ -157,14 +157,16 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     const loadInitialData = async () => {
       setLoading(true);
       try {
+        // Carrega apenas dados essenciais na inicialização
         await Promise.all([
           refreshMedicos(),
           refreshPacientes(),
-          refreshConsultas(),
-          refreshPlanosSaude(),
-          refreshHonorarios(),
-          refreshDashboardStats()
+          refreshPlanosSaude()
         ]);
+        
+        // Carrega consultas e honorários em segundo plano (não bloqueantes)
+        refreshConsultas().catch(err => console.error('Erro ao carregar consultas:', err));
+        refreshHonorarios().catch(err => console.error('Erro ao carregar honorários:', err));
       } catch (err: any) {
         console.error('Erro ao carregar dados iniciais:', err);
         setError(err.message);
@@ -174,7 +176,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     };
 
     loadInitialData();
-  }, [refreshMedicos, refreshPacientes, refreshConsultas, refreshPlanosSaude, refreshHonorarios, refreshDashboardStats]);
+  }, [refreshMedicos, refreshPacientes, refreshConsultas, refreshPlanosSaude, refreshHonorarios]);
 
   // --- Funções CRUD: Médicos ---
   const addMedico = async (medico: Omit<Medico, 'id'>) => {

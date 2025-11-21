@@ -16,8 +16,6 @@ router.post('/', authenticateToken, async (req, res) => {
   const {
     medico_id,
     paciente_id,
-    usuario_inclusao_id,
-    usuario_alteracao_id,
     data_consulta,
     tipo_pagamento,
     status_pagamento,
@@ -28,42 +26,59 @@ router.post('/', authenticateToken, async (req, res) => {
     consultorio,
     protocolo,
     descricao_procedimento,
+    plano_saude_id,
+    numero_carteirinha,
   } = req.body;
 
+  // Pega o ID do usuário logado do token JWT
+  const usuario_id = req.user.id;
+
+  console.log('POST /consultas - Body:', JSON.stringify(req.body, null, 2));
+  console.log('Usuário logado (do token):', usuario_id);
+
   // Validação básica (Campos obrigatórios)
-  if (!medico_id || !paciente_id || !data_consulta || !valor_bruto || !protocolo || !usuario_inclusao_id || !usuario_alteracao_id) {
+  if (!medico_id || !paciente_id || !data_consulta || !valor_bruto || !protocolo) {
     return res.status(400).json({
       error:
-        'Campos obrigatórios (medico_id, paciente_id, usuario_inclusao_id, usuario_alteracao_id, data_consulta, valor_bruto, protocolo) não foram preenchidos.',
+        'Campos obrigatórios (medico_id, paciente_id, data_consulta, valor_bruto, protocolo) não foram preenchidos.',
     });
   }
 
   try {
+    const dataConsulta = {
+      // Conecta as relações de Médico e Paciente
+      medico: { connect: { id: parseInt(medico_id) } },
+      paciente: { connect: { id: parseInt(paciente_id) } },
+
+      // Usa o usuário logado para inclusão e alteração
+      usuario_inclusao: { connect: { id: usuario_id } },
+      usuario_alteracao: { connect: { id: usuario_id } },
+
+      // Outros campos da consulta
+      data_consulta: new Date(data_consulta),
+      tipo_pagamento: tipo_pagamento || 'PARTICULAR',
+      status_pagamento: status_pagamento || 'PENDENTE',
+      valor_bruto: parseFloat(valor_bruto),
+
+      // Campos opcionais de pagamento
+      valor_recebido: valor_recebido ? parseFloat(valor_recebido) : null,
+      valor_glosa: valor_glosa ? parseFloat(valor_glosa) : null,
+      data_recebimento: data_recebimento ? new Date(data_recebimento) : null,
+
+      // Campos diretos
+      numero_carteirinha: numero_carteirinha || null,
+      consultorio,
+      protocolo,
+      descricao_procedimento,
+    };
+
+    // Adiciona plano_saude se fornecido (relação)
+    if (plano_saude_id) {
+      dataConsulta.plano_saude = { connect: { id: parseInt(plano_saude_id) } };
+    }
+
     const novaConsulta = await prisma.consultas.create({
-      data: {
-        // Conecta as relações de Médico e Paciente
-        medico: { connect: { id: parseInt(medico_id) } },
-        paciente: { connect: { id: parseInt(paciente_id) } },
-
-        // Conecta as relações de Usuário
-        usuario_inclusao: { connect: { id: parseInt(usuario_inclusao_id) } },
-        usuario_alteracao: { connect: { id: parseInt(usuario_alteracao_id) } },
-
-        // Outros campos da consulta
-        data_consulta: new Date(data_consulta),
-        tipo_pagamento,
-        status_pagamento,
-        valor_bruto: parseFloat(valor_bruto),
-
-        // Campos opcionais de pagamento
-        valor_recebido: valor_recebido ? parseFloat(valor_recebido) : null,
-        valor_glosa: valor_glosa ? parseFloat(valor_glosa) : null,
-        data_recebimento: data_recebimento ? new Date(data_recebimento) : null,
-
-        consultorio,
-        protocolo,
-        descricao_procedimento,
-      },
+      data: dataConsulta,
     });
 
     res.status(201).json(novaConsulta);
@@ -202,6 +217,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
  */
 router.put('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
+  
+  console.log(`PUT /consultas/${id} - Body:`, JSON.stringify(req.body, null, 2));
+  console.log('Usuário logado (do token):', req.user?.id);
+  
   const {
     medico_id,
     paciente_id,
@@ -209,6 +228,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     tipo_pagamento,
     status_pagamento,
     valor_bruto,
+    valor_recebido,
+    data_recebimento,
     valor_pago, // Nome antigo (vem do body)
     data_pagamento, // Nome antigo (vem do body)
     glosa_valor, // Nome antigo (vem do body)
@@ -217,12 +238,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
     descricao_procedimento,
   } = req.body;
 
+  // Obter o ID do usuário autenticado
+  const usuario_id = req.user.id;
+
   const dataToUpdate = {
     medico: medico_id ? { connect: { id: parseInt(medico_id) } } : undefined,
     paciente: paciente_id
       ? { connect: { id: parseInt(paciente_id) } }
       : undefined,
-    usuario_alteracao: { connect: { id: 1 } }, // Conecta ao 'Admin Temporário'
+    usuario_alteracao: { connect: { id: usuario_id } },
 
     // Campos normais
     data_consulta: data_consulta ? new Date(data_consulta) : undefined,
@@ -230,9 +254,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
     status_pagamento,
     valor_bruto: valor_bruto ? parseFloat(valor_bruto) : undefined,
 
-    // CORREÇÃO DE NOMENCLATURA:
-    valor_recebido: valor_pago ? parseFloat(valor_pago) : undefined,
-    data_recebimento: data_pagamento ? new Date(data_pagamento) : undefined,
+    // Campos de pagamento (prioriza novos nomes, fallback para antigos)
+    valor_recebido: valor_recebido ? parseFloat(valor_recebido) : (valor_pago ? parseFloat(valor_pago) : undefined),
+    data_recebimento: data_recebimento ? new Date(data_recebimento) : (data_pagamento ? new Date(data_pagamento) : undefined),
     valor_glosa: glosa_valor ? parseFloat(glosa_valor) : undefined,
 
     consultorio,

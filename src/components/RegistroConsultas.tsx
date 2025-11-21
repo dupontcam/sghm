@@ -22,6 +22,8 @@ const formInicial: Omit<Consulta, 'id'> = {
   especialidade: '',
   valorProcedimento: 0,
   descricaoProcedimento: '',
+  valorRecebido: undefined,
+  dataRecebimento: undefined,
 };
 
 const RegistroConsultas: React.FC = () => {
@@ -53,8 +55,13 @@ const RegistroConsultas: React.FC = () => {
 
   const handleEditarConsulta = (consulta: Consulta) => {
     setIsEditing(true);
+    
+    // Formata a data para o formato YYYY-MM-DD esperado pelo input type="date"
+    const dataFormatada = consulta.dataConsulta.split('T')[0];
+    
     setFormData({
         ...consulta,
+        dataConsulta: dataFormatada,
         usuarioAlteracao: 'admin@sghm.com',
         dataAlteracao: new Date().toISOString(),
     });
@@ -88,17 +95,38 @@ const RegistroConsultas: React.FC = () => {
     
     let valorProcessado: string | number = value;
 
-    if (name === 'valorProcedimento' || name === 'pacienteId' || name === 'medicoId') {
+    if (name === 'valorProcedimento' || name === 'pacienteId' || name === 'medicoId' || name === 'valorRecebido') {
       valorProcessado = parseFloat(value) || 0;
     }
 
-    setFormData({
+    const novoFormData: any = {
       ...formData,
       [name]: valorProcessado,
-    });
+    };
+
+    // Se for nova consulta e mudar o tipo de pagamento para particular
+    if (!isEditing && name === 'tipoPagamento') {
+      if (value === 'particular') {
+        novoFormData.status = 'Pago';
+        novoFormData.valorRecebido = formData.valorProcedimento || 0;
+        novoFormData.dataRecebimento = formData.dataConsulta || new Date().toISOString().split('T')[0];
+      } else {
+        novoFormData.status = 'Pendente';
+        novoFormData.valorRecebido = undefined;
+        novoFormData.dataRecebimento = undefined;
+      }
+    }
+
+    // Se mudar status para Pago, preenche campos de pagamento
+    if (name === 'status' && value === 'Pago') {
+      novoFormData.valorRecebido = novoFormData.valorRecebido || formData.valorProcedimento || 0;
+      novoFormData.dataRecebimento = novoFormData.dataRecebimento || new Date().toISOString().split('T')[0];
+    }
+
+    setFormData(novoFormData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const dadosFormatados = {
@@ -115,7 +143,14 @@ const RegistroConsultas: React.FC = () => {
           dataAlteracao: new Date().toISOString()
       } as Consulta; 
 
-      updateConsulta(consultaAtualizada);
+      try {
+        await updateConsulta(consultaAtualizada);
+        closeModal();
+      } catch (error) {
+        console.error('Erro ao atualizar consulta:', error);
+        alert('Erro ao atualizar consulta. Verifique o console para mais detalhes.');
+        return;
+      }
       
     } else {
       const novaConsulta = {
@@ -127,9 +162,14 @@ const RegistroConsultas: React.FC = () => {
       } as Omit<Consulta, 'id'>; 
 
       // Usar a nova função que cria honorário automaticamente
-      addConsultaComHonorario(novaConsulta);
+      try {
+        await addConsultaComHonorario(novaConsulta);
+        closeModal();
+      } catch (error) {
+        console.error('Erro ao criar consulta:', error);
+        alert('Erro ao criar consulta. Verifique o console para mais detalhes.');
+      }
     }
-    closeModal();
   };
 
 
@@ -361,6 +401,38 @@ const RegistroConsultas: React.FC = () => {
                 ></textarea>
             </div>
           </fieldset>
+
+          {/* Mostrar campos de pagamento quando status for Pago */}
+          {formData.status === 'Pago' && (
+            <fieldset>
+              <legend>Dados de Pagamento</legend>
+              <div className="form-row">
+                <div className="form-group half-width">
+                  <label htmlFor="valorRecebido">Valor Recebido (R$)</label>
+                  <input
+                    id="valorRecebido"
+                    name="valorRecebido"
+                    type="number"
+                    step="0.01"
+                    value={formData.valorRecebido || ''}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group half-width">
+                  <label htmlFor="dataRecebimento">Data de Recebimento</label>
+                  <input
+                    id="dataRecebimento"
+                    name="dataRecebimento"
+                    type="date"
+                    value={formData.dataRecebimento || ''}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </fieldset>
+          )}
 
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={closeModal}>

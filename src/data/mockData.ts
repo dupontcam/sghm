@@ -37,6 +37,9 @@ export interface Consulta {
   especialidade: string;
   valorProcedimento: number;
   descricaoProcedimento: string;
+  // Campos de pagamento
+  valorRecebido?: number;
+  dataRecebimento?: string;
 }
 
 export interface PlanoSaude {
@@ -44,6 +47,10 @@ export interface PlanoSaude {
   nome: string;
   tipo: 'PUBLICO' | 'PRIVADO' | 'COOPERATIVA' | 'SEGURADORA';
   ativo: boolean;
+  codigoOperadora?: string | null;
+  valorConsultaPadrao?: number;
+  prazoPagamentoDias?: number;
+  percentualGlosa?: number;
   createdAt: string;
   updatedAt: string;
   totalHonorarios?: number;

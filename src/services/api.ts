@@ -83,6 +83,8 @@ const transformPacienteToBackend = (paciente: any) => ({
   cpf: paciente.cpf,
   email: paciente.email,
   telefone: paciente.telefone,
+  convenio: paciente.convenio || null,
+  numero_carteirinha: paciente.carteirinha || null,
 });
 
 const transformPacienteFromBackend = (paciente: any) => ({
@@ -93,7 +95,7 @@ const transformPacienteFromBackend = (paciente: any) => ({
   email: paciente.email,
   telefone: paciente.telefone,
   convenio: paciente.convenio || '',
-  carteirinha: paciente.carteirinha || '',
+  carteirinha: paciente.numero_carteirinha || '',
 });
 
 // --- API de Pacientes ---
@@ -120,38 +122,196 @@ export const pacientesAPI = {
   delete: (id: number) => fetchAPI(`/pacientes/${id}`, { method: 'DELETE' }),
 };
 
+const transformConsultaToBackend = (consulta: any) => {
+  // Mapear status do frontend para o backend
+  const statusMap: Record<string, string> = {
+    'Pendente': 'PENDENTE',
+    'Pago': 'PAGO',
+    'Glosado': 'GLOSA'
+  };
+
+  const payload: any = {
+    data_consulta: consulta.dataConsulta,
+    protocolo: consulta.protocolo,
+    consultorio: consulta.consultorio,
+    tipo_pagamento: consulta.tipoPagamento === 'particular' ? 'PARTICULAR' : 'PLANO_SAUDE',
+    status_pagamento: statusMap[consulta.status] || 'PENDENTE',
+    valor_bruto: consulta.valorProcedimento,
+    descricao_procedimento: consulta.descricaoProcedimento,
+    medico_id: consulta.medicoId,
+    paciente_id: consulta.pacienteId,
+    plano_saude_id: consulta.planoSaudeId || null,
+    numero_carteirinha: consulta.numeroCarteirinha || null,
+  };
+
+  // Adiciona campos de pagamento se status for Pago
+  if (consulta.status === 'Pago') {
+    payload.valor_recebido = consulta.valorRecebido || consulta.valorProcedimento;
+    payload.data_recebimento = consulta.dataRecebimento || consulta.dataConsulta;
+  }
+
+  return payload;
+};
+
+const transformConsultaFromBackend = (consulta: any) => ({
+  id: consulta.id,
+  dataConsulta: consulta.data_consulta,
+  protocolo: consulta.protocolo,
+  consultorio: consulta.consultorio,
+  tipoPagamento: (consulta.tipo_pagamento === 'PARTICULAR' ? 'particular' : 'convenio') as 'particular' | 'convenio' | '',
+  valorProcedimento: parseFloat(consulta.valor_bruto),
+  descricaoProcedimento: consulta.descricao_procedimento,
+  medicoId: consulta.medico_id,
+  pacienteId: consulta.paciente_id,
+  planoSaudeId: consulta.plano_saude_id,
+  status: (consulta.status_pagamento === 'PENDENTE' ? 'Pendente' : 
+           consulta.status_pagamento === 'PAGO' ? 'Pago' : 
+           consulta.status_pagamento === 'GLOSA' ? 'Glosado' : '') as 'Pendente' | 'Pago' | 'Glosado' | '',
+  usuarioInclusao: consulta.usuario_inclusao?.email || '',
+  dataInclusao: consulta.created_at,
+  usuarioAlteracao: consulta.usuario_alteracao?.email || '',
+  dataAlteracao: consulta.updated_at,
+  especialidade: consulta.medico?.especialidade || '',
+  valorRecebido: consulta.valor_recebido ? parseFloat(consulta.valor_recebido) : undefined,
+  dataRecebimento: consulta.data_recebimento || undefined,
+});
+
 // --- API de Consultas ---
 export const consultasAPI = {
   getAll: async () => {
     const response = await fetchAPI('/consultas');
-    return response.data || response;
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformConsultaFromBackend) : [];
   },
-  getById: (id: number) => fetchAPI(`/consultas/${id}`),
-  create: (data: any) => fetchAPI('/consultas', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: any) => fetchAPI(`/consultas/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getById: async (id: number) => {
+    const data = await fetchAPI(`/consultas/${id}`);
+    return transformConsultaFromBackend(data);
+  },
+  create: (data: any) => 
+    fetchAPI('/consultas', { 
+      method: 'POST', 
+      body: JSON.stringify(transformConsultaToBackend(data)) 
+    }).then(transformConsultaFromBackend),
+  update: (id: number, data: any) => 
+    fetchAPI(`/consultas/${id}`, { 
+      method: 'PUT', 
+      body: JSON.stringify(transformConsultaToBackend(data)) 
+    }).then(transformConsultaFromBackend),
   delete: (id: number) => fetchAPI(`/consultas/${id}`, { method: 'DELETE' }),
+};
+
+const transformPlanoToBackend = (plano: any) => {
+  // Mapear tipos do frontend para o backend
+  const tipoMap: Record<string, string> = {
+    'PRIVADO': 'PARTICULAR',
+    'PUBLICO': 'SUS',
+    'COOPERATIVA': 'CONVENIO',
+    'SEGURADORA': 'CONVENIO'
+  };
+  
+  return {
+    nome_plano: plano.nome,
+    codigo_operadora: plano.codigoOperadora || null,
+    tipo_plano: tipoMap[plano.tipo] || 'CONVENIO',
+    prazo_pagamento_dias: plano.prazoPagamentoDias || 30,
+    valor_consulta_padrao: plano.valorConsultaPadrao || 100,
+    percentual_glosa_historica: plano.percentualGlosa || 5,
+  };
+};
+
+const transformPlanoFromBackend = (plano: any) => {
+  if (!plano || !plano.id) {
+    console.warn('Plano inválido recebido do backend:', plano);
+    return null;
+  }
+
+  // Mapear tipos do backend para o frontend
+  const tipoMapReverse: Record<string, 'PRIVADO' | 'PUBLICO' | 'COOPERATIVA' | 'SEGURADORA'> = {
+    'PARTICULAR': 'PRIVADO',
+    'SUS': 'PUBLICO',
+    'CONVENIO': 'COOPERATIVA'
+  };
+  
+  return {
+    id: plano.id,
+    nome: plano.nome_plano || 'Sem nome',
+    tipo: (tipoMapReverse[plano.tipo_plano] || 'COOPERATIVA') as 'PRIVADO' | 'PUBLICO' | 'COOPERATIVA' | 'SEGURADORA',
+    ativo: plano.ativo !== false,
+    createdAt: plano.created_at || new Date().toISOString(),
+    updatedAt: plano.updated_at || new Date().toISOString(),
+    codigoOperadora: plano.codigo_operadora || null,
+    prazoPagamentoDias: plano.prazo_pagamento_dias || 30,
+    valorConsultaPadrao: parseFloat(plano.valor_consulta_padrao) || 100,
+    percentualGlosa: parseFloat(plano.percentual_glosa_historica) || 5,
+  };
 };
 
 // --- API de Planos de Saúde ---
 export const planosAPI = {
   getAll: async () => {
-    const response = await fetchAPI('/planos');
-    return response.data?.planos || response.planos || response.data || response;
+    try {
+      const response = await fetchAPI('/planos');
+      const planos = response.data?.planos || response.planos || response.data || response;
+      
+      if (!Array.isArray(planos)) {
+        console.warn('Resposta de planos não é um array:', planos);
+        return [];
+      }
+      
+      const transformed = planos
+        .map(transformPlanoFromBackend)
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+      console.log(`${transformed.length} planos carregados com sucesso`);
+      return transformed;
+    } catch (error) {
+      console.error('Erro ao buscar planos:', error);
+      return [];
+    }
   },
-  getById: (id: number) => fetchAPI(`/planos/${id}`),
-  create: (data: any) => fetchAPI('/planos', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: any) => fetchAPI(`/planos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  getById: async (id: number) => {
+    const response = await fetchAPI(`/planos/${id}`);
+    return transformPlanoFromBackend(response.data?.plano || response);
+  },
+  create: (data: any) => 
+    fetchAPI('/planos', { 
+      method: 'POST', 
+      body: JSON.stringify(transformPlanoToBackend(data)) 
+    }).then(res => transformPlanoFromBackend(res.data?.plano || res)),
+  update: (id: number, data: any) => 
+    fetchAPI(`/planos/${id}`, { 
+      method: 'PUT', 
+      body: JSON.stringify(transformPlanoToBackend(data)) 
+    }).then(res => transformPlanoFromBackend(res.data?.plano || res)),
   delete: (id: number) => fetchAPI(`/planos/${id}`, { method: 'DELETE' }),
 };
+
+const transformHonorarioFromBackend = (honorario: any) => ({
+  id: honorario.id,
+  medicoId: honorario.consulta?.medico_id || 0,
+  consultaId: honorario.consulta_id,
+  planoSaudeId: honorario.plano_saude_id,
+  dataConsulta: honorario.consulta?.data_consulta || honorario.created_at,
+  valor: parseFloat(honorario.valor_liquido || honorario.valor_consulta || 0),
+  status: (honorario.status_pagamento === 'PENDENTE' ? 'PENDENTE' :
+           honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
+           honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',
+  motivo: honorario.motivo_glosa,
+  createdAt: honorario.created_at,
+  updatedAt: honorario.updated_at,
+});
 
 // --- API de Honorários ---
 export const honorariosAPI = {
   getAll: async () => {
     const response = await fetchAPI('/honorarios');
     // Backend retorna { success, data: { honorarios, pagination, ... } }
-    return response.data?.honorarios || response.honorarios || [];
+    const honorarios = response.data?.honorarios || response.honorarios || [];
+    return Array.isArray(honorarios) ? honorarios.map(transformHonorarioFromBackend) : [];
   },
-  getById: (id: number) => fetchAPI(`/honorarios/${id}`),
+  getById: async (id: number) => {
+    const data = await fetchAPI(`/honorarios/${id}`);
+    return transformHonorarioFromBackend(data.data?.honorario || data);
+  },
   getByMedico: (medicoId: number) => fetchAPI(`/honorarios/medico/${medicoId}`),
   getByPlano: (planoId: number) => fetchAPI(`/honorarios/plano/${planoId}`),
   create: (data: any) => fetchAPI('/honorarios', { method: 'POST', body: JSON.stringify(data) }),

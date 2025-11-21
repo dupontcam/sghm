@@ -20,8 +20,10 @@ router.post('/', authenticateToken, async (req, res) => {
     email,
     telefone,
     numero_carteirinha,
-    plano_saude,
+    convenio,
   } = req.body;
+
+  console.log('POST /pacientes - Body recebido:', JSON.stringify(req.body, null, 2));
 
   // Validação básica (Exemplo: nome e cpf são obrigatórios)
   if (!nome_paciente || !cpf) {
@@ -40,8 +42,8 @@ router.post('/', authenticateToken, async (req, res) => {
         email,
         telefone,
         numero_carteirinha,
-        plano_saude,
-        // 'criado_em' e 'atualizado_em' são preenchidos pelo DB (DEFAULT NOW())
+        convenio,
+        // 'created_at' e 'updated_at' são preenchidos pelo DB (DEFAULT NOW())
       },
     });
 
@@ -118,8 +120,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
     email,
     telefone,
     numero_carteirinha,
-    plano_saude,
+    convenio,
   } = req.body;
+
+  console.log('PUT /pacientes/:id - Body recebido:', JSON.stringify(req.body, null, 2));
 
   try {
     const pacienteAtualizado = await prisma.pacientes.update({
@@ -129,12 +133,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
       data: {
         nome_paciente,
         cpf,
-        data_nascimento: data_nascimento ? new Date(data_nascimento) : undefined,
+        data_nascimento: data_nascimento ? new Date(data_nascimento) : null,
         email,
         telefone,
         numero_carteirinha,
-        plano_saude,
-        atualizado_em: new Date(), // Atualiza o timestamp
+        convenio,
+        // updated_at é atualizado automaticamente pelo Prisma
       },
     });
 
@@ -161,6 +165,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
  */
 router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
+
+  console.log('DELETE /pacientes/:id - ID recebido:', id);
 
   try {
     await prisma.pacientes.delete({

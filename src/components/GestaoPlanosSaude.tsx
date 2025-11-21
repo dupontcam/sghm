@@ -3,6 +3,7 @@ import { useData } from '../contexts/DataContext';
 import { PlanoSaude } from '../data/mockData';
 import Modal from './Modal';
 import ConfirmationModal from './ConfirmationModal';
+import FeedbackModal from './FeedbackModal';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import './GestaoPlanosSaude.css';
 
@@ -19,12 +20,21 @@ const GestaoPlanosSaude: React.FC = () => {
   const [planoToDelete, setPlanoToDelete] = useState<PlanoSaude | null>(null);
   const [filtro, setFiltro] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState<string>('TODOS');
+  const [feedbackModal, setFeedbackModal] = useState<{ isOpen: boolean; tipo: 'success' | 'error'; mensagem: string }>({
+    isOpen: false,
+    tipo: 'success',
+    mensagem: ''
+  });
 
   // Estados do formulário
   const [formData, setFormData] = useState({
     nome: '',
     tipo: 'PRIVADO' as PlanoSaude['tipo'],
-    ativo: true
+    ativo: true,
+    codigoOperadora: '',
+    valorConsultaPadrao: 100,
+    prazoPagamentoDias: 30,
+    percentualGlosa: 5
   });
 
   // Filtrar planos
@@ -37,7 +47,15 @@ const GestaoPlanosSaude: React.FC = () => {
   // Abrir modal para criar novo plano
   const handleNovoPlano = () => {
     setEditingPlano(null);
-    setFormData({ nome: '', tipo: 'PRIVADO', ativo: true });
+    setFormData({ 
+      nome: '', 
+      tipo: 'PRIVADO', 
+      ativo: true,
+      codigoOperadora: '',
+      valorConsultaPadrao: 100,
+      prazoPagamentoDias: 30,
+      percentualGlosa: 5
+    });
     setIsModalOpen(true);
   };
 
@@ -47,39 +65,114 @@ const GestaoPlanosSaude: React.FC = () => {
     setFormData({
       nome: plano.nome,
       tipo: plano.tipo,
-      ativo: plano.ativo
+      ativo: plano.ativo,
+      codigoOperadora: (plano as any).codigoOperadora || '',
+      valorConsultaPadrao: (plano as any).valorConsultaPadrao || 100,
+      prazoPagamentoDias: (plano as any).prazoPagamentoDias || 30,
+      percentualGlosa: (plano as any).percentualGlosa || 5
     });
     setIsModalOpen(true);
   };
 
   // Salvar plano (criar ou editar)
-  const handleSalvarPlano = () => {
+  const handleSalvarPlano = async () => {
     if (!formData.nome.trim()) {
-      alert('Por favor, preencha o nome do plano.');
+      setFeedbackModal({
+        isOpen: true,
+        tipo: 'error',
+        mensagem: 'Por favor, preencha o nome do plano.'
+      });
       return;
     }
 
-    if (editingPlano) {
-      // Editar plano existente
-      const planoAtualizado: PlanoSaude = {
-        ...editingPlano,
-        nome: formData.nome.trim(),
-        tipo: formData.tipo,
-        ativo: formData.ativo,
-        updatedAt: new Date().toISOString()
-      };
-      updatePlanoSaude(planoAtualizado);
-    } else {
-      // Criar novo plano
-      addPlanoSaude({
-        nome: formData.nome.trim(),
-        tipo: formData.tipo,
-        ativo: formData.ativo
+    if (formData.valorConsultaPadrao <= 0) {
+      setFeedbackModal({
+        isOpen: true,
+        tipo: 'error',
+        mensagem: 'O valor da consulta padrão deve ser maior que zero.'
       });
+      return;
     }
 
-    setIsModalOpen(false);
-    setFormData({ nome: '', tipo: 'PRIVADO', ativo: true });
+    const planoData = {
+      nome: formData.nome.trim(),
+      tipo: formData.tipo,
+      ativo: formData.ativo,
+      codigoOperadora: formData.codigoOperadora.trim() || null,
+      valorConsultaPadrao: formData.valorConsultaPadrao,
+      prazoPagamentoDias: formData.prazoPagamentoDias,
+      percentualGlosa: formData.percentualGlosa
+    };
+
+    try {
+      if (editingPlano) {
+        // Editar plano existente
+        const planoAtualizado = {
+          ...editingPlano,
+          ...planoData,
+          updatedAt: new Date().toISOString()
+        };
+        await updatePlanoSaude(planoAtualizado);
+        
+        setIsModalOpen(false);
+        setFormData({ 
+          nome: '', 
+          tipo: 'PRIVADO', 
+          ativo: true,
+          codigoOperadora: '',
+          valorConsultaPadrao: 100,
+          prazoPagamentoDias: 30,
+          percentualGlosa: 5
+        });
+        
+        setFeedbackModal({
+          isOpen: true,
+          tipo: 'success',
+          mensagem: 'Plano de saúde atualizado com sucesso!'
+        });
+      } else {
+        // Criar novo plano
+        await addPlanoSaude(planoData);
+        
+        setIsModalOpen(false);
+        setFormData({ 
+          nome: '', 
+          tipo: 'PRIVADO', 
+          ativo: true,
+          codigoOperadora: '',
+          valorConsultaPadrao: 100,
+          prazoPagamentoDias: 30,
+          percentualGlosa: 5
+        });
+        
+        setFeedbackModal({
+          isOpen: true,
+          tipo: 'success',
+          mensagem: 'Plano de saúde criado com sucesso!'
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro capturado ao salvar plano:', error);
+      
+      // Fechar o modal de formulário
+      setIsModalOpen(false);
+      
+      // Tratamento específico para erros de duplicidade
+      let mensagemErro = error.message || 'Erro ao salvar plano de saúde.';
+      
+      if (mensagemErro.includes('já existe') || mensagemErro.includes('duplicado') || 
+          mensagemErro.toLowerCase().includes('already exists')) {
+        mensagemErro = `Já existe um plano cadastrado com o nome "${formData.nome}" ou código de operadora "${formData.codigoOperadora}".\n\nPor favor, verifique os dados e tente novamente com valores diferentes.`;
+      }
+
+      setFeedbackModal({
+        isOpen: true,
+        tipo: 'error',
+        mensagem: mensagemErro
+      });
+      
+      console.log('FeedbackModal definido:', { isOpen: true, tipo: 'error', mensagem: mensagemErro });
+    }
   };
 
   // Confirmar exclusão
@@ -89,25 +182,62 @@ const GestaoPlanosSaude: React.FC = () => {
   };
 
   // Executar exclusão
-  const handleExcluirPlano = () => {
+  const handleExcluirPlano = async () => {
     if (planoToDelete) {
-      const sucesso = deletePlanoSaude(planoToDelete.id);
-      if (!sucesso) {
-        alert('Não é possível excluir este plano pois existem honorários associados.');
+      try {
+        const sucesso = await deletePlanoSaude(planoToDelete.id);
+        
+        setIsConfirmationOpen(false);
+        setPlanoToDelete(null);
+        
+        if (sucesso) {
+          setFeedbackModal({
+            isOpen: true,
+            tipo: 'success',
+            mensagem: `Plano "${planoToDelete.nome}" excluído com sucesso!`
+          });
+        } else {
+          setFeedbackModal({
+            isOpen: true,
+            tipo: 'error',
+            mensagem: 'Não é possível excluir este plano pois existem honorários associados.'
+          });
+        }
+      } catch (error: any) {
+        setIsConfirmationOpen(false);
+        setPlanoToDelete(null);
+        
+        setFeedbackModal({
+          isOpen: true,
+          tipo: 'error',
+          mensagem: error.message || 'Erro ao excluir plano de saúde.'
+        });
       }
-      setIsConfirmationOpen(false);
-      setPlanoToDelete(null);
     }
   };
 
   // Toggle status ativo
-  const handleToggleStatus = (plano: PlanoSaude) => {
-    const planoAtualizado: PlanoSaude = {
-      ...plano,
-      ativo: !plano.ativo,
-      updatedAt: new Date().toISOString()
-    };
-    updatePlanoSaude(planoAtualizado);
+  const handleToggleStatus = async (plano: PlanoSaude) => {
+    try {
+      const planoAtualizado: PlanoSaude = {
+        ...plano,
+        ativo: !plano.ativo,
+        updatedAt: new Date().toISOString()
+      };
+      await updatePlanoSaude(planoAtualizado);
+      
+      setFeedbackModal({
+        isOpen: true,
+        tipo: 'success',
+        mensagem: `Plano "${plano.nome}" ${planoAtualizado.ativo ? 'ativado' : 'desativado'} com sucesso!`
+      });
+    } catch (error: any) {
+      setFeedbackModal({
+        isOpen: true,
+        tipo: 'error',
+        mensagem: error.message || 'Erro ao alterar status do plano.'
+      });
+    }
   };
 
   // Estatísticas do plano
@@ -232,12 +362,23 @@ const GestaoPlanosSaude: React.FC = () => {
         title={editingPlano ? 'Editar Plano de Saúde' : 'Novo Plano de Saúde'}
       >
         <div className="form-group">
-          <label>Nome do Plano:</label>
+          <label>Nome do Plano: *</label>
           <input
             type="text"
             value={formData.nome}
             onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
             placeholder="Ex: Unimed DF, Bradesco Saúde..."
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Código da Operadora:</label>
+          <input
+            type="text"
+            value={formData.codigoOperadora}
+            onChange={(e) => setFormData({ ...formData, codigoOperadora: e.target.value })}
+            placeholder="Ex: 123456"
           />
         </div>
 
@@ -252,6 +393,40 @@ const GestaoPlanosSaude: React.FC = () => {
             <option value="COOPERATIVA">Cooperativa</option>
             <option value="SEGURADORA">Seguradora</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label>Valor Consulta Padrão (R$): *</label>
+          <input
+            type="number"
+            step="0.01"
+            min="0.01"
+            value={formData.valorConsultaPadrao}
+            onChange={(e) => setFormData({ ...formData, valorConsultaPadrao: parseFloat(e.target.value) || 0 })}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Prazo Pagamento (dias):</label>
+          <input
+            type="number"
+            min="1"
+            value={formData.prazoPagamentoDias}
+            onChange={(e) => setFormData({ ...formData, prazoPagamentoDias: parseInt(e.target.value) || 30 })}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Percentual Glosa Histórica (%):</label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            value={formData.percentualGlosa}
+            onChange={(e) => setFormData({ ...formData, percentualGlosa: parseFloat(e.target.value) || 0 })}
+          />
         </div>
 
         <div className="form-group">
@@ -282,6 +457,14 @@ const GestaoPlanosSaude: React.FC = () => {
         message={`Tem certeza que deseja excluir o plano "${planoToDelete?.nome}"?`}
         onConfirm={handleExcluirPlano}
         onClose={() => setIsConfirmationOpen(false)}
+      />
+
+      {/* Modal de Feedback */}
+      <FeedbackModal
+        isOpen={feedbackModal.isOpen}
+        tipo={feedbackModal.tipo}
+        mensagem={feedbackModal.mensagem}
+        onClose={() => setFeedbackModal({ isOpen: false, tipo: 'success', mensagem: '' })}
       />
     </div>
   );
