@@ -60,8 +60,11 @@ const Login: React.FC = () => {
                         <form onSubmit={handleLogin}>
                             <div className="input-group">
                                 <input 
-                                    type="email" 
-                                    placeholder="Email" 
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    placeholder="Email"
+                                    autoComplete="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={loading}
@@ -70,8 +73,11 @@ const Login: React.FC = () => {
                             </div>
                             <div className="input-group">
                                 <input 
-                                    type="password" 
-                                    placeholder="Senha" 
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Senha"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={loading}

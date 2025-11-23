@@ -134,6 +134,7 @@ const transformConsultaToBackend = (consulta: any) => {
     data_consulta: consulta.dataConsulta,
     protocolo: consulta.protocolo,
     consultorio: consulta.consultorio,
+    tipo_local: consulta.tipoLocal || null,
     tipo_pagamento: consulta.tipoPagamento === 'particular' ? 'PARTICULAR' : 'PLANO_SAUDE',
     status_pagamento: statusMap[consulta.status] || 'PENDENTE',
     valor_bruto: consulta.valorProcedimento,
@@ -158,12 +159,14 @@ const transformConsultaFromBackend = (consulta: any) => ({
   dataConsulta: consulta.data_consulta,
   protocolo: consulta.protocolo,
   consultorio: consulta.consultorio,
+  tipoLocal: consulta.tipo_local || '',
   tipoPagamento: (consulta.tipo_pagamento === 'PARTICULAR' ? 'particular' : 'convenio') as 'particular' | 'convenio' | '',
   valorProcedimento: parseFloat(consulta.valor_bruto),
   descricaoProcedimento: consulta.descricao_procedimento,
   medicoId: consulta.medico_id,
   pacienteId: consulta.paciente_id,
   planoSaudeId: consulta.plano_saude_id,
+  numeroCarteirinha: consulta.numero_carteirinha || '',
   status: (consulta.status_pagamento === 'PENDENTE' ? 'Pendente' : 
            consulta.status_pagamento === 'PAGO' ? 'Pago' : 
            consulta.status_pagamento === 'GLOSA' ? 'Glosado' : '') as 'Pendente' | 'Pago' | 'Glosado' | '',
@@ -317,9 +320,14 @@ export const honorariosAPI = {
   create: (data: any) => fetchAPI('/honorarios', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: any) => fetchAPI(`/honorarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   updateStatus: (id: number, status: string) => fetchAPI(`/honorarios/${id}/status`, { 
-    method: 'PATCH', 
-    body: JSON.stringify({ status }) 
+    method: 'PUT', 
+    body: JSON.stringify({ status_pagamento: status }) 
   }),
+  updateGlosa: (id: number, data: { valor_glosa: number; motivo_glosa: string }) => 
+    fetchAPI(`/honorarios/${id}/glosa`, { 
+      method: 'PUT', 
+      body: JSON.stringify(data) 
+    }),
   delete: (id: number) => fetchAPI(`/honorarios/${id}`, { method: 'DELETE' }),
 };
 

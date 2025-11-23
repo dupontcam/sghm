@@ -123,6 +123,7 @@ model consultas {
   data_consulta          DateTime         @db.Date
   protocolo              String           @unique @db.VarChar(50)
   consultorio            String?          @db.VarChar(100)
+  tipo_local             String?          @db.VarChar(100)
   tipo_pagamento         tipo_pagamento?
   valor_bruto            Decimal          @db.Decimal(10, 2)
   valor_glosa            Decimal?         @default(0.00) @db.Decimal(10, 2)

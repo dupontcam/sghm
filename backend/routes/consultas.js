@@ -81,6 +81,28 @@ router.post('/', authenticateToken, async (req, res) => {
       data: dataConsulta,
     });
 
+    // Se for pagamento por convênio/plano de saúde, cria automaticamente um honorário
+    if (tipo_pagamento === 'PLANO_SAUDE' && plano_saude_id) {
+      try {
+        await prisma.honorarios.create({
+          data: {
+            consulta: { connect: { id: novaConsulta.id } },
+            plano_saude: { connect: { id: parseInt(plano_saude_id) } },
+            valor_consulta: parseFloat(valor_bruto),
+            valor_glosa: 0,
+            valor_liquido: parseFloat(valor_bruto),
+            valor_repasse_medico: parseFloat(valor_bruto),
+            status_pagamento: 'PENDENTE',
+            numero_guia: protocolo,
+          }
+        });
+        console.log('Honorário criado automaticamente para consulta:', novaConsulta.id);
+      } catch (honorarioError) {
+        console.error('Erro ao criar honorário automaticamente:', honorarioError);
+        // Não bloqueia a criação da consulta se falhar a criação do honorário
+      }
+    }
+
     res.status(201).json(novaConsulta);
   } catch (error) {
     console.error('Erro ao registrar consulta:', error);
@@ -236,6 +258,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
     consultorio,
     protocolo,
     descricao_procedimento,
+    plano_saude_id,
+    numero_carteirinha,
+    tipo_local,
   } = req.body;
 
   // Obter o ID do usuário autenticado
@@ -262,8 +287,17 @@ router.put('/:id', authenticateToken, async (req, res) => {
     consultorio,
     protocolo,
     descricao_procedimento,
+    tipo_local,
+    numero_carteirinha,
     updated_at: new Date(),
   };
+
+  // Adiciona plano_saude se fornecido
+  if (plano_saude_id) {
+    dataToUpdate.plano_saude = { connect: { id: parseInt(plano_saude_id) } };
+  } else if (plano_saude_id === null) {
+    dataToUpdate.plano_saude = { disconnect: true };
+  }
 
   try {
     const consultaAtualizada = await prisma.consultas.update({
@@ -272,6 +306,50 @@ router.put('/:id', authenticateToken, async (req, res) => {
       },
       data: dataToUpdate,
     });
+
+    // Se alterou para pagamento por convênio/plano de saúde, gerencia honorário
+    if (tipo_pagamento === 'PLANO_SAUDE' && plano_saude_id) {
+      // Verifica se já existe honorário para esta consulta
+      const honorarioExistente = await prisma.honorarios.findFirst({
+        where: { consulta_id: parseInt(id) }
+      });
+
+      if (honorarioExistente) {
+        // Atualiza honorário existente
+        await prisma.honorarios.update({
+          where: { id: honorarioExistente.id },
+          data: {
+            plano_saude: { connect: { id: parseInt(plano_saude_id) } },
+            valor_consulta: valor_bruto ? parseFloat(valor_bruto) : undefined,
+            valor_liquido: valor_bruto ? parseFloat(valor_bruto) : undefined,
+            valor_repasse_medico: valor_bruto ? parseFloat(valor_bruto) : undefined,
+            numero_guia: protocolo,
+          }
+        });
+        console.log('Honorário atualizado para consulta:', id);
+      } else {
+        // Cria novo honorário
+        await prisma.honorarios.create({
+          data: {
+            consulta: { connect: { id: parseInt(id) } },
+            plano_saude: { connect: { id: parseInt(plano_saude_id) } },
+            valor_consulta: parseFloat(valor_bruto || consultaAtualizada.valor_bruto),
+            valor_glosa: 0,
+            valor_liquido: parseFloat(valor_bruto || consultaAtualizada.valor_bruto),
+            valor_repasse_medico: parseFloat(valor_bruto || consultaAtualizada.valor_bruto),
+            status_pagamento: 'PENDENTE',
+            numero_guia: protocolo || consultaAtualizada.protocolo,
+          }
+        });
+        console.log('Honorário criado automaticamente para consulta:', id);
+      }
+    } else if (tipo_pagamento === 'PARTICULAR') {
+      // Se mudou para particular, remove honorário se existir
+      await prisma.honorarios.deleteMany({
+        where: { consulta_id: parseInt(id) }
+      });
+      console.log('Honorário removido da consulta (mudou para PARTICULAR):', id);
+    }
 
     res.status(200).json(consultaAtualizada);
   } catch (error) {

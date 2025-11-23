@@ -8,7 +8,22 @@
 /* Layout Principal (Filho do Layout.tsx) */
 .page-container {
   padding: 30px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
   /* Garante que o conteúdo não encoste no header em telas pequenas */
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 10px;
+  }
 }
 
 /* Cabeçalho de cada Página (Ex: "Cadastro de Médicos" + Botão) */
@@ -463,6 +478,30 @@ tr:hover {
     width: 25px;
     height: 25px;
     font-size: 0.75rem;
+  }
+  
+  /* Centralizar texto dos botões em mobile */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .modal-actions .btn,
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary {
+    width: 100%;
+  }
+  
+  .form-footer .btn,
+  .form-footer .btn-primary,
+  .form-footer .btn-secondary {
+    width: 100%;
   }
 }
 

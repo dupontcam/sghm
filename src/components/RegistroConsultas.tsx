@@ -16,6 +16,7 @@ const formInicial: Omit<Consulta, 'id'> = {
   pacienteId: 0,
   protocolo: '',
   consultorio: '',
+  tipoLocal: '',
   tipoPagamento: '',
   medicoId: 0,
   dataConsulta: '',
@@ -24,12 +25,14 @@ const formInicial: Omit<Consulta, 'id'> = {
   descricaoProcedimento: '',
   valorRecebido: undefined,
   dataRecebimento: undefined,
+  planoSaudeId: undefined,
+  numeroCarteirinha: undefined,
 };
 
 const RegistroConsultas: React.FC = () => {
   const { 
     consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta, 
-    medicos, pacientes 
+    medicos, pacientes, planosSaude 
   } = useData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,16 +107,63 @@ const RegistroConsultas: React.FC = () => {
       [name]: valorProcessado,
     };
 
-    // Se for nova consulta e mudar o tipo de pagamento para particular
-    if (!isEditing && name === 'tipoPagamento') {
-      if (value === 'particular') {
-        novoFormData.status = 'Pago';
-        novoFormData.valorRecebido = formData.valorProcedimento || 0;
-        novoFormData.dataRecebimento = formData.dataConsulta || new Date().toISOString().split('T')[0];
-      } else {
+    // Se selecionar um paciente, armazena os dados do convênio
+    if (name === 'pacienteId' && value) {
+      const pacienteSelecionado = pacientes.find((p: Paciente) => p.id === parseInt(value));
+      if (pacienteSelecionado) {
+        novoFormData.numeroCarteirinha = pacienteSelecionado.carteirinha || '';
+        
+        // Se o paciente tem convênio, tenta encontrar o plano correspondente
+        if (pacienteSelecionado.convenio) {
+          const planoEncontrado = planosSaude.find(p => 
+            p.nome.toLowerCase().includes(pacienteSelecionado.convenio.toLowerCase()) ||
+            pacienteSelecionado.convenio.toLowerCase().includes(p.nome.toLowerCase())
+          );
+          if (planoEncontrado) {
+            novoFormData.planoSaudeId = planoEncontrado.id;
+          }
+        }
+      }
+    }
+
+    // Se selecionar um médico, preenche automaticamente a especialidade
+    if (name === 'medicoId' && value) {
+      const medicoSelecionado = medicos.find((m: Medico) => m.id === parseInt(value));
+      if (medicoSelecionado) {
+        novoFormData.especialidade = medicoSelecionado.especialidade;
+      }
+    }
+
+    // Se mudar o tipo de pagamento
+    if (name === 'tipoPagamento') {
+      if (value === 'convenio') {
+        // Ao selecionar convênio, mantém o plano já identificado pelo paciente
         novoFormData.status = 'Pendente';
         novoFormData.valorRecebido = undefined;
         novoFormData.dataRecebimento = undefined;
+        
+        // Se ainda não tem plano vinculado, tenta buscar pelo paciente
+        if (!novoFormData.planoSaudeId && novoFormData.pacienteId) {
+          const pacienteSelecionado = pacientes.find((p: Paciente) => p.id === novoFormData.pacienteId);
+          if (pacienteSelecionado?.convenio) {
+            const planoEncontrado = planosSaude.find(p => 
+              p.nome.toLowerCase().includes(pacienteSelecionado.convenio.toLowerCase()) ||
+              pacienteSelecionado.convenio.toLowerCase().includes(p.nome.toLowerCase())
+            );
+            if (planoEncontrado) {
+              novoFormData.planoSaudeId = planoEncontrado.id;
+            }
+          }
+        }
+      } else if (value === 'particular') {
+        // Pagamento particular
+        if (!isEditing) {
+          novoFormData.status = 'Pago';
+          novoFormData.valorRecebido = formData.valorProcedimento || 0;
+          novoFormData.dataRecebimento = formData.dataConsulta || new Date().toISOString().split('T')[0];
+        }
+        // Limpa o plano de saúde em pagamento particular
+        novoFormData.planoSaudeId = null;
       }
     }
 
@@ -311,15 +361,35 @@ const RegistroConsultas: React.FC = () => {
 
             <div className="form-row">
                 <div className="form-group half-width">
-                    <label htmlFor="consultorio">Consultório</label>
+                    <label htmlFor="tipoLocal">Tipo de Local</label>
+                    <select
+                        id="tipoLocal"
+                        name="tipoLocal"
+                        value={(formData as any).tipoLocal || ''}
+                        onChange={handleChange}
+                        required
+                    >
+                        <option value="" disabled>Selecione...</option>
+                        <option value="Clínica Particular">Clínica Particular</option>
+                        <option value="Hospital Particular">Hospital Particular</option>
+                        <option value="Hospital Público (SUS)">Hospital Público (SUS)</option>
+                    </select>
+                </div>
+                <div className="form-group half-width">
+                    <label htmlFor="consultorio">Nome do Estabelecimento</label>
                     <input
                         id="consultorio"
                         name="consultorio"
                         type="text"
                         value={formData.consultorio}
                         onChange={handleChange}
+                        placeholder="Ex: Hospital Santa Lúcia, Clínica Dr. Silva..."
+                        required
                     />
                 </div>
+            </div>
+
+            <div className="form-row">
                 <div className="form-group half-width">
                     <label htmlFor="tipoPagamento">Tipo de Pagamento</label>
                     <select
@@ -334,9 +404,6 @@ const RegistroConsultas: React.FC = () => {
                         <option value="convenio">Convênio</option>
                     </select>
                 </div>
-            </div>
-
-            <div className="form-row">
                 <div className="form-group half-width">
                     <label htmlFor="medicoId">Médico</label>
                     <select
@@ -352,6 +419,9 @@ const RegistroConsultas: React.FC = () => {
                         ))}
                     </select>
                 </div>
+            </div>
+
+            <div className="form-row">
                 <div className="form-group half-width">
                     <label htmlFor="dataConsulta">Data da Consulta</label>
                     <input

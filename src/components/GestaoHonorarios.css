@@ -3,6 +3,8 @@
   padding: 20px;
   max-width: 1600px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -179,12 +181,15 @@
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .honorarios-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 900px;
 }
 
 .honorarios-table th {
@@ -482,7 +487,218 @@
 }
 
 @media (max-width: 480px) {
+  .gestao-honorarios-container {
+    padding: 10px;
+  }
+  
   .stats-cards {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .filtros-container {
+    padding: 15px;
+  }
+  
+  .stat-value {
+    font-size: 1.2rem;
+  }
+  
+  .honorarios-table th,
+  .honorarios-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ============= ESTILOS PARA SELEÇÃO MÚLTIPLA E AÇÕES EM LOTE ============= */
+
+/* Barra de Ações em Lote */
+.acoes-lote-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.acoes-lote-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 500;
+}
+
+.acoes-lote-info span {
+  font-size: 1rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: white;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.btn-link:hover {
+  opacity: 1;
+}
+
+.acoes-lote-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.acoes-lote-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.btn-enviado {
+  background: #17a2b8;
+}
+
+.btn-enviado:hover {
+  background: #138496;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-pago {
+  background: #28a745;
+}
+
+.btn-pago:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-glosa {
+  background: #dc3545;
+}
+
+.btn-glosa:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Checkbox Cell */
+.checkbox-cell {
+  width: 40px;
+  text-align: center;
+  padding: 8px !important;
+}
+
+.checkbox-cell input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+/* Row hover com seleção */
+.honorario-row:hover {
+  background-color: #f8f9fa;
+}
+
+.honorario-row.selected {
+  background-color: #e7f3ff;
+}
+
+/* Modal de Glosa */
+.glosa-info {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.glosa-info p {
+  margin: 0;
+  color: #856404;
+}
+
+.glosa-info strong {
+  color: #dc3545;
+  font-size: 1.1rem;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsividade para Ações em Lote */
+@media (max-width: 768px) {
+  .acoes-lote-bar {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .acoes-lote-info {
+    justify-content: center;
+  }
+
+  .acoes-lote-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .acoes-lote-buttons button {
+    width: 100%;
+    justify-content: center;
   }
 }

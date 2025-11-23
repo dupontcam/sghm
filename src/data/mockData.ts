@@ -31,6 +31,7 @@ export interface Consulta {
   pacienteId: number;
   protocolo: string;
   consultorio: string;
+  tipoLocal?: string;
   tipoPagamento: 'particular' | 'convenio' | '';
   medicoId: number;
   dataConsulta: string;
@@ -40,6 +41,9 @@ export interface Consulta {
   // Campos de pagamento
   valorRecebido?: number;
   dataRecebimento?: string;
+  // Campos de plano de saúde
+  planoSaudeId?: number | null;
+  numeroCarteirinha?: string;
 }
 
 export interface PlanoSaude {

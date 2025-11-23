@@ -1,24 +1,70 @@
 /* Estilos da Sidebar (Tema Azul) */
 .sidebar {
-    width: 300px; /* AJUSTE: Aumentado de 280px */
-    background-color: var(--sidebar-bg); /* Azul escuro do :root */
+    width: 300px;
+    background-color: var(--sidebar-bg);
     color: var(--text-light);
     padding: 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     height: 100vh;
-    overflow: hidden; /* CORREÇÃO: Evitar scroll interno */
-    position: relative; /* CORREÇÃO: Garante posicionamento correto */
-    min-height: 100vh; /* CORREÇÃO: Garante altura mínima completa */
+    overflow-y: auto;
+    flex-shrink: 0;
 }
 
 /* --- LOGO HEADER --- */
 .sidebar-header {
     text-align: center;
-    margin-bottom: 20px; /* AJUSTE: Diminuído de 30px */
-    padding-bottom: 15px; /* AJUSTE: Diminuído de 20px */
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    padding-top: 50px;
     border-bottom: 1px solid var(--sidebar-hover);
+    position: relative;
+}
+
+/* Botão fechar mobile */
+.sidebar-close-btn {
+    display: none;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+    opacity: 1;
+    transition: all 0.2s;
+    border-radius: 8px;
+    z-index: 1000;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-close-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.sidebar-close-btn:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    .sidebar-close-btn {
+        display: flex !important;
+    }
+    
+    .sidebar-header {
+        padding-top: 50px;
+    }
 }
 
 .sidebar-logo {
@@ -120,6 +166,26 @@
 }
 
 /* === MEDIA QUERIES PARA RESPONSIVIDADE === */
+
+/* Mobile - Ajustar sidebar para ocupar toda altura */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .sidebar-header {
+    margin-bottom: 20px;
+  }
+  
+  .sidebar-menu:first-of-type {
+    max-height: none;
+    overflow-y: auto;
+  }
+}
+
+/* Telas pequenas em altura */
 @media (max-height: 800px) {
   .sidebar-menu:first-of-type {
     max-height: calc(100vh - 180px);
