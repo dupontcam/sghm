@@ -49,7 +49,7 @@ export interface Consulta {
 export interface PlanoSaude {
   id: number;
   nome: string;
-  tipo: 'PUBLICO' | 'PRIVADO' | 'COOPERATIVA' | 'SEGURADORA';
+  tipo: 'PARTICULAR' | 'CONVENIO';
   ativo: boolean;
   codigoOperadora?: string | null;
   valorConsultaPadrao?: number;
@@ -216,12 +216,11 @@ export const mockConsultas: Consulta[] = [
 
 // --- PLANOS DE SAÚDE (MOCK DATA) ---
 export const mockPlanosSaude: PlanoSaude[] = [
-  { id: 1, nome: 'Unimed DF', tipo: 'COOPERATIVA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
-  { id: 2, nome: 'Bradesco Saúde', tipo: 'SEGURADORA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
-  { id: 3, nome: 'Amil', tipo: 'SEGURADORA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
-  { id: 4, nome: 'SUS', tipo: 'PUBLICO', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
-  { id: 5, nome: 'SulAmérica Saúde', tipo: 'SEGURADORA', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
-  { id: 6, nome: 'Particular', tipo: 'PRIVADO', ativo: true, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' }
+  { id: 1, nome: 'Unimed DF', tipo: 'CONVENIO', ativo: true, codigoOperadora: '324523', valorConsultaPadrao: 350, prazoPagamentoDias: 30, percentualGlosa: 3.5, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 2, nome: 'Bradesco Saúde', tipo: 'CONVENIO', ativo: true, codigoOperadora: '237001', valorConsultaPadrao: 320, prazoPagamentoDias: 45, percentualGlosa: 4.2, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 3, nome: 'Amil', tipo: 'CONVENIO', ativo: true, codigoOperadora: '326305', valorConsultaPadrao: 380, prazoPagamentoDias: 30, percentualGlosa: 2.8, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 4, nome: 'SulAmérica Saúde', tipo: 'CONVENIO', ativo: true, codigoOperadora: '329465', valorConsultaPadrao: 360, prazoPagamentoDias: 35, percentualGlosa: 3.1, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' },
+  { id: 5, nome: 'Particular', tipo: 'PARTICULAR', ativo: true, codigoOperadora: null, valorConsultaPadrao: 400, prazoPagamentoDias: 0, percentualGlosa: 0, createdAt: '2025-10-01T00:00:00Z', updatedAt: '2025-10-01T00:00:00Z' }
 ];
 
 // --- HONORÁRIOS (MOCK DATA) ---

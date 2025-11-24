@@ -29,7 +29,7 @@ const GestaoPlanosSaude: React.FC = () => {
   // Estados do formulário
   const [formData, setFormData] = useState({
     nome: '',
-    tipo: 'PRIVADO' as PlanoSaude['tipo'],
+    tipo: 'PARTICULAR' as PlanoSaude['tipo'],
     ativo: true,
     codigoOperadora: '',
     valorConsultaPadrao: 100,
@@ -49,7 +49,7 @@ const GestaoPlanosSaude: React.FC = () => {
     setEditingPlano(null);
     setFormData({ 
       nome: '', 
-      tipo: 'PRIVADO', 
+      tipo: 'PARTICULAR', 
       ativo: true,
       codigoOperadora: '',
       valorConsultaPadrao: 100,
@@ -117,7 +117,7 @@ const GestaoPlanosSaude: React.FC = () => {
         setIsModalOpen(false);
         setFormData({ 
           nome: '', 
-          tipo: 'PRIVADO', 
+          tipo: 'PARTICULAR', 
           ativo: true,
           codigoOperadora: '',
           valorConsultaPadrao: 100,
@@ -137,7 +137,7 @@ const GestaoPlanosSaude: React.FC = () => {
         setIsModalOpen(false);
         setFormData({ 
           nome: '', 
-          tipo: 'PRIVADO', 
+          tipo: 'PARTICULAR', 
           ativo: true,
           codigoOperadora: '',
           valorConsultaPadrao: 100,
@@ -273,10 +273,8 @@ const GestaoPlanosSaude: React.FC = () => {
           <label>Filtrar por tipo:</label>
           <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}>
             <option value="TODOS">Todos os tipos</option>
-            <option value="PUBLICO">Público</option>
-            <option value="PRIVADO">Privado</option>
-            <option value="COOPERATIVA">Cooperativa</option>
-            <option value="SEGURADORA">Seguradora</option>
+            <option value="PARTICULAR">Particular</option>
+            <option value="CONVENIO">Convênio</option>
           </select>
         </div>
       </div>
@@ -388,10 +386,8 @@ const GestaoPlanosSaude: React.FC = () => {
             value={formData.tipo}
             onChange={(e) => setFormData({ ...formData, tipo: e.target.value as PlanoSaude['tipo'] })}
           >
-            <option value="PUBLICO">Público</option>
-            <option value="PRIVADO">Privado</option>
-            <option value="COOPERATIVA">Cooperativa</option>
-            <option value="SEGURADORA">Seguradora</option>
+            <option value="PARTICULAR">Particular</option>
+            <option value="CONVENIO">Convênio</option>
           </select>
         </div>
 

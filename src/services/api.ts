@@ -222,18 +222,11 @@ export const consultasAPI = {
 };
 
 const transformPlanoToBackend = (plano: any) => {
-  // Mapear tipos do frontend para o backend
-  const tipoMap: Record<string, string> = {
-    'PRIVADO': 'PARTICULAR',
-    'PUBLICO': 'SUS',
-    'COOPERATIVA': 'CONVENIO',
-    'SEGURADORA': 'CONVENIO'
-  };
-  
+  // Tipos já estão no formato correto: PARTICULAR ou CONVENIO
   return {
     nome_plano: plano.nome,
     codigo_operadora: plano.codigoOperadora || null,
-    tipo_plano: tipoMap[plano.tipo] || 'CONVENIO',
+    tipo_plano: plano.tipo || 'CONVENIO',
     prazo_pagamento_dias: plano.prazoPagamentoDias || 30,
     valor_consulta_padrao: plano.valorConsultaPadrao || 100,
     percentual_glosa_historica: plano.percentualGlosa || 5,
@@ -246,17 +239,11 @@ const transformPlanoFromBackend = (plano: any) => {
     return null;
   }
 
-  // Mapear tipos do backend para o frontend
-  const tipoMapReverse: Record<string, 'PRIVADO' | 'PUBLICO' | 'COOPERATIVA' | 'SEGURADORA'> = {
-    'PARTICULAR': 'PRIVADO',
-    'SUS': 'PUBLICO',
-    'CONVENIO': 'COOPERATIVA'
-  };
-  
+  // Tipos já estão no formato correto: PARTICULAR ou CONVENIO
   return {
     id: plano.id,
     nome: plano.nome_plano || 'Sem nome',
-    tipo: (tipoMapReverse[plano.tipo_plano] || 'COOPERATIVA') as 'PRIVADO' | 'PUBLICO' | 'COOPERATIVA' | 'SEGURADORA',
+    tipo: (plano.tipo_plano || 'CONVENIO') as 'PARTICULAR' | 'CONVENIO',
     ativo: plano.ativo !== false,
     createdAt: plano.created_at || new Date().toISOString(),
     updatedAt: plano.updated_at || new Date().toISOString(),

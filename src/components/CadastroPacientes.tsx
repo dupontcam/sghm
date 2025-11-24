@@ -18,7 +18,7 @@ const formInicial: Omit<Paciente, 'id'> = {
 };
 
 const CadastroPacientes: React.FC = () => {
-  const { pacientes, addPaciente, updatePaciente, deletePaciente } = useData();
+  const { pacientes, addPaciente, updatePaciente, deletePaciente, planosSaude } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Omit<Paciente, 'id'> | Paciente>(formInicial);
@@ -76,7 +76,7 @@ const CadastroPacientes: React.FC = () => {
   };
 
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     let maskedValue = value;
@@ -197,7 +197,22 @@ const CadastroPacientes: React.FC = () => {
           <div className="form-row">
             <div className="form-group half-width">
               <label htmlFor="convenio">Convênio</label>
-              <input id="convenio" name="convenio" type="text" value={formData.convenio} onChange={handleChange} />
+              <select 
+                id="convenio" 
+                name="convenio" 
+                value={formData.convenio} 
+                onChange={handleChange}
+              >
+                <option value="">Selecione um plano...</option>
+                {planosSaude
+                  .filter(plano => plano.ativo)
+                  .map(plano => (
+                    <option key={plano.id} value={plano.nome}>
+                      {plano.nome} ({plano.tipo === 'PARTICULAR' ? 'Particular' : 'Convênio'})
+                    </option>
+                  ))
+                }
+              </select>
             </div>
             <div className="form-group half-width">
               <label htmlFor="carteirinha">Nº Carteirinha</label>
