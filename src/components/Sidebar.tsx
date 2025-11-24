@@ -15,10 +15,15 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
-    const { userProfile, toggleProfile } = useAuth();
+    const { userProfile, logout, user } = useAuth();
 
     const handleLinkClick = () => {
         if (onClose) onClose();
+    };
+
+    const handleLogout = () => {
+        logout();
+        window.location.href = '/login';
     };
 
     return (
@@ -63,12 +68,24 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
             {/* Rodapé da Sidebar */}
             <div className="sidebar-footer">
+                <div className="user-info">
+                    <div className="user-avatar">
+                        <FaUser />
+                    </div>
+                    <div className="user-details">
+                        <strong>{user?.nome || 'Usuário'}</strong>
+                        <span className={`user-badge badge-${userProfile.toLowerCase()}`}>
+                            {userProfile}
+                        </span>
+                    </div>
+                </div>
                 <ul className="sidebar-menu">
-                    <li><a href="/login"><FaSignOutAlt /> Sair</a></li>
+                    <li>
+                        <button onClick={handleLogout} className="logout-btn">
+                            <FaSignOutAlt /> Sair
+                        </button>
+                    </li>
                 </ul>
-                <button className="profile-switcher" onClick={toggleProfile}>
-                    Simular Perfil: <strong>{userProfile}</strong>
-                </button>
             </div>
         </nav>
     );

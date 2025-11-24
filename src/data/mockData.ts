@@ -90,7 +90,48 @@ export interface DashboardStats {
   quantidadeHonorarios: number;
 }
 
+export interface Usuario {
+  id: number;
+  nome: string;
+  email: string;
+  senha: string;
+  perfil: 'Admin' | 'Operador';
+  cargo: string;
+  ativo: boolean;
+}
+
 // --- DADOS DE EXEMPLO (MOCK DATA) ---
+
+// Usuários de teste para autenticação
+export const mockUsuarios: Usuario[] = [
+  { 
+    id: 1, 
+    nome: 'Administrador do Sistema', 
+    email: 'admin@sghm.com', 
+    senha: 'admin123', 
+    perfil: 'Admin', 
+    cargo: 'Administrador',
+    ativo: true 
+  },
+  { 
+    id: 2, 
+    nome: 'Operador Padrão', 
+    email: 'operador@sghm.com', 
+    senha: 'operador123', 
+    perfil: 'Operador', 
+    cargo: 'Operador de Sistema',
+    ativo: true 
+  },
+  { 
+    id: 3, 
+    nome: 'João Silva', 
+    email: 'joao@sghm.com', 
+    senha: '123456', 
+    perfil: 'Operador', 
+    cargo: 'Operador',
+    ativo: true 
+  }
+];
 
 export const mockMedicos: Medico[] = [
   { id: 1, nome: 'Dr. Carlos Alberto', email: 'carlos@med.com', telefone: '(61) 9999-1111', crm: '12345-DF', especialidade: 'Cardiologia', cpf: '111.222.333-44' },

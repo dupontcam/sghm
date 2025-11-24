@@ -364,18 +364,53 @@ export const estatisticasAPI = {
 // --- API de Autenticação ---
 export const authAPI = {
   login: async (email: string, senha: string) => {
-    const response = await fetchAPI('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, senha }),
-    });
-    if (response.data?.token) {
-      tokenManager.setToken(response.data.token);
+    try {
+      const response = await fetchAPI('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, senha }),
+      });
+      if (response.data?.token) {
+        tokenManager.setToken(response.data.token);
+      }
+      return response;
+    } catch (error) {
+      // Se o backend não estiver disponível, usar autenticação mock
+      console.warn('Backend não disponível, usando autenticação mock');
+      const { mockUsuarios } = await import('../data/mockData');
+      
+      const usuario = mockUsuarios.find(u => u.email === email && u.senha === senha && u.ativo);
+      
+      if (!usuario) {
+        throw new Error('Email ou senha inválidos');
+      }
+      
+      // Gerar token mock
+      const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
+      tokenManager.setToken(mockToken);
+      
+      return {
+        success: true,
+        data: {
+          token: mockToken,
+          usuario: {
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            perfil: usuario.perfil,
+            cargo: usuario.cargo,
+          }
+        }
+      };
     }
-    return response;
   },
   logout: () => {
     tokenManager.removeToken();
-    return fetchAPI('/auth/logout', { method: 'POST' });
+    try {
+      return fetchAPI('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      // Se o backend não estiver disponível, apenas limpar o token
+      return Promise.resolve({ success: true });
+    }
   },
   me: () => fetchAPI('/auth/me'),
 };

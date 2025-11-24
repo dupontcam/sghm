@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import AlertModal from './AlertModal';
 import { authAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     // 2. Criar um estado para o modal de instruções, começando como 'false' agora
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -22,6 +24,17 @@ const Login: React.FC = () => {
         try {
             const response = await authAPI.login(email, password);
             console.log('Login bem-sucedido:', response);
+            
+            // Salvar usuário e token no contexto
+            const userData = {
+                id: response.data.usuario.id,
+                nome: response.data.usuario.nome,
+                email: response.data.usuario.email,
+                perfil: response.data.usuario.perfil as 'Admin' | 'Operador',
+                cargo: response.data.usuario.cargo,
+            };
+            
+            login(userData, response.data.token);
             navigate('/dashboard');
         } catch (err: any) {
             console.error('Erro no login:', err);
