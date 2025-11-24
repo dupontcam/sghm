@@ -13,6 +13,7 @@ import GestaoPlanosSaude from './components/GestaoPlanosSaude';
 import GestaoHonorarios from './components/GestaoHonorarios';
 import ControleFinanceiro from './components/ControleFinanceiro';
 import Relatorios from './components/Relatorios';
+import Notifications from './components/Notifications';
 import UserProfile from './components/UserProfile';
 import Backup from './components/Backup';
 
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/pacientes" element={<CadastroPacientes />} />
                 <Route path="/planos-saude" element={<GestaoPlanosSaude />} />
                 <Route path="/honorarios" element={<GestaoHonorarios />} />
+                <Route path="/notificacoes" element={<Notifications />} />
                 <Route path="/perfil" element={<UserProfile />} />
                 
                 {/* Rotas EXCLUSIVAS DO ADMIN */}

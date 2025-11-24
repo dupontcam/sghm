@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
     FaHome, FaRegListAlt, FaUser, FaUserMd, FaUsers, 
     FaDollarSign, FaChartBar, FaDatabase, FaSignOutAlt,
-    FaHospital, FaFileInvoiceDollar
+    FaHospital, FaFileInvoiceDollar, FaBell
 } from 'react-icons/fa';
 // Importa o logo
 import sghmLogo from '../assets/sghm_logo.png';
@@ -44,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 {/* Novos itens do sistema de honorários */}
                 <li><NavLink to="/planos-saude" onClick={handleLinkClick}><FaHospital /> Planos de Saúde</NavLink></li>
                 <li><NavLink to="/honorarios" onClick={handleLinkClick}><FaFileInvoiceDollar /> Gestão de Honorários</NavLink></li>
+                <li><NavLink to="/notificacoes" onClick={handleLinkClick}><FaBell /> Notificações</NavLink></li>
                 
                 {/* Itens que só aparecem para o Admin */}
                 {userProfile === 'Admin' && (
