@@ -68,8 +68,11 @@ export interface Honorario {
   planoSaudeId: number;
   dataConsulta: string;
   valor: number;
+  valorGlosa?: number; // Valor glosado (parcial ou total)
   status: 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO';
-  motivo?: string;
+  motivoGlosa?: string; // Motivo da glosa (quando status = GLOSADO)
+  numeroGuia?: string; // Número da guia/protocolo
+  observacoes?: string; // Observações gerais
   createdAt: string;
   updatedAt: string;
   // Dados relacionados para exibição
@@ -192,7 +195,7 @@ export const mockHonorarios: Honorario[] = [
   },
   { 
     id: 3, medicoId: 1, consultaId: 3, planoSaudeId: 5, dataConsulta: '2025-10-04', 
-    valor: 350.00, status: 'GLOSADO', motivo: 'Documentação incompleta', createdAt: '2025-10-04T14:00:00Z', updatedAt: '2025-10-04T14:00:00Z' 
+    valor: 350.00, status: 'GLOSADO', motivoGlosa: 'Documentação incompleta', createdAt: '2025-10-04T14:00:00Z', updatedAt: '2025-10-04T14:00:00Z' 
   },
   { 
     id: 4, medicoId: 3, consultaId: 4, planoSaudeId: 6, dataConsulta: '2025-10-05', 

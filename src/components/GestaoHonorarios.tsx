@@ -65,7 +65,7 @@ const GestaoHonorarios: React.FC = () => {
       const matchBusca = !filtros.busca || 
         medico?.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
         plano?.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
-        honorario.motivo?.toLowerCase().includes(filtros.busca.toLowerCase());
+        honorario.motivoGlosa?.toLowerCase().includes(filtros.busca.toLowerCase());
       
       return matchMedico && matchPlano && matchStatus && matchDataInicio && matchDataFim && matchBusca;
     });
@@ -92,7 +92,7 @@ const GestaoHonorarios: React.FC = () => {
       dataConsulta: honorario.dataConsulta,
       valor: honorario.valor,
       status: honorario.status,
-      motivo: honorario.motivo || ''
+      motivo: honorario.motivoGlosa || ''
     });
     setIsModalOpen(true);
   };
@@ -545,7 +545,7 @@ const GestaoHonorarios: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  <td>{honorario.motivo || '-'}</td>
+                  <td>{honorario.motivoGlosa || '-'}</td>
                   <td>
                     <div className="actions-container">
                       {honorario.status === 'PENDENTE' && (

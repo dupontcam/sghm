@@ -152,7 +152,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
             dataConsulta: consulta.dataConsulta,
             valor: consulta.valorProcedimento,
             status: 'PENDENTE',
-            motivo: `Honorário automático da consulta ${consulta.protocolo} - ${consulta.especialidade}`
+            motivoGlosa: `Honorário automático da consulta ${consulta.protocolo} - ${consulta.especialidade}`
           };
 
           // Adicionar o honorário usando a função existente
