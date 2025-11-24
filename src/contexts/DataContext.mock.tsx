@@ -248,8 +248,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const getDashboardStats = (): DashboardStats => {
     const totalProcessado = honorarios.reduce((acc, h) => acc + h.valor, 0);
     const totalPendente = honorarios.filter(h => h.status === 'PENDENTE').reduce((acc, h) => acc + h.valor, 0);
-    const totalPago = honorarios.filter(h => h.status === 'PAGO').reduce((acc, h) => acc + h.valor, 0);
-    const totalGlosado = honorarios.filter(h => h.status === 'GLOSADO').reduce((acc, h) => acc + h.valor, 0);
+    const totalPago = honorarios.filter(h => h.status === 'PAGO').reduce((acc, h) => acc + (h.valor - (h.valorGlosa || 0)), 0);
+    const totalGlosado = honorarios.reduce((acc, h) => acc + (h.valorGlosa || 0), 0);
     const taxaGlosa = totalProcessado > 0 ? (totalGlosado / totalProcessado) * 100 : 0;
     const quantidadeHonorarios = honorarios.length;
 
