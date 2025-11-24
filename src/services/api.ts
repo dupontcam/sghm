@@ -56,9 +56,15 @@ const transformMedicoFromBackend = (medico: any) => ({
 // --- API de Médicos ---
 export const medicosAPI = {
   getAll: async () => {
-    const response = await fetchAPI('/medicos');
-    const data = response.data || response;
-    return Array.isArray(data) ? data.map(transformMedicoFromBackend) : [];
+    try {
+      const response = await fetchAPI('/medicos');
+      const data = response.data || response;
+      return Array.isArray(data) ? data.map(transformMedicoFromBackend) : [];
+    } catch (error) {
+      console.warn('Backend não disponível, usando dados mock para médicos');
+      const { mockMedicos } = await import('../data/mockData');
+      return mockMedicos;
+    }
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/medicos/${id}`);
@@ -101,9 +107,15 @@ const transformPacienteFromBackend = (paciente: any) => ({
 // --- API de Pacientes ---
 export const pacientesAPI = {
   getAll: async () => {
-    const response = await fetchAPI('/pacientes');
-    const data = response.data || response;
-    return Array.isArray(data) ? data.map(transformPacienteFromBackend) : [];
+    try {
+      const response = await fetchAPI('/pacientes');
+      const data = response.data || response;
+      return Array.isArray(data) ? data.map(transformPacienteFromBackend) : [];
+    } catch (error) {
+      console.warn('Backend não disponível, usando dados mock para pacientes');
+      const { mockPacientes } = await import('../data/mockData');
+      return mockPacientes;
+    }
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/pacientes/${id}`);
@@ -182,9 +194,15 @@ const transformConsultaFromBackend = (consulta: any) => ({
 // --- API de Consultas ---
 export const consultasAPI = {
   getAll: async () => {
-    const response = await fetchAPI('/consultas');
-    const data = response.data || response;
-    return Array.isArray(data) ? data.map(transformConsultaFromBackend) : [];
+    try {
+      const response = await fetchAPI('/consultas');
+      const data = response.data || response;
+      return Array.isArray(data) ? data.map(transformConsultaFromBackend) : [];
+    } catch (error) {
+      console.warn('Backend não disponível, usando dados mock para consultas');
+      const { mockConsultas } = await import('../data/mockData');
+      return mockConsultas;
+    }
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/consultas/${id}`);
@@ -258,7 +276,7 @@ export const planosAPI = {
       
       if (!Array.isArray(planos)) {
         console.warn('Resposta de planos não é um array:', planos);
-        return [];
+        throw new Error('Formato inválido');
       }
       
       const transformed = planos
@@ -267,8 +285,9 @@ export const planosAPI = {
       console.log(`${transformed.length} planos carregados com sucesso`);
       return transformed;
     } catch (error) {
-      console.error('Erro ao buscar planos:', error);
-      return [];
+      console.warn('Backend não disponível, usando dados mock para planos de saúde');
+      const { mockPlanosSaude } = await import('../data/mockData');
+      return mockPlanosSaude;
     }
   },
   getById: async (id: number) => {
@@ -306,10 +325,16 @@ const transformHonorarioFromBackend = (honorario: any) => ({
 // --- API de Honorários ---
 export const honorariosAPI = {
   getAll: async () => {
-    const response = await fetchAPI('/honorarios');
-    // Backend retorna { success, data: { honorarios, pagination, ... } }
-    const honorarios = response.data?.honorarios || response.honorarios || [];
-    return Array.isArray(honorarios) ? honorarios.map(transformHonorarioFromBackend) : [];
+    try {
+      const response = await fetchAPI('/honorarios');
+      // Backend retorna { success, data: { honorarios, pagination, ... } }
+      const honorarios = response.data?.honorarios || response.honorarios || [];
+      return Array.isArray(honorarios) ? honorarios.map(transformHonorarioFromBackend) : [];
+    } catch (error) {
+      console.warn('Backend não disponível, usando dados mock para honorários');
+      const { mockHonorarios } = await import('../data/mockData');
+      return mockHonorarios;
+    }
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/honorarios/${id}`);
@@ -364,31 +389,35 @@ export const estatisticasAPI = {
 // --- API de Autenticação ---
 export const authAPI = {
   login: async (email: string, senha: string) => {
+    // Primeiro tentar autenticação mock diretamente
+    console.log('🔐 Iniciando processo de login...');
+    console.log('📧 Email:', email);
+    
     try {
-      const response = await fetchAPI('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, senha }),
-      });
-      if (response.data?.token) {
-        tokenManager.setToken(response.data.token);
-      }
-      return response;
-    } catch (error) {
-      // Se o backend não estiver disponível, usar autenticação mock
-      console.warn('Backend não disponível, usando autenticação mock');
+      // Importar usuários mock
       const { mockUsuarios } = await import('../data/mockData');
+      console.log('📋 Usuários disponíveis:', mockUsuarios.length);
       
-      const usuario = mockUsuarios.find(u => u.email === email && u.senha === senha && u.ativo);
+      // Procurar usuário
+      const usuario = mockUsuarios.find(u => {
+        console.log(`Verificando: ${u.email} === ${email}? ${u.email === email}`);
+        console.log(`Senha correta? ${u.senha === senha}`);
+        console.log(`Ativo? ${u.ativo}`);
+        return u.email === email && u.senha === senha && u.ativo;
+      });
       
       if (!usuario) {
+        console.error('❌ Usuário não encontrado ou credenciais inválidas');
         throw new Error('Email ou senha inválidos');
       }
+      
+      console.log('✅ Usuário encontrado:', usuario.nome, '-', usuario.perfil);
       
       // Gerar token mock
       const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
       tokenManager.setToken(mockToken);
       
-      return {
+      const response = {
         success: true,
         data: {
           token: mockToken,
@@ -401,6 +430,13 @@ export const authAPI = {
           }
         }
       };
+      
+      console.log('📦 Resposta completa:', JSON.stringify(response, null, 2));
+      return response;
+      
+    } catch (error: any) {
+      console.error('💥 Erro na autenticação mock:', error);
+      throw error;
     }
   },
   logout: () => {

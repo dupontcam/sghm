@@ -21,12 +21,20 @@ const Login: React.FC = () => {
         setLoading(true);
         setError(null);
 
+        console.log('Tentando login com:', { email, senha: '***' });
+
         try {
             const response = await authAPI.login(email, password);
-            console.log('Login bem-sucedido:', response);
+            console.log('Resposta completa do login:', response);
+            
+            // A resposta sempre vem no formato response.data
+            if (!response.data?.usuario || !response.data?.token) {
+                console.error('Formato de resposta inválido:', response);
+                throw new Error('Resposta inválida do servidor');
+            }
             
             // Salvar usuário e token no contexto
-            const userData = {
+            const userInfo = {
                 id: response.data.usuario.id,
                 nome: response.data.usuario.nome,
                 email: response.data.usuario.email,
@@ -34,7 +42,9 @@ const Login: React.FC = () => {
                 cargo: response.data.usuario.cargo,
             };
             
-            login(userData, response.data.token);
+            console.log('Dados do usuário processados:', userInfo);
+            
+            login(userInfo, response.data.token);
             navigate('/dashboard');
         } catch (err: any) {
             console.error('Erro no login:', err);
