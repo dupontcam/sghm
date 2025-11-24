@@ -5,6 +5,7 @@ import ConfirmationModal from './ConfirmationModal';
 import AlertModal from './AlertModal'; // 1. Importar o AlertModal
 import { useData } from '../contexts/DataContext';
 import { Medico } from '../data/mockData';
+import { maskCPF, maskPhone, unmask } from '../utils/masks';
 import './Formulario.css';
 
 // Estado inicial para o formulário
@@ -77,7 +78,17 @@ const CadastroMedicos: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    
+    let maskedValue = value;
+    
+    // Aplica máscaras conforme o campo
+    if (name === 'cpf') {
+      maskedValue = maskCPF(value);
+    } else if (name === 'telefone') {
+      maskedValue = maskPhone(value);
+    }
+    
+    setFormData({ ...formData, [name]: maskedValue });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -161,7 +172,16 @@ const CadastroMedicos: React.FC = () => {
             </div>
             <div className="form-group half-width">
               <label htmlFor="cpf">CPF</label>
-              <input id="cpf" name="cpf" type="text" value={formData.cpf} onChange={handleChange} required />
+              <input 
+                id="cpf" 
+                name="cpf" 
+                type="text" 
+                value={formData.cpf} 
+                onChange={handleChange} 
+                placeholder="000.000.000-00"
+                maxLength={14}
+                required 
+              />
             </div>
           </div>
           <div className="form-group">
@@ -171,7 +191,15 @@ const CadastroMedicos: React.FC = () => {
           <div className="form-row">
             <div className="form-group half-width">
               <label htmlFor="telefone">Telefone</label>
-              <input id="telefone" name="telefone" type="tel" value={formData.telefone} onChange={handleChange} />
+              <input 
+                id="telefone" 
+                name="telefone" 
+                type="tel" 
+                value={formData.telefone} 
+                onChange={handleChange}
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
             </div>
             <div className="form-group half-width">
               <label htmlFor="email">Email</label>
