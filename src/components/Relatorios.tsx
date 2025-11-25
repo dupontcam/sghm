@@ -287,14 +287,14 @@ const Relatorios: React.FC = () => {
     doc.setFont('helvetica', 'bold');
     
     const titulos: { [key: string]: string } = {
-      'geral': '📊 Relatório Geral de Honorários',
-      'medico': '👨‍⚕️ Relatório por Médico',
-      'plano': '🏥 Relatório por Plano de Saúde',
-      'glosas': '❌ Relatório de Glosas',
-      'tempo-pagamento': '📅 Relatório de Tempo Médio de Pagamento'
+      'geral': 'Relatorio Geral de Honorarios',
+      'medico': 'Relatorio por Medico',
+      'plano': 'Relatorio por Plano de Saude',
+      'glosas': 'Relatorio de Glosas',
+      'tempo-pagamento': 'Relatorio de Tempo Medio de Pagamento'
     };
     
-    doc.text(titulos[tipoRelatorio] || 'Relatório', margemEsquerda, yPosition);
+    doc.text(titulos[tipoRelatorio] || 'Relatorio', margemEsquerda, yPosition);
     
     yPosition += 10;
     doc.setFontSize(10);
@@ -416,7 +416,7 @@ const Relatorios: React.FC = () => {
       yPosition += 6;
       doc.text(`Valor Total Glosado: ${estatisticasGlosas.totalGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, margemEsquerda, yPosition);
       yPosition += 6;
-      doc.text(`Taxa Média de Glosa: ${estatisticasGlosas.taxaMedia.toFixed(1)}%`, margemEsquerda, yPosition);
+      doc.text(`Taxa Média de Glosa: ${estatisticasGlosas.taxaGlosa.toFixed(1)}%`, margemEsquerda, yPosition);
       yPosition += 10;
 
       // Tabela de glosas por motivo
