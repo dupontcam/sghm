@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Consulta, Medico, Paciente, Honorario, PlanoSaude, calcularTempoMedioPagamento } from '../data/mockData';
 import { FaPrint, FaFileDownload, FaChartBar, FaUserMd, FaHospital, FaBan, FaCheckCircle, FaClock, FaCalendarAlt } from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './RegistroConsultas.css';
 import './ControleFinanceiro.css';
 import './Relatorios.css';
@@ -269,7 +271,228 @@ const Relatorios: React.FC = () => {
   };
 
   const handleExportPDF = () => {
-    window.print(); // Por enquanto usa print, pode ser melhorado com jsPDF
+    const doc = new jsPDF();
+    const dataAtual = new Date().toLocaleDateString('pt-BR', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    // Configurações
+    const margemEsquerda = 14;
+    let yPosition = 20;
+
+    // Cabeçalho
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    
+    const titulos: { [key: string]: string } = {
+      'geral': '📊 Relatório Geral de Honorários',
+      'medico': '👨‍⚕️ Relatório por Médico',
+      'plano': '🏥 Relatório por Plano de Saúde',
+      'glosas': '❌ Relatório de Glosas',
+      'tempo-pagamento': '📅 Relatório de Tempo Médio de Pagamento'
+    };
+    
+    doc.text(titulos[tipoRelatorio] || 'Relatório', margemEsquerda, yPosition);
+    
+    yPosition += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Data: ${dataAtual}`, margemEsquerda, yPosition);
+    
+    yPosition += 6;
+    doc.text(`Médico: ${filtroMedico === 0 ? 'Todos' : getMedicoNome(filtroMedico)}`, margemEsquerda, yPosition);
+    
+    yPosition += 6;
+    doc.text(`Plano: ${filtroPlano === 0 ? 'Todos' : getPlanoNome(filtroPlano)}`, margemEsquerda, yPosition);
+    
+    yPosition += 6;
+    const periodoInicio = filtroDataInicio ? new Date(filtroDataInicio).toLocaleDateString('pt-BR') : 'Início';
+    const periodoFim = filtroDataFim ? new Date(filtroDataFim).toLocaleDateString('pt-BR') : 'Hoje';
+    doc.text(`Período: ${periodoInicio} a ${periodoFim}`, margemEsquerda, yPosition);
+    
+    yPosition += 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margemEsquerda, yPosition, 196, yPosition);
+    yPosition += 10;
+
+    // Conteúdo específico por tipo de relatório
+    if (tipoRelatorio === 'geral') {
+      // Cards de resumo
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resumo Financeiro', margemEsquerda, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total Processado: ${resumoGeral.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Total Pago: ${resumoGeral.valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Total Glosado: ${resumoGeral.valorGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} (${resumoGeral.taxaGlosa.toFixed(1)}%)`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Total Pendente: ${resumoGeral.valorPendente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, margemEsquerda, yPosition);
+      yPosition += 10;
+
+      // Tabela de honorários
+      const honorariosData = honorariosFiltrados.map(h => [
+        h.numeroGuia || '-',
+        getMedicoNome(h.medicoId),
+        getPlanoNome(h.planoSaudeId),
+        new Date(h.dataConsulta).toLocaleDateString('pt-BR'),
+        h.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        h.status
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Guia', 'Médico', 'Plano', 'Data', 'Valor', 'Status']],
+        body: honorariosData,
+        theme: 'grid',
+        headStyles: { fillColor: [0, 123, 255], textColor: 255 },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 22 },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 23 }
+        }
+      });
+
+    } else if (tipoRelatorio === 'medico') {
+      // Tabela de estatísticas por médico
+      const medicosData = estatisticasPorMedico.map(m => [
+        m.nome,
+        m.totalHonorarios.toString(),
+        m.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        m.valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        m.valorGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        `${m.taxaGlosa.toFixed(1)}%`
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Médico', 'Qtd', 'Total', 'Pago', 'Glosado', 'Taxa Glosa']],
+        body: medicosData,
+        theme: 'grid',
+        headStyles: { fillColor: [40, 167, 69], textColor: 255 },
+        styles: { fontSize: 8, cellPadding: 2 }
+      });
+
+    } else if (tipoRelatorio === 'plano') {
+      // Tabela de estatísticas por plano
+      const planosData = estatisticasPorPlano.map(p => [
+        p.nome,
+        p.totalHonorarios.toString(),
+        p.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        p.valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        p.valorGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        `${p.taxaGlosa.toFixed(1)}%`
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Plano de Saúde', 'Qtd', 'Total', 'Pago', 'Glosado', 'Taxa Glosa']],
+        body: planosData,
+        theme: 'grid',
+        headStyles: { fillColor: [23, 162, 184], textColor: 255 },
+        styles: { fontSize: 8, cellPadding: 2 }
+      });
+
+    } else if (tipoRelatorio === 'glosas') {
+      // Resumo de glosas
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Estatísticas de Glosas', margemEsquerda, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total de Glosas: ${estatisticasGlosas.totalGlosas}`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Valor Total Glosado: ${estatisticasGlosas.totalGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Taxa Média de Glosa: ${estatisticasGlosas.taxaMedia.toFixed(1)}%`, margemEsquerda, yPosition);
+      yPosition += 10;
+
+      // Tabela de glosas por motivo
+      const glosasData = estatisticasGlosas.porMotivo.map(g => [
+        g.motivo,
+        g.count.toString(),
+        g.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        `${((g.valor / estatisticasGlosas.totalGlosado) * 100).toFixed(1)}%`
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Motivo', 'Quantidade', 'Valor', '% do Total']],
+        body: glosasData,
+        theme: 'grid',
+        headStyles: { fillColor: [220, 53, 69], textColor: 255 },
+        styles: { fontSize: 9, cellPadding: 3 }
+      });
+
+    } else if (tipoRelatorio === 'tempo-pagamento') {
+      // Resumo tempo de pagamento
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Análise de Tempo de Pagamento', margemEsquerda, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Tempo Médio Geral: ${analiseTempoMensal.tempoMedioGeral} dias`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Total de Consultas Pagas: ${analiseTempoMensal.totalConsultasPagas}`, margemEsquerda, yPosition);
+      yPosition += 6;
+      doc.text(`Meta: 30 dias`, margemEsquerda, yPosition);
+      yPosition += 6;
+      const statusMeta = analiseTempoMensal.tempoMedioGeral <= 30 ? '✓ Meta atingida!' : '✗ Acima da meta';
+      doc.text(`Status: ${statusMeta}`, margemEsquerda, yPosition);
+      yPosition += 10;
+
+      // Tabela mensal
+      const tempoData = analiseTempoMensal.estatisticasMensais.map(e => [
+        e.nomeMes,
+        e.quantidadeConsultas.toString(),
+        `${e.tempoMedioDias} dias`,
+        e.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        e.tempoMedioDias <= 30 ? 'Excelente' : e.tempoMedioDias <= 45 ? 'Atenção' : 'Crítico'
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Mês/Ano', 'Consultas', 'Tempo Médio', 'Valor Total', 'Status']],
+        body: tempoData,
+        theme: 'grid',
+        headStyles: { fillColor: [255, 193, 7], textColor: 0 },
+        styles: { fontSize: 8, cellPadding: 2 }
+      });
+    }
+
+    // Rodapé
+    const totalPaginas = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= totalPaginas; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(150);
+      doc.text(
+        `Sistema de Gerenciamento de Honorários Médicos - SGHM © 2025`,
+        105,
+        285,
+        { align: 'center' }
+      );
+      doc.text(`Página ${i} de ${totalPaginas}`, 105, 290, { align: 'center' });
+    }
+
+    // Salvar PDF
+    const nomeArquivo = `relatorio_${tipoRelatorio}_${new Date().getTime()}.pdf`;
+    doc.save(nomeArquivo);
   };
 
   return (
