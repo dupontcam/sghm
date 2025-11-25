@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import '../App.css'; // Estilos dos cards vêm do App.css
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
+import { calcularTempoMedioPagamento } from '../data/mockData';
 import { 
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, 
     PieChart, Pie, Cell, Tooltip as PieTooltip,
@@ -83,6 +84,7 @@ const Dashboard: React.FC = () => {
     const dashboardStats = getDashboardStats();
     const pieData = processPieData(honorarios);
     const planoData = processPlanoData(honorarios, planosSaude);
+    const tempoMedioPagamento = calcularTempoMedioPagamento(consultas);
 
     // Ranking de médicos por valor
     const rankingMedicos = useMemo(() => {
@@ -138,6 +140,12 @@ const Dashboard: React.FC = () => {
                         </div>
                         
                         <div className="card card-4">
+                            <span>Tempo Médio Pagamento</span>
+                            <strong>{tempoMedioPagamento} dias</strong>
+                            <small>Da consulta ao recebimento</small>
+                        </div>
+                        
+                        <div className="card card-5">
                             <span>Pendente</span>
                             <strong>R$ {dashboardStats.totalPendente.toFixed(2)}</strong>
                             <small>Aguardando processamento</small>

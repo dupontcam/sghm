@@ -169,6 +169,7 @@ export const mockConsultas: Consulta[] = [
     protocolo: 'PROTO-002', consultorio: 'Asa Norte', tipoPagamento: 'particular', 
     especialidade: 'Dermatologia', valorProcedimento: 450.00, 
     descricaoProcedimento: 'Procedimento estético', status: 'Pago', 
+    valorRecebido: 450.00, dataRecebimento: '2025-10-10',
     usuarioInclusao: 'operador@sghm.com', dataInclusao: '2025-10-03T11:00:00Z', 
     usuarioAlteracao: 'operador@sghm.com', dataAlteracao: '2025-10-03T11:00:00Z' 
   },
@@ -193,6 +194,7 @@ export const mockConsultas: Consulta[] = [
     protocolo: 'PROTO-005', consultorio: 'Asa Norte', tipoPagamento: 'convenio',
     especialidade: 'Ginecologia', valorProcedimento: 500.00,
     descricaoProcedimento: 'Exame preventivo', status: 'Pago',
+    valorRecebido: 500.00, dataRecebimento: '2025-11-20',
     usuarioInclusao: 'operador@sghm.com', dataInclusao: '2025-10-06T09:00:00Z',
     usuarioAlteracao: 'operador@sghm.com', dataAlteracao: '2025-10-06T09:00:00Z'
   },
@@ -242,3 +244,32 @@ export const mockHonorarios: Honorario[] = [
     valor: 400.00, status: 'ENVIADO', createdAt: '2025-10-05T10:00:00Z', updatedAt: '2025-10-05T10:00:00Z' 
   }
 ];
+
+// --- FUNÇÕES AUXILIARES ---
+
+/**
+ * Calcula o tempo médio de pagamento em dias
+ * Considera apenas consultas com status 'Pago' que possuem dataConsulta e dataRecebimento
+ * @param consultas Array de consultas para análise
+ * @returns Tempo médio em dias ou 0 se não houver consultas pagas
+ */
+export const calcularTempoMedioPagamento = (consultas: Consulta[]): number => {
+  const consultasPagas = consultas.filter(c => 
+    c.status === 'Pago' && 
+    c.dataConsulta && 
+    c.dataRecebimento
+  );
+
+  if (consultasPagas.length === 0) {
+    return 0;
+  }
+
+  const totalDias = consultasPagas.reduce((acc, consulta) => {
+    const dataConsulta = new Date(consulta.dataConsulta);
+    const dataRecebimento = new Date(consulta.dataRecebimento!);
+    const diferencaDias = Math.floor((dataRecebimento.getTime() - dataConsulta.getTime()) / (1000 * 60 * 60 * 24));
+    return acc + diferencaDias;
+  }, 0);
+
+  return Math.round(totalDias / consultasPagas.length);
+};

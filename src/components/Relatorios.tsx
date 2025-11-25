@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Consulta, Medico, Paciente, Honorario, PlanoSaude } from '../data/mockData';
-import { FaPrint, FaFileDownload, FaChartBar, FaUserMd, FaHospital, FaBan, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { Consulta, Medico, Paciente, Honorario, PlanoSaude, calcularTempoMedioPagamento } from '../data/mockData';
+import { FaPrint, FaFileDownload, FaChartBar, FaUserMd, FaHospital, FaBan, FaCheckCircle, FaClock, FaCalendarAlt } from 'react-icons/fa';
 import './RegistroConsultas.css';
 import './ControleFinanceiro.css';
 import './Relatorios.css';
 
 // Tipos de relatórios disponíveis
-type TipoRelatorio = 'geral' | 'medico' | 'plano' | 'glosas';
+type TipoRelatorio = 'geral' | 'medico' | 'plano' | 'glosas' | 'tempo-pagamento';
 
 const Relatorios: React.FC = () => {
   const { consultas, medicos, pacientes, honorarios, planosSaude } = useData();
@@ -213,6 +213,53 @@ const Relatorios: React.FC = () => {
     };
   }, [honorariosFiltrados]);
 
+  // Análise de tempo médio de pagamento por mês
+  const analiseTempoMensal = useMemo(() => {
+    const consultasFiltradas = consultas.filter(c => {
+      if (filtroDataInicio && new Date(c.dataConsulta) < new Date(filtroDataInicio)) return false;
+      if (filtroDataFim && new Date(c.dataConsulta) > new Date(filtroDataFim)) return false;
+      return true;
+    });
+
+    // Agrupar por mês
+    const consultasPorMes = new Map<string, Consulta[]>();
+    
+    consultasFiltradas.forEach(consulta => {
+      if (consulta.status === 'Pago' && consulta.dataRecebimento) {
+        const data = new Date(consulta.dataConsulta);
+        const mesAno = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!consultasPorMes.has(mesAno)) {
+          consultasPorMes.set(mesAno, []);
+        }
+        consultasPorMes.get(mesAno)!.push(consulta);
+      }
+    });
+
+    // Calcular estatísticas por mês
+    const estatisticasMensais = Array.from(consultasPorMes.entries()).map(([mesAno, consultasMes]) => {
+      const tempoMedio = calcularTempoMedioPagamento(consultasMes);
+      const [ano, mes] = mesAno.split('-');
+      const nomeMes = new Date(parseInt(ano), parseInt(mes) - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      
+      return {
+        mesAno,
+        nomeMes: nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1),
+        tempoMedioDias: tempoMedio,
+        quantidadeConsultas: consultasMes.length,
+        valorTotal: consultasMes.reduce((acc, c) => acc + (c.valorRecebido || 0), 0)
+      };
+    }).sort((a, b) => a.mesAno.localeCompare(b.mesAno));
+
+    const tempoMedioGeral = calcularTempoMedioPagamento(consultasFiltradas);
+
+    return {
+      estatisticasMensais,
+      tempoMedioGeral,
+      totalConsultasPagas: consultasFiltradas.filter(c => c.status === 'Pago' && c.dataRecebimento).length
+    };
+  }, [consultas, filtroDataInicio, filtroDataFim]);
+
   const handleGenerateReport = () => {
     setShowReport(true);
   };
@@ -310,6 +357,23 @@ const Relatorios: React.FC = () => {
           <h4 style={{ margin: '0 0 5px 0' }}>Glosas</h4>
           <small style={{ color: '#6c757d' }}>Análise de glosas</small>
         </button>
+
+        <button
+          className={`report-type-card ${tipoRelatorio === 'tempo-pagamento' ? 'active' : ''}`}
+          onClick={() => setTipoRelatorio('tempo-pagamento')}
+          style={{
+            padding: '20px',
+            border: tipoRelatorio === 'tempo-pagamento' ? '2px solid var(--primary-color)' : '2px solid #e1e5e9',
+            borderRadius: '8px',
+            background: tipoRelatorio === 'tempo-pagamento' ? 'rgba(0, 123, 255, 0.05)' : 'white',
+            cursor: 'pointer',
+            transition: 'all 0.3s'
+          }}
+        >
+          <FaCalendarAlt size={24} style={{ color: '#ffc107', marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 5px 0' }}>Tempo de Pagamento</h4>
+          <small style={{ color: '#6c757d' }}>Análise temporal</small>
+        </button>
       </div>
 
       {/* Seção de Filtros */}
@@ -354,6 +418,7 @@ const Relatorios: React.FC = () => {
               {tipoRelatorio === 'medico' && '👨‍⚕️ Relatório por Médico'}
               {tipoRelatorio === 'plano' && '🏥 Relatório por Plano de Saúde'}
               {tipoRelatorio === 'glosas' && '❌ Relatório de Glosas'}
+              {tipoRelatorio === 'tempo-pagamento' && '📅 Relatório de Tempo Médio de Pagamento'}
             </h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
               <div>
@@ -678,6 +743,155 @@ const Relatorios: React.FC = () => {
                   <li>Treine a equipe sobre os motivos mais comuns de glosa</li>
                   <li>Mantenha comunicação regular com os planos de saúde</li>
                 </ul>
+              </div>
+            </>
+          )}
+
+          {/* Relatório de Tempo de Pagamento */}
+          {tipoRelatorio === 'tempo-pagamento' && (
+            <>
+              {/* Card de Resumo Geral */}
+              <div className="summary-cards" style={{ marginBottom: '30px' }}>
+                <div className="summary-card" style={{ borderColor: '#ffc107' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <FaCalendarAlt style={{ color: '#ffc107' }} />
+                    <span>Tempo Médio Geral</span>
+                  </div>
+                  <strong style={{ fontSize: '2rem' }}>{analiseTempoMensal.tempoMedioGeral} dias</strong>
+                  <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
+                    Da consulta ao recebimento
+                  </small>
+                </div>
+                <div className="summary-card" style={{ borderColor: '#28a745' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <FaCheckCircle style={{ color: '#28a745' }} />
+                    <span>Total Consultas Pagas</span>
+                  </div>
+                  <strong style={{ fontSize: '2rem' }}>{analiseTempoMensal.totalConsultasPagas}</strong>
+                  <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
+                    Com data de recebimento
+                  </small>
+                </div>
+                <div className="summary-card" style={{ borderColor: '#007bff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <FaChartBar style={{ color: '#007bff' }} />
+                    <span>Meta Estabelecida</span>
+                  </div>
+                  <strong style={{ fontSize: '2rem' }}>30 dias</strong>
+                  <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
+                    {analiseTempoMensal.tempoMedioGeral <= 30 ? '✅ Meta atingida!' : '⚠️ Acima da meta'}
+                  </small>
+                </div>
+              </div>
+
+              {/* Análise Mensal */}
+              <h3 style={{ marginTop: '30px', marginBottom: '15px' }}>📅 Histórico Mensal de Tempo de Pagamento</h3>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mês/Ano</th>
+                      <th style={{ textAlign: 'center' }}>Consultas Pagas</th>
+                      <th style={{ textAlign: 'center' }}>Tempo Médio (dias)</th>
+                      <th style={{ textAlign: 'right' }}>Valor Total</th>
+                      <th style={{ textAlign: 'center' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analiseTempoMensal.estatisticasMensais.map((item, index) => (
+                      <tr key={index}>
+                        <td style={{ fontWeight: 600 }}>{item.nomeMes}</td>
+                        <td style={{ textAlign: 'center' }}>{item.quantidadeConsultas}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '12px',
+                            fontWeight: 600,
+                            background: item.tempoMedioDias <= 30 ? '#d4edda' : item.tempoMedioDias <= 45 ? '#fff3cd' : '#f8d7da',
+                            color: item.tempoMedioDias <= 30 ? '#155724' : item.tempoMedioDias <= 45 ? '#856404' : '#721c24'
+                          }}>
+                            {item.tempoMedioDias} dias
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                          {item.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {item.tempoMedioDias <= 30 ? (
+                            <span style={{ color: '#28a745' }}>✅ Excelente</span>
+                          ) : item.tempoMedioDias <= 45 ? (
+                            <span style={{ color: '#ffc107' }}>⚠️ Atenção</span>
+                          ) : (
+                            <span style={{ color: '#dc3545' }}>❌ Crítico</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {analiseTempoMensal.estatisticasMensais.length === 0 && (
+                  <p style={{ textAlign: 'center', padding: '20px', color: '#6c757d' }}>
+                    Nenhuma consulta paga com data de recebimento encontrada no período selecionado.
+                  </p>
+                )}
+              </div>
+
+              {/* Análise e Recomendações */}
+              <div style={{ 
+                marginTop: '30px', 
+                padding: '20px', 
+                background: '#e7f3ff', 
+                border: '1px solid #007bff',
+                borderRadius: '8px'
+              }}>
+                <h4 style={{ margin: '0 0 15px 0', color: '#004085' }}>📊 Análise de Desempenho</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                  <div>
+                    <h5 style={{ margin: '0 0 10px 0', color: '#004085' }}>Fatores que Influenciam o Tempo:</h5>
+                    <ul style={{ margin: 0, paddingLeft: '20px', color: '#004085' }}>
+                      <li>Tipo de plano de saúde (particular paga mais rápido)</li>
+                      <li>Complexidade da documentação</li>
+                      <li>Prazo contratual com cada convênio</li>
+                      <li>Eficiência no envio das guias</li>
+                      <li>Taxa de glosa (retrabalho aumenta o tempo)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 style={{ margin: '0 0 10px 0', color: '#004085' }}>Recomendações para Reduzir o Tempo:</h5>
+                    <ul style={{ margin: 0, paddingLeft: '20px', color: '#004085' }}>
+                      <li>Enviar documentação completa na primeira submissão</li>
+                      <li>Fazer follow-up regular com os convênios</li>
+                      <li>Automatizar o processo de envio de guias</li>
+                      <li>Negociar prazos menores nos contratos</li>
+                      <li>Priorizar convênios com melhor histórico de pagamento</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Meta de Implantação */}
+              <div style={{ 
+                marginTop: '20px', 
+                padding: '20px', 
+                background: analiseTempoMensal.tempoMedioGeral <= 30 ? '#d4edda' : '#fff3cd', 
+                border: `1px solid ${analiseTempoMensal.tempoMedioGeral <= 30 ? '#28a745' : '#ffc107'}`,
+                borderRadius: '8px'
+              }}>
+                <h4 style={{ margin: '0 0 10px 0', color: analiseTempoMensal.tempoMedioGeral <= 30 ? '#155724' : '#856404' }}>
+                  🎯 Meta do Plano de Implantação
+                </h4>
+                <p style={{ margin: 0, color: analiseTempoMensal.tempoMedioGeral <= 30 ? '#155724' : '#856404' }}>
+                  <strong>Objetivo:</strong> Reduzir o tempo médio de pagamento de 45 dias para 30 dias.
+                  <br />
+                  <strong>Status Atual:</strong> {analiseTempoMensal.tempoMedioGeral} dias {' '}
+                  {analiseTempoMensal.tempoMedioGeral <= 30 ? (
+                    <span style={{ fontWeight: 'bold' }}>✅ META ALCANÇADA!</span>
+                  ) : (
+                    <span>
+                      (Redução necessária: {analiseTempoMensal.tempoMedioGeral - 30} dias)
+                    </span>
+                  )}
+                </p>
               </div>
             </>
           )}
