@@ -117,3 +117,34 @@
     overflow-x: hidden;
   }
 }
+
+/* === RESPONSIVIDADE PARA TELAS GRANDES (TV) === */
+
+/* Full HD (1920px+) */
+@media (min-width: 1920px) {
+  .content-area {
+    padding: 40px;
+  }
+}
+
+/* 2K/4K (2560px+) */
+@media (min-width: 2560px) {
+  .sidebar-wrapper {
+    width: 320px;
+  }
+
+  .content-area {
+    padding: 60px;
+  }
+}
+
+/* Ultra HD (3840px+) */
+@media (min-width: 3840px) {
+  .sidebar-wrapper {
+    width: 400px;
+  }
+
+  .content-area {
+    padding: 80px;
+  }
+}

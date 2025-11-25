@@ -535,3 +535,206 @@ tr:hover {
   }
 }
 
+/* === RESPONSIVIDADE PARA TELAS GRANDES (TV/4K) === */
+
+/* Telas grandes (1920px+) - Full HD TV */
+@media (min-width: 1920px) {
+  .page-container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .page-header p {
+    font-size: 1.1rem;
+  }
+
+  /* Cards maiores */
+  .stats-cards {
+    gap: 30px;
+  }
+
+  .card {
+    padding: 30px;
+  }
+
+  .card span {
+    font-size: 1.1rem;
+  }
+
+  .card strong {
+    font-size: 2.2rem;
+  }
+
+  .card small {
+    font-size: 1rem;
+  }
+
+  /* Tabelas com fonte maior */
+  table {
+    font-size: 1.1rem;
+  }
+
+  table th,
+  table td {
+    padding: 16px;
+  }
+
+  /* Botões maiores */
+  .btn {
+    padding: 14px 28px;
+    font-size: 1.1rem;
+  }
+
+  /* Forms mais espaçados */
+  .form-group label {
+    font-size: 1.1rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 1.1rem;
+    padding: 14px;
+  }
+
+  /* Dashboard - gráficos maiores */
+  .charts-container .chart {
+    height: 400px;
+  }
+
+  .summary-stats {
+    gap: 30px;
+  }
+
+  .summary-item h4 {
+    font-size: 1.2rem;
+  }
+
+  .summary-item span {
+    font-size: 2rem;
+  }
+}
+
+/* Telas Ultra HD (2560px+) - 2K/4K TV */
+@media (min-width: 2560px) {
+  .page-container {
+    max-width: 2400px;
+    padding: 60px;
+  }
+
+  .page-header h1 {
+    font-size: 3rem;
+  }
+
+  .page-header p {
+    font-size: 1.3rem;
+  }
+
+  /* Cards ainda maiores */
+  .card {
+    padding: 40px;
+  }
+
+  .card span {
+    font-size: 1.3rem;
+  }
+
+  .card strong {
+    font-size: 3rem;
+  }
+
+  .card small {
+    font-size: 1.2rem;
+  }
+
+  /* Tabelas */
+  table {
+    font-size: 1.3rem;
+  }
+
+  table th,
+  table td {
+    padding: 20px;
+  }
+
+  /* Botões */
+  .btn {
+    padding: 18px 36px;
+    font-size: 1.3rem;
+  }
+
+  .btn-icon {
+    font-size: 1.5rem;
+    padding: 8px;
+  }
+
+  /* Forms */
+  .form-group label {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 1.3rem;
+    padding: 18px;
+  }
+
+  /* Dashboard */
+  .charts-container .chart {
+    height: 500px;
+  }
+
+  .summary-item h4 {
+    font-size: 1.4rem;
+  }
+
+  .summary-item span {
+    font-size: 2.5rem;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 320px;
+  }
+
+  .sidebar .nav-links a {
+    padding: 18px 25px;
+    font-size: 1.2rem;
+  }
+
+  .sidebar .logo h2 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Ajuste de conteúdo para telas ultra largas */
+@media (min-width: 3840px) {
+  .page-container {
+    max-width: 3600px;
+  }
+
+  .page-header h1 {
+    font-size: 4rem;
+  }
+
+  .card strong {
+    font-size: 4rem;
+  }
+
+  table {
+    font-size: 1.6rem;
+  }
+
+  .btn {
+    font-size: 1.6rem;
+    padding: 22px 44px;
+  }
+}
+
