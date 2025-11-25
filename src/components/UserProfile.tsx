@@ -4,14 +4,14 @@ import { FaUser, FaEnvelope, FaPhone, FaBriefcase, FaKey, FaCheckCircle, FaExcla
 import './UserProfile.css'; // Estilos específicos para esta página
 
 const UserProfile: React.FC = () => {
-  const { userProfile, user } = useAuth();
+  const { user, updateUser, updatePassword } = useAuth();
   
   // Dados do usuário logado
   const [userData, setUserData] = useState({
     nome: user?.nome || '',
     email: user?.email || '',
-    telefone: '',
-    cargo: userProfile,
+    telefone: user?.telefone || '',
+    cargo: user?.cargo || '',
     dataCriacao: '15/09/2025',
     ultimoAcesso: new Date().toLocaleString('pt-BR'),
   });
@@ -23,7 +23,8 @@ const UserProfile: React.FC = () => {
         ...prev,
         nome: user.nome,
         email: user.email,
-        cargo: user.perfil,
+        cargo: user.cargo || user.perfil,
+        telefone: user.telefone || '',
       }));
     }
   }, [user]);
@@ -38,7 +39,18 @@ const UserProfile: React.FC = () => {
 
   const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUserData(prev => ({ ...prev, [name]: value }));
+    
+    // Aplicar máscara de telefone
+    if (name === 'telefone') {
+      const telefoneFormatado = value
+        .replace(/\D/g, '')
+        .replace(/^(\d{2})(\d)/g, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+      setUserData(prev => ({ ...prev, [name]: telefoneFormatado }));
+    } else {
+      setUserData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,15 +71,21 @@ const UserProfile: React.FC = () => {
       return;
     }
     
-    // Lógica (simulada) para salvar dados do usuário
-    console.log('Dados do usuário salvos:', userData);
+    // Atualiza dados do usuário no contexto e localStorage
+    updateUser({
+      nome: userData.nome,
+      email: userData.email,
+      cargo: userData.cargo,
+      telefone: userData.telefone
+    });
+    
     setFeedback({ type: 'success', message: 'Dados atualizados com sucesso!' });
     
     // Limpar feedback após 3 segundos
     setTimeout(() => setFeedback({ type: '', message: '' }), 3000);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validações
@@ -88,10 +106,15 @@ const UserProfile: React.FC = () => {
       return;
     }
     
-    // Lógica (simulada) para trocar a senha
-    console.log('Senha alterada com sucesso.');
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setFeedback({ type: 'success', message: 'Senha alterada com sucesso!' });
+    // Atualizar senha via AuthContext
+    const success = await updatePassword(passwordData.currentPassword, passwordData.newPassword);
+    
+    if (success) {
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setFeedback({ type: 'success', message: 'Senha alterada com sucesso!' });
+    } else {
+      setFeedback({ type: 'error', message: 'Senha atual incorreta. Tente novamente.' });
+    }
     
     // Limpar feedback após 3 segundos
     setTimeout(() => setFeedback({ type: '', message: '' }), 3000);
@@ -101,9 +124,9 @@ const UserProfile: React.FC = () => {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>Perfil do Usuário</h1>
+          <h1>Meu Perfil</h1>
           <p style={{ color: '#6c757d', marginTop: '5px' }}>
-            Gerencie suas informações pessoais e configurações de segurança
+            Atualize seus dados pessoais e altere sua senha
           </p>
         </div>
       </div>
@@ -116,8 +139,8 @@ const UserProfile: React.FC = () => {
         <div className="profile-details">
           <h2>{userData.nome}</h2>
           <div className="profile-meta">
-            <span className={`badge-profile ${userData.cargo === 'Admin' ? 'badge-admin' : 'badge-operator'}`}>
-              <FaShieldAlt /> {userData.cargo}
+            <span className={`badge-profile ${user?.perfil === 'Admin' ? 'badge-admin' : 'badge-operator'}`}>
+              <FaShieldAlt /> {user?.perfil}
             </span>
             <span className="profile-email">
               <FaEnvelope /> {userData.email}

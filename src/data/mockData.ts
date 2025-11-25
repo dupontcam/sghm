@@ -97,6 +97,7 @@ export interface Usuario {
   senha: string;
   perfil: 'Admin' | 'Operador';
   cargo: string;
+  telefone?: string;
   ativo: boolean;
 }
 
@@ -111,6 +112,7 @@ export const mockUsuarios: Usuario[] = [
     senha: 'admin123', 
     perfil: 'Admin', 
     cargo: 'Administrador',
+    telefone: '(11) 98765-4321',
     ativo: true 
   },
   { 
@@ -120,6 +122,7 @@ export const mockUsuarios: Usuario[] = [
     senha: 'operador123', 
     perfil: 'Operador', 
     cargo: 'Operador de Sistema',
+    telefone: '(11) 91234-5678',
     ativo: true 
   },
   { 
@@ -129,6 +132,7 @@ export const mockUsuarios: Usuario[] = [
     senha: '123456', 
     perfil: 'Operador', 
     cargo: 'Operador',
+    telefone: '(11) 99999-8888',
     ativo: true 
   }
 ];

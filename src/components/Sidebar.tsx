@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
     FaHome, FaRegListAlt, FaUser, FaUserMd, FaUsers, 
     FaDollarSign, FaChartBar, FaDatabase, FaSignOutAlt,
-    FaHospital, FaFileInvoiceDollar, FaBell
+    FaHospital, FaFileInvoiceDollar, FaBell, FaUsersCog
 } from 'react-icons/fa';
 // Importa o logo
 import sghmLogo from '../assets/sghm_logo.png';
@@ -56,13 +56,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                     <>
                         <li><NavLink to="/financeiro" onClick={handleLinkClick}><FaDollarSign /> Controle Financeiro</NavLink></li>
                         <li><NavLink to="/relatorios" onClick={handleLinkClick}><FaChartBar /> Relatórios</NavLink></li>
+                        <li><NavLink to="/usuarios" onClick={handleLinkClick}><FaUsersCog /> Gestão de Usuários</NavLink></li>
                         <li><NavLink to="/backup" onClick={handleLinkClick}><FaDatabase /> Backup e Restauração</NavLink></li>
                     </>
                 )}
 
                 {/* Rota de Perfil para todos */}
                 <li>
-                    <NavLink to="/perfil" onClick={handleLinkClick}><FaUser /> Perfil do Usuário</NavLink>
+                    <NavLink to="/perfil" onClick={handleLinkClick}><FaUser /> Meu Perfil</NavLink>
                 </li>
             </ul>
 

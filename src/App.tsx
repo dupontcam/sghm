@@ -16,6 +16,7 @@ import ControleFinanceiro from './components/ControleFinanceiro';
 import Relatorios from './components/Relatorios';
 import Notifications from './components/Notifications';
 import UserProfile from './components/UserProfile';
+import GestaoUsuarios from './components/GestaoUsuarios';
 import Backup from './components/Backup';
 
 import './App.css';
@@ -49,6 +50,7 @@ function App() {
                   <Route element={<AdminRoute />}>
                     <Route path="/financeiro" element={<ControleFinanceiro />} />
                     <Route path="/relatorios" element={<Relatorios />} />
+                    <Route path="/usuarios" element={<GestaoUsuarios />} />
                     <Route path="/backup" element={<Backup />} />
                   </Route>
 

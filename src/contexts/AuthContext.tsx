@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usuariosService } from '../services/usuariosService';
 
 // Define os tipos de perfil que o sistema aceita
 export type UserProfile = 'Admin' | 'Operador';
@@ -11,6 +12,7 @@ interface User {
   email: string;
   perfil: UserProfile;
   cargo?: string;
+  telefone?: string;
 }
 
 // Define o que o nosso contexto irá fornecer
@@ -20,6 +22,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (userData: User, token: string) => void;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
 }
 
 // Chaves para localStorage
@@ -63,12 +67,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(TOKEN_KEY);
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (!user) return;
+    
+    // Atualizar no service (localStorage de usuários)
+    const success = usuariosService.updateProfile(user.id, {
+      nome: userData.nome,
+      email: userData.email,
+      telefone: userData.telefone,
+      cargo: userData.cargo
+    });
+    
+    if (success) {
+      // Recarregar dados do service para garantir sincronização
+      const usuarioAtualizado = usuariosService.getById(user.id);
+      if (usuarioAtualizado) {
+        const updatedUser: User = {
+          id: usuarioAtualizado.id,
+          nome: usuarioAtualizado.nome,
+          email: usuarioAtualizado.email,
+          perfil: usuarioAtualizado.perfil,
+          cargo: usuarioAtualizado.cargo,
+          telefone: usuarioAtualizado.telefone,
+        };
+        setUser(updatedUser);
+        localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      }
+    }
+  };
+
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    console.log('🔑 Atualizando senha do usuário:', user.id);
+    const result = usuariosService.updatePassword(user.id, currentPassword, newPassword);
+    
+    if (result.success) {
+      console.log('✅ Senha atualizada com sucesso no localStorage');
+      // Verificar se realmente salvou
+      const verificacao = usuariosService.getById(user.id);
+      console.log('🔍 Senha verificada no service:', verificacao?.senha === newPassword);
+    } else {
+      console.error('❌ Erro ao atualizar senha:', result.error);
+    }
+    
+    return result.success;
+  };
+
   const value = {
     user,
     userProfile: user?.perfil || 'Operador',
     isAuthenticated: !!user,
     login,
     logout,
+    updateUser,
+    updatePassword,
   };
 
   return (

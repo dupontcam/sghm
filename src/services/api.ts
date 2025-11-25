@@ -1,3 +1,5 @@
+import { usuariosService } from './usuariosService';
+
 // Configuração da API
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
@@ -376,22 +378,12 @@ export const estatisticasAPI = {
 // --- API de Autenticação ---
 export const authAPI = {
   login: async (email: string, senha: string) => {
-    // Primeiro tentar autenticação mock diretamente
     console.log('🔐 Iniciando processo de login...');
     console.log('📧 Email:', email);
     
     try {
-      // Importar usuários mock
-      const { mockUsuarios } = await import('../data/mockData');
-      console.log('📋 Usuários disponíveis:', mockUsuarios.length);
-      
-      // Procurar usuário
-      const usuario = mockUsuarios.find(u => {
-        console.log(`Verificando: ${u.email} === ${email}? ${u.email === email}`);
-        console.log(`Senha correta? ${u.senha === senha}`);
-        console.log(`Ativo? ${u.ativo}`);
-        return u.email === email && u.senha === senha && u.ativo;
-      });
+      // Usar usuariosService para validar credenciais
+      const usuario = usuariosService.validatePassword(email, senha);
       
       if (!usuario) {
         console.error('❌ Usuário não encontrado ou credenciais inválidas');
@@ -414,6 +406,7 @@ export const authAPI = {
             email: usuario.email,
             perfil: usuario.perfil,
             cargo: usuario.cargo,
+            telefone: usuario.telefone,
           }
         }
       };
@@ -422,7 +415,7 @@ export const authAPI = {
       return response;
       
     } catch (error: any) {
-      console.error('💥 Erro na autenticação mock:', error);
+      console.error('💥 Erro na autenticação:', error);
       throw error;
     }
   },

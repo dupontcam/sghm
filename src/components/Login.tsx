@@ -40,6 +40,7 @@ const Login: React.FC = () => {
                 email: response.data.usuario.email,
                 perfil: response.data.usuario.perfil as 'Admin' | 'Operador',
                 cargo: response.data.usuario.cargo,
+                telefone: response.data.usuario.telefone,
             };
             
             console.log('Dados do usuário processados:', userInfo);
