@@ -28,14 +28,28 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
     return (
         <nav className="sidebar">
+            {/* Botão fechar mobile */}
+            {onClose && (
+                <button className="sidebar-close-btn" onClick={onClose} aria-label="Fechar menu">
+                    ✕
+                </button>
+            )}
+            
+            {/* Informações do usuário no topo */}
+            <div className="user-info-top">
+                <div className="user-avatar-top">
+                    <FaUser />
+                </div>
+                <div className="user-details-top">
+                    <strong>{user?.nome || 'Usuário'}</strong>
+                    <span className={`user-badge badge-${userProfile.toLowerCase()}`}>
+                        {userProfile}
+                    </span>
+                </div>
+            </div>
+            
             <div className="sidebar-header">
-                {/* Botão fechar mobile */}
-                {onClose && (
-                    <button className="sidebar-close-btn" onClick={onClose} aria-label="Fechar menu">
-                        ✕
-                    </button>
-                )}
-                {/* 1. Usando o Logo */}
+                {/* Logo */}
                 <img src={sghmLogo} alt="SGHM Logo" className="sidebar-logo" />
             </div>
             
@@ -69,24 +83,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
             {/* Rodapé da Sidebar */}
             <div className="sidebar-footer">
-                <div className="user-info">
-                    <div className="user-avatar">
-                        <FaUser />
-                    </div>
-                    <div className="user-details">
-                        <strong>{user?.nome || 'Usuário'}</strong>
-                        <span className={`user-badge badge-${userProfile.toLowerCase()}`}>
-                            {userProfile}
-                        </span>
-                    </div>
-                </div>
-                <ul className="sidebar-menu">
-                    <li>
-                        <button onClick={handleLogout} className="logout-btn">
-                            <FaSignOutAlt /> Sair
-                        </button>
-                    </li>
-                </ul>
+                <button onClick={handleLogout} className="logout-btn">
+                    <FaSignOutAlt /> Sair
+                </button>
             </div>
         </nav>
     );

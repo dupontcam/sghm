@@ -3,7 +3,7 @@
     width: 300px;
     background-color: var(--sidebar-bg);
     color: var(--text-light);
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -12,12 +12,54 @@
     flex-shrink: 0;
 }
 
+/* --- USER INFO NO TOPO --- */
+.user-info-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.user-avatar-top {
+    width: 28px;
+    height: 28px;
+    background-color: var(--sidebar-hover);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+
+.user-avatar-top svg {
+    font-size: 0.8rem;
+}
+
+.user-details-top {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.user-details-top strong {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* --- LOGO HEADER --- */
 .sidebar-header {
     text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    padding-top: 50px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--sidebar-hover);
     position: relative;
 }
@@ -59,15 +101,14 @@
 @media (max-width: 768px) {
     .sidebar-close-btn {
         display: flex !important;
-    }
-    
-    .sidebar-header {
-        padding-top: 50px;
+        position: fixed;
+        top: 10px;
+        right: 10px;
     }
 }
 
 .sidebar-logo {
-    max-width: 100%;
+    max-width: 85%;
     height: auto;
 }
 
@@ -80,25 +121,30 @@
 
 /* Faz o menu principal crescer, empurrando o footer para baixo */
 .sidebar-menu:first-of-type {
-    flex: 1; /* CORREÇÃO: Mudança de flex-grow para flex */
-    overflow-y: auto; /* CORREÇÃO: Scroll apenas no menu principal */
-    margin-bottom: 20px; /* CORREÇÃO: Espaçamento fixo para o footer */
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 12px;
 }
 
 .sidebar-menu li {
-    margin-bottom: 3px; /* AJUSTE: Diminuído de 5px */
+    margin-bottom: 2px;
 }
 
 .sidebar-menu a {
     display: flex;
     align-items: center;
-    gap: 12px; /* AJUSTE: Diminuído de 15px */
-    padding: 10px 15px; /* AJUSTE: Diminuído de 12px */
+    gap: 8px;
+    padding: 7px 10px;
     color: var(--text-light);
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: background-color 0.3s, color 0.3s;
+    font-size: 0.82rem;
+}
+
+.sidebar-menu a svg {
     font-size: 0.95rem;
+    flex-shrink: 0;
 }
 
 .sidebar-menu a:hover {
@@ -123,18 +169,14 @@
     color: #8899b3;
 }
 
-/* --- FOOTER (INFORMAÇÕES DO USUÁRIO E SAIR) --- */
+/* --- FOOTER (SAIR) --- */
 .sidebar-footer {
     margin-top: auto; 
-    padding-top: 15px;
+    padding-top: 10px;
     border-top: 1px solid var(--sidebar-hover);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
     flex-shrink: 0;
     background-color: var(--sidebar-bg);
     width: 100%;
-    position: relative;
 }
 
 /* Informações do usuário */
@@ -181,9 +223,9 @@
 
 .user-badge {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
     font-weight: 500;
     text-transform: uppercase;
     width: fit-content;
@@ -203,17 +245,21 @@
 .logout-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 15px;
+    gap: 8px;
+    padding: 7px 10px;
     color: var(--text-light);
     background: none;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: background-color 0.3s, color 0.3s;
-    font-size: 0.95rem;
+    font-size: 0.82rem;
     cursor: pointer;
     width: 100%;
     text-align: left;
+}
+
+.logout-btn svg {
+    font-size: 0.95rem;
 }
 
 .logout-btn:hover {
