@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usuariosService } from '../services/usuariosService';
+import { backupService } from '../services/backupService';
 
 // Define os tipos de perfil que o sistema aceita
 export type UserProfile = 'Admin' | 'Operador';
@@ -62,6 +63,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
+    // Criar backup automático ao fazer logout se habilitado
+    const config = backupService.getAutoBackupConfig();
+    if (config.enabled) {
+      try {
+        // Buscar dados do localStorage para backup
+        const consultasData = localStorage.getItem('sghm_consultas');
+        const honorariosData = localStorage.getItem('sghm_honorarios');
+        const medicosData = localStorage.getItem('sghm_medicos');
+        const pacientesData = localStorage.getItem('sghm_pacientes');
+        const planosData = localStorage.getItem('sghm_planos_saude');
+        
+        const consultas = consultasData ? JSON.parse(consultasData) : [];
+        const honorarios = honorariosData ? JSON.parse(honorariosData) : [];
+        const medicos = medicosData ? JSON.parse(medicosData) : [];
+        const pacientes = pacientesData ? JSON.parse(pacientesData) : [];
+        const planosSaude = planosData ? JSON.parse(planosData) : [];
+        
+        backupService.createBackup(
+          consultas,
+          honorarios,
+          medicos,
+          pacientes,
+          planosSaude,
+          'automatico'
+        );
+        console.log('✅ Backup automático criado ao fazer logout');
+      } catch (error) {
+        console.error('❌ Erro ao criar backup no logout:', error);
+      }
+    }
+    
     setUser(null);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TOKEN_KEY);

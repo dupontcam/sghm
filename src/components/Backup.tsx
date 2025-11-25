@@ -1,75 +1,116 @@
-import React, { useState } from 'react';
-import { FaDatabase, FaUndo, FaCheckCircle, FaExclamationTriangle, FaDownload, FaUpload, FaHistory, FaClock } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaDatabase, FaUndo, FaCheckCircle, FaExclamationTriangle, FaDownload, FaUpload, FaHistory, FaClock, FaTrash } from 'react-icons/fa';
 import { useData } from '../contexts/DataContext';
+import { backupService, BackupHistoryItem } from '../services/backupService';
 import './Backup.css'; // Estilos específicos
-
-interface BackupHistory {
-  id: number;
-  data: string;
-  tipo: 'manual' | 'automatico';
-  tamanho: string;
-}
 
 const Backup: React.FC = () => {
   const { consultas, honorarios, medicos, pacientes, planosSaude } = useData();
-  const [lastBackup, setLastBackup] = useState<string | null>('22/10/2025 09:30:00');
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'idle', message: string }>({ type: 'idle', message: '' });
-  const [backupHistory, setBackupHistory] = useState<BackupHistory[]>([
-    { id: 1, data: '22/10/2025 09:30:00', tipo: 'manual', tamanho: '2.4 MB' },
-    { id: 2, data: '21/10/2025 09:30:00', tipo: 'automatico', tamanho: '2.3 MB' },
-    { id: 3, data: '20/10/2025 09:30:00', tipo: 'automatico', tamanho: '2.2 MB' },
-  ]);
+  const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
+  const [autoBackupFrequency, setAutoBackupFrequency] = useState(24);
+
+  // Carregar histórico e configurações ao montar componente
+  useEffect(() => {
+    loadHistory();
+    const config = backupService.getAutoBackupConfig();
+    setAutoBackupEnabled(config.enabled);
+    setAutoBackupFrequency(config.frequency);
+  }, []);
+
+  // Timer para backup automático
+  useEffect(() => {
+    if (!autoBackupEnabled) return;
+
+    const checkInterval = setInterval(() => {
+      if (backupService.shouldCreateAutoBackup()) {
+        handleAutoBackup();
+      }
+    }, 60 * 60 * 1000); // Verifica a cada hora
+
+    // Verificar imediatamente ao habilitar
+    if (backupService.shouldCreateAutoBackup()) {
+      handleAutoBackup();
+    }
+
+    return () => clearInterval(checkInterval);
+  }, [autoBackupEnabled, consultas, honorarios, medicos, pacientes, planosSaude]);
+
+  const loadHistory = () => {
+    const history = backupService.getHistory();
+    setBackupHistory(history);
+    const last = backupService.getLastBackup();
+    setLastBackup(last?.data || null);
+  };
+
+  const handleAutoBackup = () => {
+    try {
+      const backup = backupService.createBackup(
+        consultas,
+        honorarios,
+        medicos,
+        pacientes,
+        planosSaude,
+        'automatico'
+      );
+      
+      backupService.updateLastAutoBackup();
+      loadHistory();
+      
+      console.log('✅ Backup automático criado:', backup.data);
+    } catch (error: any) {
+      console.error('❌ Erro no backup automático:', error.message);
+    }
+  };
 
   const handleBackup = () => {
-    setStatus({ type: 'idle', message: 'Iniciando backup...' });
+    setStatus({ type: 'idle', message: 'Criando backup...' });
+    setLoading(true);
     
-    // Simula uma operação de backup que leva 2 segundos
-    setTimeout(() => {
-      const now = new Date().toLocaleString('pt-BR');
-      setLastBackup(now);
+    try {
+      // Criar backup real com todos os dados
+      const backup = backupService.createBackup(
+        consultas,
+        honorarios,
+        medicos,
+        pacientes,
+        planosSaude,
+        'manual'
+      );
       
-      // Adiciona ao histórico
-      const newBackup: BackupHistory = {
-        id: backupHistory.length + 1,
-        data: now,
-        tipo: 'manual',
-        tamanho: `${(Math.random() * 2 + 1).toFixed(1)} MB`
-      };
-      setBackupHistory([newBackup, ...backupHistory]);
+      setLastBackup(backup.data);
+      loadHistory();
       
-      setStatus({ type: 'success', message: `Backup concluído com sucesso em ${now}` });
-    }, 2000);
+      setStatus({ 
+        type: 'success', 
+        message: `Backup criado com sucesso! ${backup.registros} registros salvos (${backup.tamanho})` 
+      });
+    } catch (error: any) {
+      setStatus({ type: 'error', message: `Erro ao criar backup: ${error.message}` });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExportBackup = () => {
-    // Criar objeto com todos os dados
-    const backupData = {
-      version: '1.0',
-      timestamp: new Date().toISOString(),
-      data: {
+    try {
+      setStatus({ type: 'idle', message: 'Exportando backup...' });
+      
+      backupService.exportBackup(
         consultas,
         honorarios,
         medicos,
         pacientes,
         planosSaude
-      }
-    };
+      );
 
-    // Converter para JSON
-    const jsonString = JSON.stringify(backupData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    // Criar link de download
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `backup-sghm-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setStatus({ type: 'success', message: 'Backup exportado com sucesso!' });
+      setStatus({ type: 'success', message: 'Backup exportado com sucesso! Arquivo baixado.' });
+    } catch (error: any) {
+      setStatus({ type: 'error', message: `Erro ao exportar: ${error.message}` });
+    }
   };
 
   const handleImportBackup = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,47 +120,126 @@ const Backup: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
+        setStatus({ type: 'idle', message: 'Validando arquivo...' });
+        
         const backupData = JSON.parse(e.target?.result as string);
         
         // Validar estrutura
-        if (!backupData.data || !backupData.version) {
-          throw new Error('Formato de backup inválido');
+        const validation = backupService.validateBackup(backupData);
+        if (!validation.valid) {
+          throw new Error(validation.error || 'Formato de backup inválido');
         }
 
-        setStatus({ type: 'idle', message: 'Importando backup...' });
+        // Importar backup
+        const backup = backupService.importBackup(backupData);
+        loadHistory();
         
-        // Simula importação
-        setTimeout(() => {
-          setStatus({ 
-            type: 'success', 
-            message: `Backup importado com sucesso! ${Object.keys(backupData.data).length} tabelas restauradas.` 
-          });
-        }, 2000);
-      } catch (error) {
-        setStatus({ type: 'error', message: 'Erro ao importar backup. Arquivo inválido.' });
+        setStatus({ 
+          type: 'success', 
+          message: `Backup importado com sucesso! ${backup.registros} registros (${backup.tamanho}). Use "Restaurar" para aplicar.` 
+        });
+      } catch (error: any) {
+        setStatus({ type: 'error', message: `Erro ao importar: ${error.message}` });
       }
     };
     reader.readAsText(file);
+    
+    // Limpar input
+    event.target.value = '';
   };
 
-  const handleRestore = () => {
-    if (!lastBackup) {
+  const handleRestore = (backupId?: string) => {
+    const last = backupService.getLastBackup();
+    if (!last && !backupId) {
       setStatus({ type: 'error', message: 'Nenhum backup encontrado para restaurar.' });
       return;
     }
     
+    const targetBackup = backupId 
+      ? backupHistory.find(b => b.id === backupId)
+      : last;
+    
+    if (!targetBackup) {
+      setStatus({ type: 'error', message: 'Backup não encontrado.' });
+      return;
+    }
+    
     const confirmRestore = window.confirm(
-      `Tem certeza que deseja restaurar o backup de ${lastBackup}?\n\nTodos os dados atuais serão substituídos!`
+      `⚠️ ATENÇÃO: OPERAÇÃO IRREVERSÍVEL!\n\n` +
+      `Tem certeza que deseja restaurar o backup de ${targetBackup.data}?\n\n` +
+      `• Todos os dados atuais serão substituídos\n` +
+      `• ${targetBackup.registros} registros serão restaurados\n` +
+      `• Você precisará fazer logout/login após a restauração\n\n` +
+      `Clique OK para confirmar ou Cancelar para abortar.`
     );
     
-    if (!confirmRestore) return;
+    if (!confirmRestore) {
+      setStatus({ type: 'idle', message: 'Restauração cancelada.' });
+      return;
+    }
     
-    setStatus({ type: 'idle', message: 'Restaurando backup...' });
+    try {
+      setStatus({ type: 'idle', message: 'Restaurando dados...' });
+      setLoading(true);
+      
+      const backup = backupService.restoreBackup(targetBackup.id);
+      
+      if (!backup) {
+        throw new Error('Falha ao carregar dados do backup');
+      }
+      
+      setStatus({ 
+        type: 'success', 
+        message: `✅ Backup restaurado! ${targetBackup.registros} registros recuperados. Recarregando página...` 
+      });
+      
+      // Recarregar página após 2 segundos
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
+    } catch (error: any) {
+      setStatus({ type: 'error', message: `Erro ao restaurar: ${error.message}` });
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBackup = (backupId: string) => {
+    const backup = backupHistory.find(b => b.id === backupId);
+    if (!backup) return;
     
-    // Simula uma operação de restauração
-    setTimeout(() => {
-      setStatus({ type: 'success', message: `Sistema restaurado com sucesso a partir do backup de ${lastBackup}` });
-    }, 3000);
+    const confirm = window.confirm(
+      `Excluir backup de ${backup.data}?\n\nEsta ação não pode ser desfeita.`
+    );
+    
+    if (!confirm) return;
+    
+    try {
+      backupService.deleteBackup(backupId);
+      loadHistory();
+      setStatus({ type: 'success', message: 'Backup excluído com sucesso.' });
+    } catch (error: any) {
+      setStatus({ type: 'error', message: `Erro ao excluir: ${error.message}` });
+    }
+  };
+
+  const handleAutoBackupToggle = (enabled: boolean) => {
+    setAutoBackupEnabled(enabled);
+    backupService.saveAutoBackupConfig(enabled, autoBackupFrequency);
+    setStatus({ 
+      type: 'success', 
+      message: enabled 
+        ? `Backup automático ativado! Frequência: a cada ${autoBackupFrequency}h`
+        : 'Backup automático desativado.' 
+    });
+  };
+
+  const handleFrequencyChange = (frequency: number) => {
+    setAutoBackupFrequency(frequency);
+    backupService.saveAutoBackupConfig(autoBackupEnabled, frequency);
+    if (autoBackupEnabled) {
+      setStatus({ type: 'success', message: `Frequência atualizada para ${frequency}h` });
+    }
   };
 
   return (
@@ -158,6 +278,58 @@ const Backup: React.FC = () => {
         </div>
       </div>
 
+      {/* Configurações de Backup Automático */}
+      <div className="backup-card auto-backup-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <FaClock size={20} style={{ color: '#28a745' }} />
+          <h3 style={{ margin: 0 }}>Backup Automático</h3>
+        </div>
+        <p>
+          Configure backups automáticos periódicos para proteger seus dados continuamente.
+          O sistema criará backups automaticamente no intervalo definido.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={autoBackupEnabled}
+                onChange={(e) => handleAutoBackupToggle(e.target.checked)}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <span style={{ fontWeight: 500 }}>Habilitar backup automático</span>
+            </label>
+          </div>
+          {autoBackupEnabled && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '26px' }}>
+              <label style={{ fontWeight: 500 }}>Frequência:</label>
+              <select 
+                value={autoBackupFrequency} 
+                onChange={(e) => handleFrequencyChange(Number(e.target.value))}
+                style={{ 
+                  padding: '8px 12px', 
+                  borderRadius: '6px', 
+                  border: '1px solid #dee2e6',
+                  fontSize: '0.9rem'
+                }}
+              >
+                <option value={1}>A cada 1 hora</option>
+                <option value={6}>A cada 6 horas</option>
+                <option value={12}>A cada 12 horas</option>
+                <option value={24}>A cada 24 horas (diário)</option>
+                <option value={72}>A cada 3 dias</option>
+                <option value={168}>A cada 7 dias (semanal)</option>
+              </select>
+            </div>
+          )}
+        </div>
+        {autoBackupEnabled && (
+          <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#d4edda', borderRadius: '6px', fontSize: '0.9rem' }}>
+            <strong>✓ Ativo:</strong> Próximo backup automático será criado em até {autoBackupFrequency}h desde o último backup.
+          </div>
+        )}
+      </div>
+
       {/* Backup Manual */}
       <div className="backup-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -169,10 +341,10 @@ const Backup: React.FC = () => {
           Recomenda-se fazer backups diários ou antes de operações importantes.
         </p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button className="btn btn-primary btn-backup" onClick={handleBackup}>
-            <FaDatabase /> Fazer Backup Agora
+          <button className="btn btn-primary btn-backup" onClick={handleBackup} disabled={loading}>
+            <FaDatabase /> {loading ? 'Criando...' : 'Fazer Backup Agora'}
           </button>
-          <button className="btn btn-secondary btn-backup" onClick={handleExportBackup}>
+          <button className="btn btn-secondary btn-backup" onClick={handleExportBackup} disabled={loading}>
             <FaDownload /> Exportar Backup (JSON)
           </button>
         </div>
@@ -216,8 +388,8 @@ const Backup: React.FC = () => {
           Restaure o sistema a partir do último ponto de backup interno. 
           <strong style={{ color: '#dc3545' }}> ⚠️ Atenção:</strong> Todos os dados não salvos desde o último backup serão perdidos.
         </p>
-        <button className="btn btn-danger btn-backup" onClick={handleRestore} disabled={!lastBackup}>
-          <FaUndo /> Restaurar Último Backup
+        <button className="btn btn-danger btn-backup" onClick={() => handleRestore()} disabled={!lastBackup || loading}>
+          <FaUndo /> {loading ? 'Restaurando...' : 'Restaurar Último Backup'}
         </button>
       </div>
 
@@ -234,6 +406,7 @@ const Backup: React.FC = () => {
                 <tr>
                   <th>Data e Hora</th>
                   <th>Tipo</th>
+                  <th>Registros</th>
                   <th>Tamanho</th>
                   <th>Ações</th>
                 </tr>
@@ -247,19 +420,27 @@ const Backup: React.FC = () => {
                         {backup.tipo === 'manual' ? 'Manual' : 'Automático'}
                       </span>
                     </td>
+                    <td>{backup.registros}</td>
                     <td>{backup.tamanho}</td>
                     <td>
-                      <button 
-                        className="btn-icon-small" 
-                        onClick={() => {
-                          if (window.confirm(`Restaurar backup de ${backup.data}?`)) {
-                            setStatus({ type: 'success', message: `Backup de ${backup.data} restaurado!` });
-                          }
-                        }}
-                        title="Restaurar este backup"
-                      >
-                        <FaUndo />
-                      </button>
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                        <button 
+                          className="btn-icon-small" 
+                          onClick={() => handleRestore(backup.id)}
+                          title="Restaurar este backup"
+                          disabled={loading}
+                        >
+                          <FaUndo />
+                        </button>
+                        <button 
+                          className="btn-icon-small btn-delete" 
+                          onClick={() => handleDeleteBackup(backup.id)}
+                          title="Excluir este backup"
+                          disabled={loading}
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

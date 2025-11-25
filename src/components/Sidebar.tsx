@@ -71,7 +71,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                         <li><NavLink to="/financeiro" onClick={handleLinkClick}><FaDollarSign /> Controle Financeiro</NavLink></li>
                         <li><NavLink to="/relatorios" onClick={handleLinkClick}><FaChartBar /> Relatórios</NavLink></li>
                         <li><NavLink to="/usuarios" onClick={handleLinkClick}><FaUsersCog /> Gestão de Usuários</NavLink></li>
-                        <li><NavLink to="/backup" onClick={handleLinkClick}><FaDatabase /> Backup e Restauração</NavLink></li>
                     </>
                 )}
 
@@ -79,6 +78,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 <li>
                     <NavLink to="/perfil" onClick={handleLinkClick}><FaUser /> Meu Perfil</NavLink>
                 </li>
+                
+                {/* Backup e Restauração (apenas Admin) */}
+                {userProfile === 'Admin' && (
+                    <li><NavLink to="/backup" onClick={handleLinkClick}><FaDatabase /> Backup e Restauração</NavLink></li>
+                )}
             </ul>
 
             {/* Rodapé da Sidebar */}

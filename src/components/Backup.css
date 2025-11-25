@@ -49,6 +49,10 @@
     border-left-color: #17a2b8;
 }
 
+.backup-card.auto-backup-card {
+    border-left-color: #28a745;
+}
+
 .backup-card.history-card {
     border-left-color: #6c757d;
 }
@@ -147,6 +151,17 @@
     background-color: #f8f9fa;
     color: #007bff;
     border-color: #007bff;
+}
+
+.btn-icon-small.btn-delete:hover {
+    background-color: #fff5f5;
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-icon-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Feedback de Status */
