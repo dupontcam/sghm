@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import '../App.css'; // Estilos dos cards vêm do App.css
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { calcularTempoMedioPagamento } from '../data/mockData';
+import { avaliacoesService } from '../services/avaliacoesService';
+import { FaStar } from 'react-icons/fa';
 import { 
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, 
     PieChart, Pie, Cell, Tooltip as PieTooltip,
-    AreaChart, Area
+    AreaChart, Area, LineChart, Line
 } from 'recharts';
 
 // --- Processamento de Dados para os Gráficos ---
@@ -75,16 +77,29 @@ const monthlyData = [
 // --- Componente do Dashboard ---
 
 const Dashboard: React.FC = () => {
-    const { userProfile } = useAuth();
+    const { userProfile, user } = useAuth();
     const { 
         consultas, honorarios, planosSaude, medicos, 
         getDashboardStats
     } = useData();
     
+    const [estatisticasSatisfacao, setEstatisticasSatisfacao] = useState<any>(null);
+    
     const dashboardStats = getDashboardStats();
     const pieData = processPieData(honorarios);
     const planoData = processPlanoData(honorarios, planosSaude);
     const tempoMedioPagamento = calcularTempoMedioPagamento(consultas);
+
+    // Carregar estatísticas de satisfação
+    useEffect(() => {
+        if (user) {
+            avaliacoesService.initialize([
+                { id: user.id, nome: user.nome, perfil: userProfile }
+            ]);
+        }
+        const stats = avaliacoesService.getEstatisticasGerais();
+        setEstatisticasSatisfacao(stats);
+    }, [user, userProfile]);
 
     // Ranking de médicos por valor
     const rankingMedicos = useMemo(() => {
@@ -298,6 +313,79 @@ const Dashboard: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Seção de Satisfação */}
+                    {estatisticasSatisfacao && (
+                        <>
+                            <div className="stats-cards" style={{ marginTop: '30px' }}>
+                                <div className="card card-satisfacao">
+                                    <span>Satisfação Média</span>
+                                    <strong style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <FaStar style={{ color: '#ffc107', fontSize: '1.5rem' }} />
+                                        {estatisticasSatisfacao.notaMedia.toFixed(1)}/5.0
+                                    </strong>
+                                    <small>{estatisticasSatisfacao.totalAvaliacoes} avaliações</small>
+                                </div>
+                            </div>
+
+                            <div className="charts-container">
+                                {/* Evolução Trimestral */}
+                                <div className="chart chart-large">
+                                    <h4>Evolução da Satisfação (6 meses)</h4>
+                                    <div style={{ width: '100%', height: 250 }}>
+                                        <ResponsiveContainer>
+                                            <LineChart 
+                                                data={estatisticasSatisfacao.avaliacoesPorMes} 
+                                                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                                            >
+                                                <XAxis dataKey="mes" fontSize={12} />
+                                                <YAxis domain={[0, 5]} fontSize={12} />
+                                                <Tooltip 
+                                                    formatter={(value: any) => [
+                                                        `${Number(value).toFixed(1)} estrelas`,
+                                                        'Média'
+                                                    ]}
+                                                />
+                                                <Legend />
+                                                <Line 
+                                                    type="monotone" 
+                                                    dataKey="media" 
+                                                    stroke="#ffc107" 
+                                                    strokeWidth={3}
+                                                    name="Nota Média"
+                                                    dot={{ fill: '#ffc107', r: 5 }}
+                                                />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Distribuição por Aspecto */}
+                                <div className="chart chart-small">
+                                    <h4>Avaliações por Aspecto</h4>
+                                    <div className="ranking-list">
+                                        {estatisticasSatisfacao.avaliacoesPorCategoria.map((cat: any, index: number) => (
+                                            <div key={index} className="ranking-item">
+                                                <div className="ranking-info">
+                                                    <div className="ranking-name">{cat.categoria}</div>
+                                                    <div className="ranking-stats">
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                            <FaStar style={{ color: '#ffc107', fontSize: '0.9rem' }} />
+                                                            {cat.media.toFixed(1)}
+                                                        </span>
+                                                        <small>({cat.total} avaliações)</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {estatisticasSatisfacao.avaliacoesPorCategoria.length === 0 && (
+                                            <div className="no-data">Nenhuma avaliação disponível</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </>
             )}
         </div>

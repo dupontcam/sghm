@@ -247,6 +247,12 @@ tr:hover {
     color: var(--text-light);
     border-color: var(--sidebar-bg);
 }
+
+.card.card-satisfacao {
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+    color: #fff;
+    border-color: #ffa500;
+}
 /* FIM DA CORREÇÃO DOS CARDS */
 
 

@@ -18,6 +18,7 @@ import Notifications from './components/Notifications';
 import UserProfile from './components/UserProfile';
 import GestaoUsuarios from './components/GestaoUsuarios';
 import Backup from './components/Backup';
+import Satisfacao from './components/Satisfacao';
 
 import './App.css';
 
@@ -44,6 +45,7 @@ function App() {
                   <Route path="/planos-saude" element={<GestaoPlanosSaude />} />
                   <Route path="/honorarios" element={<GestaoHonorarios />} />
                   <Route path="/notificacoes" element={<Notifications />} />
+                  <Route path="/satisfacao" element={<Satisfacao />} />
                   <Route path="/perfil" element={<UserProfile />} />
                   
                   {/* Rotas EXCLUSIVAS DO ADMIN */}
