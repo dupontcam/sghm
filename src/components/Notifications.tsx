@@ -1,128 +1,50 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { FaBell, FaExclamationTriangle, FaClock, FaCheckCircle, FaTimes } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { notificacoesService } from '../services/notificacoesService';
 import './Notifications.css';
 
-interface Notification {
-  id: string;
-  type: 'warning' | 'danger' | 'info' | 'success';
-  title: string;
-  message: string;
-  date?: string;
-  actionLink?: string;
-}
-
 const Notifications: React.FC = () => {
-  const { honorarios, consultas, planosSaude } = useData();
+  const { honorarios, consultas } = useData();
+  const navigate = useNavigate();
 
-  // Gerar notificações com base nos dados
-  const notifications = useMemo(() => {
-    const alerts: Notification[] = [];
-
-    // 1. Honorários pendentes há mais de 30 dias
-    const hoje = new Date();
-    const trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
-    const honorariosPendentesAntigos = honorarios.filter(h => {
-      const dataConsulta = new Date(h.dataConsulta);
-      return h.status === 'PENDENTE' && dataConsulta < trintaDiasAtras;
-    });
-
-    if (honorariosPendentesAntigos.length > 0) {
-      alerts.push({
-        id: 'honorarios-pendentes-antigos',
-        type: 'danger',
-        title: 'Honorários Pendentes Críticos',
-        message: `${honorariosPendentesAntigos.length} honorário(s) pendente(s) há mais de 30 dias`,
-        actionLink: '/honorarios'
-      });
-    }
-
-    // 2. Honorários enviados há mais de 60 dias
-    const sessentaDiasAtras = new Date(hoje.getTime() - 60 * 24 * 60 * 60 * 1000);
-    
-    const honorariosEnviadosAntigos = honorarios.filter(h => {
-      const dataConsulta = new Date(h.dataConsulta);
-      return h.status === 'ENVIADO' && dataConsulta < sessentaDiasAtras;
-    });
-
-    if (honorariosEnviadosAntigos.length > 0) {
-      alerts.push({
-        id: 'honorarios-enviados-antigos',
-        type: 'warning',
-        title: 'Honorários Enviados sem Retorno',
-        message: `${honorariosEnviadosAntigos.length} honorário(s) enviado(s) há mais de 60 dias sem resposta`,
-        actionLink: '/honorarios'
-      });
-    }
-
-    // 3. Taxa de glosa alta
-    const totalHonorarios = honorarios.length;
-    const honorariosGlosados = honorarios.filter(h => h.status === 'GLOSADO').length;
-    const taxaGlosa = totalHonorarios > 0 ? (honorariosGlosados / totalHonorarios) * 100 : 0;
-
-    if (taxaGlosa > 15) {
-      alerts.push({
-        id: 'taxa-glosa-alta',
-        type: 'warning',
-        title: 'Taxa de Glosa Elevada',
-        message: `Taxa de glosa atual: ${taxaGlosa.toFixed(1)}%. Recomendado: < 15%`,
-        actionLink: '/honorarios'
-      });
-    }
-
-    // 4. Honorários pendentes de envio
-    const honorariosPendentes = honorarios.filter(h => h.status === 'PENDENTE').length;
-    
-    if (honorariosPendentes > 10) {
-      alerts.push({
-        id: 'honorarios-pendentes',
-        type: 'info',
-        title: 'Honorários Aguardando Envio',
-        message: `${honorariosPendentes} honorário(s) pendente(s) de envio ao plano de saúde`,
-        actionLink: '/honorarios'
-      });
-    }
-
-    // 5. Valor total a receber
-    const valorTotalReceber = honorarios
-      .filter(h => h.status === 'PENDENTE' || h.status === 'ENVIADO')
-      .reduce((sum, h) => sum + (h.valor || 0) - (h.valorGlosa || 0), 0);
-
-    if (valorTotalReceber > 10000) {
-      alerts.push({
-        id: 'valor-receber',
-        type: 'info',
-        title: 'Valores a Receber',
-        message: `Total a receber: ${valorTotalReceber.toLocaleString('pt-BR', { 
-          style: 'currency', 
-          currency: 'BRL' 
-        })}`,
-        actionLink: '/financeiro'
-      });
-    }
-
-    // 6. Consultas sem honorário vinculado
-    const consultasConvenio = consultas.filter(c => c.tipoPagamento === 'convenio' && c.planoSaudeId);
-    const consultasSemHonorario = consultasConvenio.filter(consulta => {
-      return !honorarios.some(h => h.consultaId === consulta.id);
-    });
-
-    if (consultasSemHonorario.length > 0) {
-      alerts.push({
-        id: 'consultas-sem-honorario',
-        type: 'warning',
-        title: 'Consultas sem Honorário',
-        message: `${consultasSemHonorario.length} consulta(s) de convênio sem honorário vinculado`,
-        actionLink: '/consultas'
-      });
-    }
-
-    return alerts;
+  // Atualizar notificações quando dados mudarem
+  useEffect(() => {
+    notificacoesService.atualizarNotificacoes({ honorarios, consultas });
+    notificacoesService.limparAntigas();
   }, [honorarios, consultas]);
 
+  // Obter notificações ativas
+  const notifications = useMemo(() => {
+    return notificacoesService.getNotificacoesAtivas();
+  }, [honorarios, consultas]);
+
+  // Marcar todas como lidas ao visualizar a página
+  useEffect(() => {
+    // Pequeno delay para não marcar imediatamente
+    const timer = setTimeout(() => {
+      notificacoesService.marcarTodasComoLidas();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handler para dispensar notificação
+  const handleDismiss = (id: string) => {
+    notificacoesService.dispensar(id);
+    // Forçar re-render
+    window.dispatchEvent(new Event('notificacoesUpdated'));
+  };
+
+  // Handler para ação
+  const handleAction = (link?: string) => {
+    if (link) {
+      navigate(link);
+    }
+  };
+
   // Função para obter ícone baseado no tipo
-  const getIcon = (type: Notification['type']) => {
+  const getIcon = (type: 'warning' | 'danger' | 'info' | 'success') => {
     switch (type) {
       case 'danger':
         return <FaExclamationTriangle />;
@@ -215,11 +137,18 @@ const Notifications: React.FC = () => {
               </div>
               <div className="notification-actions">
                 {notification.actionLink && (
-                  <a href={notification.actionLink} className="btn-view">
+                  <button 
+                    onClick={() => handleAction(notification.actionLink)} 
+                    className="btn-view"
+                  >
                     Ver Detalhes
-                  </a>
+                  </button>
                 )}
-                <button className="btn-dismiss" title="Dispensar">
+                <button 
+                  className="btn-dismiss" 
+                  title="Dispensar"
+                  onClick={() => handleDismiss(notification.id)}
+                >
                   <FaTimes />
                 </button>
               </div>

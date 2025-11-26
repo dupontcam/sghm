@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import './Sidebar.css';
 import { useAuth } from '../contexts/AuthContext';
+import { notificacoesService } from '../services/notificacoesService';
 import { 
     FaHome, FaRegListAlt, FaUser, FaUserMd, FaUsers, 
     FaDollarSign, FaChartBar, FaDatabase, FaSignOutAlt,
@@ -16,6 +17,25 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     const { userProfile, logout, user } = useAuth();
+    const [notificacoesCount, setNotificacoesCount] = useState(0);
+
+    // Atualizar contador de notificações
+    useEffect(() => {
+        const updateCount = () => {
+            setNotificacoesCount(notificacoesService.contarNaoLidas());
+        };
+
+        updateCount(); // Atualizar inicialmente
+        
+        // Atualizar quando houver mudanças
+        const interval = setInterval(updateCount, 2000); // A cada 2 segundos
+        window.addEventListener('notificacoesUpdated', updateCount);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('notificacoesUpdated', updateCount);
+        };
+    }, []);
 
     const handleLinkClick = () => {
         if (onClose) onClose();
@@ -63,7 +83,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 {/* Novos itens do sistema de honorários */}
                 <li><NavLink to="/planos-saude" onClick={handleLinkClick}><FaHospital /> Planos de Saúde</NavLink></li>
                 <li><NavLink to="/honorarios" onClick={handleLinkClick}><FaFileInvoiceDollar /> Gestão de Honorários</NavLink></li>
-                <li><NavLink to="/notificacoes" onClick={handleLinkClick}><FaBell /> Notificações</NavLink></li>
+                <li>
+                    <NavLink to="/notificacoes" onClick={handleLinkClick}>
+                        <FaBell /> Notificações
+                        {notificacoesCount > 0 && (
+                            <span className="notification-badge">{notificacoesCount}</span>
+                        )}
+                    </NavLink>
+                </li>
                 <li><NavLink to="/satisfacao" onClick={handleLinkClick}><FaStar /> Satisfação</NavLink></li>
                 
                 {/* Itens que só aparecem para o Admin */}

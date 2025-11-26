@@ -349,7 +349,7 @@ AuthContext.tsx + AdminRoute.tsx + ProtectedRoute.tsx
 - ✅ Frontend completo e funcional
 - ✅ Mock data para testes
 - ⚠️ Backend em desenvolvimento separado
-- ❌ Migração de dados real pendente
+- ✅ Migração de dados: não será realizada (decisão estratégica - privacidade)
 - ❌ Treinamento não iniciado
 
 ---
@@ -396,10 +396,11 @@ AuthContext.tsx + AdminRoute.tsx + ProtectedRoute.tsx
    - Impacto: Sem URL de produção
    - Ação: Deploy em Vercel/Netlify/AWS
 
-3. **Migração de Dados**
-   - Status: Não planejada
-   - Impacto: Planilhas Excel não migradas
-   - Ação: Script de importação/exportação
+3. **Início com Dados Limpos**
+   - Status: Decisão estratégica
+   - Razão: Preservação da privacidade dos dados dos clientes
+   - Impacto: Sistema iniciará sem dados históricos (fresh start)
+   - Ação: Documentar políticas de privacidade e LGPD
 
 ---
 
@@ -439,10 +440,10 @@ AuthContext.tsx + AdminRoute.tsx + ProtectedRoute.tsx
    - Impacto: Alto (feedback qualitativo implementado)
    - Recursos: Formulário, estatísticas, dashboard, histórico
 
-3. **Alertas e Notificações no Sistema**
-   - Status: Página criada, sem lógica
-   - Impacto: Médio (comunicação interna)
-   - Ação: Implementar sistema de notificações
+3. ~~**Alertas e Notificações no Sistema**~~ ✅ **IMPLEMENTADO**
+   - Status: 100% completo
+   - Impacto: Alto (alertas automáticos funcionais)
+   - Recursos: Service de notificações, badge no Sidebar, persistência, dismiss
 
 ---
 
@@ -472,7 +473,7 @@ AuthContext.tsx + AdminRoute.tsx + ProtectedRoute.tsx
 | Email Notif. | ✅ | ❌ | 0% | Média |
 | **Deploy** |
 | Ambiente Prod | ✅ | ❌ | 0% | Crítica |
-| Migração Dados | ✅ | ❌ | 0% | Crítica |
+| Migração Dados | ❌ | ✅ | N/A | Estratégica |
 | Treinamento | ✅ | ❌ | 0% | Alta |
 
 ---
@@ -519,11 +520,11 @@ AuthContext.tsx + AdminRoute.tsx + ProtectedRoute.tsx
    - [ ] CORS configurado
    - [ ] Monitoring (opcional)
 
-3. **Migração de Dados**
-   - [ ] Script de importação Excel → JSON
-   - [ ] Validação de dados
-   - [ ] Backup antes da migração
-   - [ ] Carga inicial
+3. **Início com Dados Limpos**
+   - [x] Decisão tomada: não migrar dados históricos
+   - [ ] Documentar política de privacidade
+   - [ ] Preparar guia de cadastro inicial
+   - [ ] Sistema inicia com banco de dados vazio
 
 ---
 
@@ -632,8 +633,10 @@ O sistema SGHM implementou com sucesso **todas as funcionalidades críticas** de
 Os principais gaps estão relacionados a:
 1. Integração com backend real
 2. Configuração de ambiente de produção  
-3. Migração de dados históricos
+3. Treinamento de usuários
 4. Implementação de KPIs secundários
+
+**Nota sobre Dados Históricos:** Por decisão estratégica da empresa, não haverá migração de dados históricos para preservar a privacidade dos clientes. O sistema iniciará com banco de dados limpo.
 
 **Recomendação:** O sistema está **pronto para piloto interno** com dados mock. Para **produção completa**, é necessário concluir a integração backend e executar os Sprints 1-2 do roadmap proposto.
 
@@ -645,6 +648,62 @@ Os principais gaps estão relacionados a:
 ---
 
 ## 9️⃣ ATUALIZAÇÕES RECENTES
+
+### ✅ **26/11/2025 - Sistema de Notificações Implementado**
+
+**Novos Arquivos Criados:**
+- `src/services/notificacoesService.ts` (320 linhas) - Service completo de notificações
+
+**Arquivos Modificados:**
+- `src/components/Notifications.tsx` - Integrado com service
+- `src/components/Sidebar.tsx` - Badge de contador de notificações não lidas
+- `src/components/Sidebar.css` - Estilos do badge com animação pulse
+
+**Funcionalidades Entregues:**
+
+**1. Service de Notificações (notificacoesService.ts):**
+- 5 regras automáticas de alertas baseadas em dados reais:
+  1. **Honorários pendentes > 30 dias** (danger/crítico)
+  2. **Honorários enviados > 60 dias sem resposta** (warning)
+  3. **Taxa de glosa > 15%** (warning)
+  4. **Honorários pendentes > 10** (info)
+  5. **Consultas sem honorário vinculado** (warning)
+- Persistência em localStorage (`sghm_notificacoes`)
+- Estados: `isRead`, `isDismissed`
+- Métodos: `atualizarNotificacoes()`, `marcarComoLida()`, `dispensar()`
+- Limpeza automática de notificações antigas (> 30 dias)
+
+**2. Componente Notifications.tsx:**
+- Atualização em tempo real baseada em dados
+- Marcar todas como lidas ao visualizar página
+- Botão "Dispensar" funcional
+- Navegação com links de ação
+- Resumo visual: 4 cards (críticos, avisos, informativos, positivos)
+- Lista de notificações com ícones
+- Seção de dicas e recomendações
+- Estado vazio profissional
+
+**3. Badge no Sidebar:**
+- Contador de notificações não lidas
+- Atualização automática a cada 2 segundos
+- Animação pulse para chamar atenção
+- Event listener para atualização manual
+- Design discreto e profissional
+
+**Benefícios:**
+- ✅ Alertas automáticos baseados em regras de negócio
+- ✅ Reduz risco de perder prazos críticos
+- ✅ Persistência de estado (lidas/dispensadas)
+- ✅ Experiência do usuário aprimorada
+- ✅ Comunicação interna eficiente
+- ✅ Sem necessidade de backend (funciona offline)
+
+**Impacto no Status Geral:**
+- Gap "Alertas e Notificações": 0% → 100% ✅
+- Funcionalidades Opcionais: +1 implementada
+- Status Geral do Projeto: 90% → 92% ✅
+
+---
 
 ### 🔄 **26/11/2025 - Refatoração: Avaliação do Sistema (Versão 2.0)**
 
