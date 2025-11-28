@@ -21,6 +21,7 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (userData: User, token: string) => void;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -38,6 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // e "provê" o estado de autenticação para todos os filhos
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Carregar usuário do localStorage ao iniciar
   useEffect(() => {
@@ -48,18 +50,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
+        console.log('✅ Usuário restaurado do localStorage:', userData.nome);
       } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(TOKEN_KEY);
       }
     }
+    
+    setIsLoading(false);
   }, []);
 
   const login = (userData: User, token: string) => {
+    console.log('🔐 AuthContext - Login chamado');
+    console.log('🔐 AuthContext - User:', userData);
+    console.log('🔐 AuthContext - Token (primeiros 20 chars):', token.substring(0, 20) + '...');
+    
     setUser(userData);
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
     localStorage.setItem(TOKEN_KEY, token);
+    
+    console.log('✅ AuthContext - Token salvo no localStorage');
+    console.log('✅ AuthContext - Verificação:', localStorage.getItem(TOKEN_KEY) ? 'Token encontrado' : 'Token NÃO encontrado');
   };
 
   const logout = () => {
@@ -150,6 +162,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     user,
     userProfile: user?.perfil || 'Operador',
     isAuthenticated: !!user,
+    isLoading,
     login,
     logout,
     updateUser,

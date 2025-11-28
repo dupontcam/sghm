@@ -63,9 +63,44 @@
   margin-bottom: 0;
 }
 
-.filtros-row-secondary {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  margin-top: 15px;
+.filtros-row-datas {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 0;
+}
+
+.filtro-data {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filtro-data label {
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.filtro-data input {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  height: 38px;
+}
+
+.filtro-data input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.btn-limpar {
+  height: 38px;
+  white-space: nowrap;
 }
 
 .filtro-actions-container {
@@ -90,6 +125,7 @@
   font-weight: 500;
   color: #495057;
   font-size: 0.9rem;
+  min-height: 20px;
 }
 
 .filtro-grupo input,
@@ -98,6 +134,12 @@
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 0.9rem;
+  height: 38px;
+}
+
+.filtro-grupo button {
+  height: 38px;
+  white-space: nowrap;
 }
 
 .filtro-grupo input:focus,
@@ -700,5 +742,133 @@
   .acoes-lote-buttons button {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ============= ESTILOS PARA RECURSOS DE GLOSA ============= */
+
+/* Container de Recurso */
+.recurso-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.recurso-container button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #6c757d;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.recurso-container button:hover {
+  background: #e9ecef;
+  color: #007bff;
+}
+
+.recurso-container > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recurso-container svg {
+  font-size: 1.2rem;
+  color: #28a745;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recurso-container svg:hover {
+  color: #218838;
+  transform: scale(1.1);
+}
+
+/* Badges de Status de Recurso */
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.status-aceito_total {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-badge.status-aceito_parcial {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.status-badge.status-negado {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status-badge.status-pendente {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+/* Informações do Recurso no Modal */
+.recurso-info {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.recurso-info p {
+  margin: 5px 0;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.recurso-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Animação dos badges */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.status-badge {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsividade para Recursos */
+@media (max-width: 768px) {
+  .recurso-container {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
   }
 }

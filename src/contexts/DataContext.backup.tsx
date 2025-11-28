@@ -27,13 +27,11 @@ interface DataContextType {
   refreshPacientes: () => Promise<void>;
 
   // Consultas
-  // REGRA DE NEGÓCIO: Consultas NÃO podem ser deletadas, apenas criadas e editadas
-  // Razão: São a origem dos honorários e precisam manter histórico completo
   consultas: Consulta[];
   addConsulta: (consulta: Omit<Consulta, 'id'>) => Promise<void>;
   addConsultaComHonorario: (consulta: Omit<Consulta, 'id'>) => Promise<void>;
   updateConsulta: (consulta: Consulta) => Promise<void>;
-  deleteConsulta: (id: number) => Promise<void>; // Manter na interface por compatibilidade, mas não usar
+  deleteConsulta: (id: number) => Promise<void>;
   refreshConsultas: () => Promise<void>;
 
   // Planos de Saúde
@@ -45,12 +43,10 @@ interface DataContextType {
   refreshPlanosSaude: () => Promise<void>;
 
   // Honorários
-  // REGRA DE NEGÓCIO: Honorários NÃO podem ser deletados, apenas atualizados
-  // Razão: Preservar histórico completo desde criação até acerto final com médico
   honorarios: Honorario[];
   addHonorario: (honorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateHonorario: (honorario: Honorario) => Promise<void>;
-  deleteHonorario: (id: number) => Promise<void>; // Manter na interface por compatibilidade, mas não usar
+  deleteHonorario: (id: number) => Promise<void>;
   getHonorariosByMedico: (medicoId: number) => Honorario[];
   getHonorariosByPlano: (planoId: number) => Honorario[];
   refreshHonorarios: () => Promise<void>;
@@ -207,15 +203,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const deleteMedico = async (id: number): Promise<boolean> => {
     try {
-      console.log('🗑️ Deletando médico ID:', id);
       await medicosAPI.delete(id);
-      console.log('✅ Médico deletado com sucesso');
       await refreshMedicos();
-      console.log('✅ Lista de médicos atualizada');
       return true;
     } catch (err: any) {
-      console.error('❌ Erro ao excluir médico:', err);
-      console.error('❌ Mensagem do erro:', err.message);
+      console.error('Erro ao excluir médico:', err);
       setError(err.message);
       return false;
     }
@@ -246,15 +238,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const deletePaciente = async (id: number): Promise<boolean> => {
     try {
-      console.log('🗑️ Deletando paciente ID:', id);
       await pacientesAPI.delete(id);
-      console.log('✅ Paciente deletado com sucesso');
       await refreshPacientes();
-      console.log('✅ Lista de pacientes atualizada');
       return true;
     } catch (err: any) {
-      console.error('❌ Erro ao excluir paciente:', err);
-      console.error('❌ Mensagem do erro:', err.message);
+      console.error('Erro ao excluir paciente:', err);
       setError(err.message);
       return false;
     }
@@ -360,15 +348,10 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const updateHonorario = async (honorarioAtualizado: Honorario) => {
     try {
-      console.log('📝 Atualizando honorário ID:', honorarioAtualizado.id);
-      console.log('📝 Dados do honorário:', honorarioAtualizado);
       await honorariosAPI.update(honorarioAtualizado.id, honorarioAtualizado);
-      console.log('✅ Honorário atualizado com sucesso');
       await refreshHonorarios();
-      console.log('✅ Lista de honorários atualizada');
     } catch (err: any) {
-      console.error('❌ Erro ao atualizar honorário:', err);
-      console.error('❌ Mensagem do erro:', err.message);
+      console.error('Erro ao atualizar honorário:', err);
       setError(err.message);
       throw err;
     }

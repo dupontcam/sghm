@@ -16,22 +16,46 @@ export const tokenManager = {
 const fetchAPI = async (endpoint: string, options?: RequestInit) => {
   const token = tokenManager.getToken();
   
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🔑 fetchAPI chamado');
+  console.log('📍 Endpoint:', endpoint);
+  console.log('📍 URL completa:', `${API_URL}${endpoint}`);
+  console.log('🔑 Token no localStorage:', token ? '✅ SIM' : '❌ NÃO');
+  
+  if (token) {
+    console.log('🔑 Token (primeiros 30 chars):', token.substring(0, 30) + '...');
+    console.log('🔑 Token (últimos 10 chars):', '...' + token.substring(token.length - 10));
+    console.log('🔑 Tamanho do token:', token.length, 'caracteres');
+  }
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options?.headers,
+  };
+  
+  console.log('📤 Headers que serão enviados:', headers);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
     const errorMessage = error.error || error.message || `Erro ${response.status}`;
-    console.error('Erro na API:', { endpoint, status: response.status, error });
+    console.error('❌ Erro na API:', { endpoint, status: response.status, error });
     throw new Error(errorMessage);
   }
 
+  console.log('✅ Requisição bem-sucedida:', endpoint);
+  
+  // DELETE geralmente retorna 204 No Content sem body
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return { success: true };
+  }
+  
   return response.json();
 };
 
@@ -296,6 +320,30 @@ export const planosAPI = {
   delete: (id: number) => fetchAPI(`/planos/${id}`, { method: 'DELETE' }),
 };
 
+const transformHonorarioToBackend = (honorario: any) => {
+  // Mapear status do frontend para o backend
+  // Backend aceita: PENDENTE, ENVIADO, PAGO, GLOSADO
+  const statusMap: Record<string, string> = {
+    'PENDENTE': 'PENDENTE',
+    'ENVIADO': 'ENVIADO',
+    'PAGO': 'PAGO',
+    'GLOSADO': 'GLOSADO'  // Corrigido: backend espera GLOSADO, não GLOSA
+  };
+
+  return {
+    consulta_id: honorario.consultaId,
+    plano_saude_id: honorario.planoSaudeId,
+    valor_liquido: honorario.valor,
+    status_pagamento: statusMap[honorario.status] || 'PENDENTE',
+    motivo_glosa: honorario.motivoGlosa || honorario.motivo || null,
+    recurso_enviado: honorario.recursoEnviado || false,
+    status_recurso: honorario.statusRecurso || null,
+    data_recurso: honorario.dataRecurso || null,
+    motivo_recurso: honorario.motivoRecurso || null,
+    valor_recuperado: honorario.valorRecuperado || null,
+  };
+};
+
 const transformHonorarioFromBackend = (honorario: any) => ({
   id: honorario.id,
   medicoId: honorario.consulta?.medico_id || 0,
@@ -306,7 +354,12 @@ const transformHonorarioFromBackend = (honorario: any) => ({
   status: (honorario.status_pagamento === 'PENDENTE' ? 'PENDENTE' :
            honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
            honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',
-  motivo: honorario.motivo_glosa,
+  motivoGlosa: honorario.motivo_glosa || null,  // Corrigido: usar motivoGlosa (camelCase)
+  recursoEnviado: honorario.recurso_enviado || false,
+  statusRecurso: honorario.status_recurso || null,
+  dataRecurso: honorario.data_recurso || null,
+  motivoRecurso: honorario.motivo_recurso || null,
+  valorRecuperado: honorario.valor_recuperado ? parseFloat(honorario.valor_recuperado) : null,
   createdAt: honorario.created_at,
   updatedAt: honorario.updated_at,
 });
@@ -332,7 +385,37 @@ export const honorariosAPI = {
   getByMedico: (medicoId: number) => fetchAPI(`/honorarios/medico/${medicoId}`),
   getByPlano: (planoId: number) => fetchAPI(`/honorarios/plano/${planoId}`),
   create: (data: any) => fetchAPI('/honorarios', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: number, data: any) => fetchAPI(`/honorarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  update: async (id: number, data: any) => {
+    // Tenta PATCH primeiro, se falhar tenta PUT, se falhar usa updateStatus
+    const payload = transformHonorarioToBackend(data);
+    console.log('📤 Payload sendo enviado para backend:', payload);
+    
+    try {
+      return await fetchAPI(`/honorarios/${id}`, { 
+        method: 'PATCH', 
+        body: JSON.stringify(payload) 
+      });
+    } catch (patchError: any) {
+      console.warn('⚠️ PATCH falhou (404), tentando PUT...', patchError.message);
+      try {
+        return await fetchAPI(`/honorarios/${id}`, { 
+          method: 'PUT', 
+          body: JSON.stringify(payload) 
+        });
+      } catch (putError: any) {
+        console.warn('⚠️ PUT falhou, tentando updateStatus...', putError.message);
+        // Como último recurso, atualiza apenas o status
+        if (data.status) {
+          console.log('🔄 Usando updateStatus como fallback');
+          return await fetchAPI(`/honorarios/${id}/status`, { 
+            method: 'PUT', 
+            body: JSON.stringify({ status_pagamento: payload.status_pagamento }) 
+          });
+        }
+        throw putError;
+      }
+    }
+  },
   updateStatus: (id: number, status: string) => fetchAPI(`/honorarios/${id}/status`, { 
     method: 'PUT', 
     body: JSON.stringify({ status_pagamento: status }) 
@@ -382,40 +465,64 @@ export const authAPI = {
     console.log('📧 Email:', email);
     
     try {
-      // Usar usuariosService para validar credenciais
-      const usuario = usuariosService.validatePassword(email, senha);
+      // Fazer chamada ao backend real
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, senha }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        console.error('❌ Erro no login:', errorData);
+        throw new Error(errorData.error || errorData.message || 'Email ou senha inválidos');
+      }
+
+      const data = await response.json();
+      console.log('✅ Login bem-sucedido no backend!');
+      console.log('📦 Resposta do backend:', data);
       
-      if (!usuario) {
-        console.error('❌ Usuário não encontrado ou credenciais inválidas');
-        throw new Error('Email ou senha inválidos');
+      // Salvar token no localStorage
+      if (data.data?.token) {
+        tokenManager.setToken(data.data.token);
+        console.log('🔑 Token salvo:', data.data.token.substring(0, 30) + '...');
       }
       
-      console.log('✅ Usuário encontrado:', usuario.nome, '-', usuario.perfil);
-      
-      // Gerar token mock
-      const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
-      tokenManager.setToken(mockToken);
-      
-      const response = {
-        success: true,
-        data: {
-          token: mockToken,
-          usuario: {
-            id: usuario.id,
-            nome: usuario.nome,
-            email: usuario.email,
-            perfil: usuario.perfil,
-            cargo: usuario.cargo,
-            telefone: usuario.telefone,
-          }
-        }
-      };
-      
-      console.log('📦 Resposta completa:', JSON.stringify(response, null, 2));
-      return response;
+      return data;
       
     } catch (error: any) {
       console.error('💥 Erro na autenticação:', error);
+      
+      // Fallback para mock apenas se backend não estiver disponível
+      if (error.message.includes('fetch')) {
+        console.warn('⚠️ Backend não disponível, usando fallback mock');
+        const usuario = usuariosService.validatePassword(email, senha);
+        
+        if (!usuario) {
+          throw new Error('Email ou senha inválidos');
+        }
+        
+        const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
+        tokenManager.setToken(mockToken);
+        
+        return {
+          success: true,
+          data: {
+            token: mockToken,
+            usuario: {
+              id: usuario.id,
+              nome: usuario.nome,
+              email: usuario.email,
+              perfil: usuario.perfil,
+              cargo: usuario.cargo,
+              telefone: usuario.telefone,
+            }
+          }
+        };
+      }
+      
       throw error;
     }
   },

@@ -1,12 +1,20 @@
+/**
+ * GESTÃO DE HONORÁRIOS
+ * 
+ * REGRA DE NEGÓCIO IMPORTANTE:
+ * - Honorários podem ser EDITADOS/ATUALIZADOS
+ * - Honorários NÃO podem ser DELETADOS
+ * - Razão: Preservar histórico completo desde criação até acerto final
+ * - Atualizações são primordiais para acompanhar status (PENDENTE → PAGO/GLOSADO)
+ */
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Honorario } from '../data/mockData';
 import { honorariosAPI } from '../services/api';
 import Modal from './Modal';
-import ConfirmationModal from './ConfirmationModal';
 import { 
-  FaPlus, FaEdit, FaTrash, FaFilter, FaFileAlt,
-  FaClock, FaPaperPlane, FaCheck, FaTimes, FaSearch 
+  FaFilter, FaFileAlt,
+  FaClock, FaPaperPlane, FaCheck, FaTimes, FaSearch, FaCheckSquare, FaSquare 
 } from 'react-icons/fa';
 import './GestaoHonorarios.css';
 
@@ -17,15 +25,23 @@ const GestaoHonorarios: React.FC = () => {
   } = useData();
 
   // Estados do componente
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [editingHonorario, setEditingHonorario] = useState<Honorario | null>(null);
-  const [honorarioToDelete, setHonorarioToDelete] = useState<Honorario | null>(null);
+  // Nota: Edição direta removida - use Registrar Glosa para atualizar honorários
   
   // Seleção múltipla e ações em lote
   const [selecionados, setSelecionados] = useState<number[]>([]);
   const [isGlosaModalOpen, setIsGlosaModalOpen] = useState(false);
   const [glosaData, setGlosaData] = useState({ valorGlosa: 0, motivoGlosa: '' });
+  
+  // Estados para recurso de glosa
+  const [isRecursoModalOpen, setIsRecursoModalOpen] = useState(false);
+  const [isStatusRecursoModalOpen, setIsStatusRecursoModalOpen] = useState(false);
+  const [honorarioSelecionado, setHonorarioSelecionado] = useState<Honorario | null>(null);
+  const [recursoData, setRecursoData] = useState({ motivoRecurso: '', dataRecurso: '' });
+  const [statusRecursoData, setStatusRecursoData] = useState({ 
+    statusRecurso: 'ACEITO_TOTAL' as 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO',
+    valorRecuperado: 0 
+  });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   // Filtros
   const [filtros, setFiltros] = useState({
@@ -37,20 +53,30 @@ const GestaoHonorarios: React.FC = () => {
     busca: ''
   });
 
-  // Estados do formulário
-  const [formData, setFormData] = useState({
-    medicoId: 0,
-    consultaId: 0,
-    planoSaudeId: 0,
-    dataConsulta: '',
-    valor: 0,
-    status: 'PENDENTE' as Honorario['status'],
-    motivo: ''
-  });
-
   // Honorários filtrados
+  // Mesclar honorários com dados de recursos do localStorage
+  const honorariosComRecursos = useMemo(() => {
+    const recursosStorage = localStorage.getItem('sghm_recursos');
+    if (!recursosStorage) return honorarios;
+    
+    const recursos = JSON.parse(recursosStorage);
+    return honorarios.map(honorario => {
+      const recursoData = recursos[honorario.id];
+      if (!recursoData) return honorario;
+      
+      return {
+        ...honorario,
+        recursoEnviado: recursoData.recursoEnviado || honorario.recursoEnviado,
+        statusRecurso: recursoData.statusRecurso || honorario.statusRecurso,
+        dataRecurso: recursoData.dataRecurso || honorario.dataRecurso,
+        motivoRecurso: recursoData.motivoRecurso || honorario.motivoRecurso,
+        valorRecuperado: recursoData.valorRecuperado || honorario.valorRecuperado
+      };
+    });
+  }, [honorarios, refreshTrigger]);
+
   const honorariosFiltrados = useMemo(() => {
-    return honorarios.filter(honorario => {
+    return honorariosComRecursos.filter(honorario => {
       const medico = medicos.find(m => m.id === honorario.medicoId);
       const plano = planosSaude.find(p => p.id === honorario.planoSaudeId);
       
@@ -69,7 +95,7 @@ const GestaoHonorarios: React.FC = () => {
       
       return matchMedico && matchPlano && matchStatus && matchDataInicio && matchDataFim && matchBusca;
     });
-  }, [honorarios, filtros, medicos, planosSaude]);
+  }, [honorariosComRecursos, filtros, medicos, planosSaude]);
 
   // Estatísticas dos honorários filtrados
   const estatisticasFiltradas = useMemo(() => {
@@ -82,71 +108,92 @@ const GestaoHonorarios: React.FC = () => {
   }, [honorariosFiltrados]);
 
   // Abrir modal para novo honorário
-  // Abrir modal para editar honorário
-  const handleEditarHonorario = (honorario: Honorario) => {
-    setEditingHonorario(honorario);
-    setFormData({
-      medicoId: honorario.medicoId,
-      consultaId: honorario.consultaId,
-      planoSaudeId: honorario.planoSaudeId,
-      dataConsulta: honorario.dataConsulta,
-      valor: honorario.valor,
-      status: honorario.status,
-      motivo: honorario.motivoGlosa || ''
-    });
-    setIsModalOpen(true);
+  // Nota: Honorários não podem ser editados/excluídos diretamente
+  // Use "Registrar Glosa" para atualizar status e motivo de glosa
+
+  // Funções de recurso de glosa
+  const handleEnviarRecurso = (honorario: Honorario) => {
+    setHonorarioSelecionado(honorario);
+    setRecursoData({ motivoRecurso: '', dataRecurso: new Date().toISOString().split('T')[0] });
+    setIsRecursoModalOpen(true);
   };
 
-  // Salvar honorário (apenas edição)
-  const handleSalvarHonorario = () => {
-    if (!editingHonorario) {
-      alert('Erro: Nenhum honorário sendo editado.');
+  const handleConfirmarRecurso = async () => {
+    if (!honorarioSelecionado || !recursoData.motivoRecurso.trim()) {
+      alert('Por favor, preencha o motivo do recurso.');
       return;
     }
 
-    if (!formData.medicoId || !formData.planoSaudeId || !formData.dataConsulta || !formData.valor) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    // Editar honorário existente
     const honorarioAtualizado: Honorario = {
-      ...editingHonorario,
-      ...formData,
+      ...honorarioSelecionado,
+      recursoEnviado: true,
+      statusRecurso: 'PENDENTE',
+      dataRecurso: recursoData.dataRecurso,
+      motivoRecurso: recursoData.motivoRecurso,
       updatedAt: new Date().toISOString()
     };
-    updateHonorario(honorarioAtualizado);
 
-    setIsModalOpen(false);
-    resetForm();
+    // Salvar no localStorage também (backup caso backend não suporte ainda)
+    const recursosStorage = localStorage.getItem('sghm_recursos');
+    const recursos = recursosStorage ? JSON.parse(recursosStorage) : {};
+    recursos[honorarioSelecionado.id] = {
+      recursoEnviado: true,
+      statusRecurso: 'PENDENTE',
+      dataRecurso: recursoData.dataRecurso,
+      motivoRecurso: recursoData.motivoRecurso
+    };
+    localStorage.setItem('sghm_recursos', JSON.stringify(recursos));
+    
+    await updateHonorario(honorarioAtualizado);
+    
+    // Forçar refresh da interface
+    setRefreshTrigger(prev => prev + 1);
+    
+    setIsRecursoModalOpen(false);
+    setRecursoData({ motivoRecurso: '', dataRecurso: '' });
+    setHonorarioSelecionado(null);
   };
 
-  // Reset do formulário
-  const resetForm = () => {
-    setFormData({
-      medicoId: 0,
-      consultaId: 0,
-      planoSaudeId: 0,
-      dataConsulta: '',
-      valor: 0,
-      status: 'PENDENTE',
-      motivo: ''
+  const handleAtualizarStatusRecurso = (honorario: Honorario) => {
+    setHonorarioSelecionado(honorario);
+    setStatusRecursoData({ 
+      statusRecurso: 'ACEITO_TOTAL', 
+      valorRecuperado: honorario.valor 
     });
+    setIsStatusRecursoModalOpen(true);
   };
 
-  // Confirmar exclusão
-  const handleConfirmarExclusao = (honorario: Honorario) => {
-    setHonorarioToDelete(honorario);
-    setIsConfirmationOpen(true);
-  };
+  const handleConfirmarStatusRecurso = async () => {
+    if (!honorarioSelecionado) return;
 
-  // Executar exclusão
-  const handleExcluirHonorario = () => {
-    if (honorarioToDelete) {
-      deleteHonorario(honorarioToDelete.id);
-      setIsConfirmationOpen(false);
-      setHonorarioToDelete(null);
-    }
+    const valorRecuperado = statusRecursoData.statusRecurso === 'ACEITO_PARCIAL' ? statusRecursoData.valorRecuperado : 
+                            statusRecursoData.statusRecurso === 'ACEITO_TOTAL' ? honorarioSelecionado.valor : 0;
+
+    const honorarioAtualizado: Honorario = {
+      ...honorarioSelecionado,
+      statusRecurso: statusRecursoData.statusRecurso,
+      valorRecuperado: valorRecuperado,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Salvar no localStorage também (backup caso backend não suporte ainda)
+    const recursosStorage = localStorage.getItem('sghm_recursos');
+    const recursos = recursosStorage ? JSON.parse(recursosStorage) : {};
+    recursos[honorarioSelecionado.id] = {
+      ...recursos[honorarioSelecionado.id],
+      statusRecurso: statusRecursoData.statusRecurso,
+      valorRecuperado: valorRecuperado
+    };
+    localStorage.setItem('sghm_recursos', JSON.stringify(recursos));
+    
+    await updateHonorario(honorarioAtualizado);
+    
+    // Forçar refresh da interface
+    setRefreshTrigger(prev => prev + 1);
+    
+    setIsStatusRecursoModalOpen(false);
+    setStatusRecursoData({ statusRecurso: 'ACEITO_TOTAL', valorRecuperado: 0 });
+    setHonorarioSelecionado(null);
   };
 
   // Alterar status do honorário
@@ -418,8 +465,8 @@ const GestaoHonorarios: React.FC = () => {
           </div>
         </div>
 
-        <div className="filtros-row filtros-row-secondary">
-          <div className="filtro-grupo">
+        <div className="filtros-row-datas">
+          <div className="filtro-data">
             <label htmlFor="filtro-data-inicio">Data Início:</label>
             <input
               type="date"
@@ -430,7 +477,7 @@ const GestaoHonorarios: React.FC = () => {
             />
           </div>
           
-          <div className="filtro-grupo">
+          <div className="filtro-data">
             <label htmlFor="filtro-data-fim">Data Fim:</label>
             <input
               type="date"
@@ -441,15 +488,9 @@ const GestaoHonorarios: React.FC = () => {
             />
           </div>
           
-          <div className="filtro-grupo filtro-actions-container">
-            <div className="filtro-actions">
-              <button className="btn-secondary" onClick={handleLimparFiltros}>
-                <FaFilter /> Limpar Filtros
-              </button>
-            </div>
-          </div>
-          
-          <div className="filtro-grupo"></div> {/* Espaço vazio para alinhamento */}
+          <button className="btn-secondary btn-limpar" onClick={handleLimparFiltros}>
+            <FaFilter /> Limpar Filtros
+          </button>
         </div>
       </div>
 
@@ -518,7 +559,7 @@ const GestaoHonorarios: React.FC = () => {
                 <th>Valor</th>
                 <th>Status</th>
                 <th>Motivo</th>
-                <th>Ações</th>
+                <th>Recurso</th>
               </tr>
             </thead>
             <tbody>
@@ -547,49 +588,38 @@ const GestaoHonorarios: React.FC = () => {
                   </td>
                   <td>{honorario.motivoGlosa || '-'}</td>
                   <td>
-                    <div className="actions-container">
-                      {honorario.status === 'PENDENTE' && (
-                        <button
-                          className="btn-icon success"
-                          onClick={() => handleAlterarStatus(honorario, 'ENVIADO')}
-                          title="Enviar"
-                        >
-                          <FaPaperPlane />
-                        </button>
-                      )}
-                      {honorario.status === 'ENVIADO' && (
-                        <>
+                    {honorario.status === 'GLOSADO' && (
+                      <div className="recurso-container">
+                        {!honorario.recursoEnviado ? (
                           <button
-                            className="btn-icon success"
-                            onClick={() => handleAlterarStatus(honorario, 'PAGO')}
-                            title="Marcar como Pago"
+                            className="btn-icon info"
+                            onClick={() => handleEnviarRecurso(honorario)}
+                            title="Enviar Recurso"
                           >
-                            <FaCheck />
+                            <FaSquare />
                           </button>
-                          <button
-                            className="btn-icon danger"
-                            onClick={() => handleAlterarStatus(honorario, 'GLOSADO')}
-                            title="Marcar como Glosado"
-                          >
-                            <FaTimes />
-                          </button>
-                        </>
-                      )}
-                      <button
-                        className="btn-icon edit"
-                        onClick={() => handleEditarHonorario(honorario)}
-                        title="Editar"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="btn-icon delete"
-                        onClick={() => handleConfirmarExclusao(honorario)}
-                        title="Excluir"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <FaCheckSquare 
+                              style={{ color: '#28a745', cursor: 'pointer', fontSize: '1.2rem' }} 
+                              onClick={() => handleAtualizarStatusRecurso(honorario)}
+                              title="Atualizar Status do Recurso"
+                            />
+                            {honorario.statusRecurso && (
+                              <span 
+                                className={`status-badge status-${honorario.statusRecurso.toLowerCase()}`}
+                                style={{ fontSize: '0.7rem', padding: '2px 6px' }}
+                              >
+                                {honorario.statusRecurso === 'ACEITO_TOTAL' ? 'Aceito' :
+                                 honorario.statusRecurso === 'ACEITO_PARCIAL' ? 'Parcial' :
+                                 honorario.statusRecurso === 'NEGADO' ? 'Negado' : 'Pendente'}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {honorario.status !== 'GLOSADO' && '-'}
                   </td>
                 </tr>
               ))}
@@ -602,121 +632,6 @@ const GestaoHonorarios: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Modal de Formulário */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Editar Honorário"
-      >
-        <div className="form-group">
-          <label htmlFor="form-medico">Médico *:</label>
-          <select
-            id="form-medico"
-            name="form-medico"
-            value={formData.medicoId}
-            onChange={(e) => setFormData({ ...formData, medicoId: Number(e.target.value) })}
-            required
-          >
-            <option value={0}>Selecione um médico</option>
-            {medicos.map(medico => (
-              <option key={medico.id} value={medico.id}>{medico.nome}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="form-plano-saude">Plano de Saúde *:</label>
-          <select
-            id="form-plano-saude"
-            name="form-plano-saude"
-            value={formData.planoSaudeId}
-            onChange={(e) => setFormData({ ...formData, planoSaudeId: Number(e.target.value) })}
-            required
-          >
-            <option value={0}>Selecione um plano</option>
-            {planosSaude.map(plano => (
-              <option key={plano.id} value={plano.id}>{plano.nome}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="form-data-consulta">Data da Consulta *:</label>
-            <input
-              type="date"
-              id="form-data-consulta"
-              name="form-data-consulta"
-              value={formData.dataConsulta}
-              onChange={(e) => setFormData({ ...formData, dataConsulta: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="form-valor">Valor *:</label>
-            <input
-              type="number"
-              id="form-valor"
-              name="form-valor"
-              step="0.01"
-              min="0"
-              value={formData.valor}
-              onChange={(e) => setFormData({ ...formData, valor: Number(e.target.value) })}
-              placeholder="0.00"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="form-status">Status:</label>
-          <select
-            id="form-status"
-            name="form-status"
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as Honorario['status'] })}
-          >
-            <option value="PENDENTE">Pendente</option>
-            <option value="ENVIADO">Enviado</option>
-            <option value="PAGO">Pago</option>
-            <option value="GLOSADO">Glosado</option>
-          </select>
-        </div>
-
-        {(formData.status === 'GLOSADO' || editingHonorario?.status === 'GLOSADO') && (
-          <div className="form-group">
-            <label htmlFor="form-motivo-glosa">Motivo da Glosa:</label>
-            <textarea
-              id="form-motivo-glosa"
-              name="form-motivo-glosa"
-              value={formData.motivo}
-              onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
-              placeholder="Descreva o motivo da glosa..."
-              rows={3}
-            />
-          </div>
-        )}
-
-        <div className="modal-actions">
-          <button className="btn-secondary" onClick={() => setIsModalOpen(false)}>
-            Cancelar
-          </button>
-          <button className="btn-primary" onClick={handleSalvarHonorario}>
-            {editingHonorario ? 'Atualizar' : 'Criar'} Honorário
-          </button>
-        </div>
-      </Modal>
-
-      {/* Modal de Confirmação */}
-      <ConfirmationModal
-        isOpen={isConfirmationOpen}
-        title="Confirmar Exclusão"
-        message={`Tem certeza que deseja excluir este honorário de R$ ${honorarioToDelete?.valor.toFixed(2)}?`}
-        onConfirm={handleExcluirHonorario}
-        onClose={() => setIsConfirmationOpen(false)}
-      />
 
       {/* Modal de Glosa */}
       <Modal
@@ -762,6 +677,116 @@ const GestaoHonorarios: React.FC = () => {
           </button>
           <button className="btn-danger" onClick={handleRegistrarGlosa}>
             <FaTimes /> Registrar Glosa
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal de Enviar Recurso */}
+      <Modal
+        isOpen={isRecursoModalOpen}
+        onClose={() => setIsRecursoModalOpen(false)}
+        title="Enviar Recurso de Glosa"
+      >
+        {honorarioSelecionado && (
+          <div className="recurso-info">
+            <p><strong>Honorário:</strong> R$ {honorarioSelecionado.valor.toFixed(2)}</p>
+            <p><strong>Motivo da Glosa:</strong> {honorarioSelecionado.motivoGlosa}</p>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="recurso-data">Data do Recurso *:</label>
+          <input
+            type="date"
+            id="recurso-data"
+            name="recurso-data"
+            value={recursoData.dataRecurso}
+            onChange={(e) => setRecursoData({ ...recursoData, dataRecurso: e.target.value })}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="recurso-motivo">Justificativa do Recurso *:</label>
+          <textarea
+            id="recurso-motivo"
+            name="recurso-motivo"
+            value={recursoData.motivoRecurso}
+            onChange={(e) => setRecursoData({ ...recursoData, motivoRecurso: e.target.value })}
+            placeholder="Descreva a justificativa para contestar a glosa..."
+            rows={5}
+            required
+          />
+        </div>
+
+        <div className="modal-actions">
+          <button className="btn-secondary" onClick={() => setIsRecursoModalOpen(false)}>
+            Cancelar
+          </button>
+          <button className="btn-primary" onClick={handleConfirmarRecurso}>
+            <FaPaperPlane /> Enviar Recurso
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal de Atualizar Status do Recurso */}
+      <Modal
+        isOpen={isStatusRecursoModalOpen}
+        onClose={() => setIsStatusRecursoModalOpen(false)}
+        title="Atualizar Status do Recurso"
+      >
+        {honorarioSelecionado && (
+          <div className="recurso-info">
+            <p><strong>Honorário:</strong> R$ {honorarioSelecionado.valor.toFixed(2)}</p>
+            <p><strong>Recurso enviado em:</strong> {honorarioSelecionado.dataRecurso ? new Date(honorarioSelecionado.dataRecurso).toLocaleDateString('pt-BR') : '-'}</p>
+            <p><strong>Justificativa:</strong> {honorarioSelecionado.motivoRecurso}</p>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="status-recurso">Resultado do Recurso *:</label>
+          <select
+            id="status-recurso"
+            name="status-recurso"
+            value={statusRecursoData.statusRecurso}
+            onChange={(e) => setStatusRecursoData({ 
+              ...statusRecursoData, 
+              statusRecurso: e.target.value as 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO'
+            })}
+          >
+            <option value="ACEITO_TOTAL">Aceito Totalmente</option>
+            <option value="ACEITO_PARCIAL">Aceito Parcialmente</option>
+            <option value="NEGADO">Negado</option>
+          </select>
+        </div>
+
+        {statusRecursoData.statusRecurso === 'ACEITO_PARCIAL' && (
+          <div className="form-group">
+            <label htmlFor="valor-recuperado">Valor Recuperado (R$) *:</label>
+            <input
+              type="number"
+              id="valor-recuperado"
+              name="valor-recuperado"
+              step="0.01"
+              min="0"
+              max={honorarioSelecionado?.valor || 0}
+              value={statusRecursoData.valorRecuperado}
+              onChange={(e) => setStatusRecursoData({ 
+                ...statusRecursoData, 
+                valorRecuperado: Number(e.target.value) 
+              })}
+              placeholder="0.00"
+              required
+            />
+          </div>
+        )}
+
+        <div className="modal-actions">
+          <button className="btn-secondary" onClick={() => setIsStatusRecursoModalOpen(false)}>
+            Cancelar
+          </button>
+          <button className="btn-primary" onClick={handleConfirmarStatusRecurso}>
+            <FaCheck /> Confirmar
           </button>
         </div>
       </Modal>

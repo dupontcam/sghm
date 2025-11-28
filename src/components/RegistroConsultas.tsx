@@ -1,7 +1,14 @@
+/**
+ * REGISTRO DE CONSULTAS
+ * 
+ * REGRA DE NEGÓCIO IMPORTANTE:
+ * - Consultas podem ser CRIADAS e EDITADAS
+ * - Consultas NÃO podem ser DELETADAS
+ * - Razão: Elas geram honorários e precisam manter histórico completo
+ */
 import React, { useState } from 'react';
-import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import { FaEdit } from 'react-icons/fa';
 import Modal from './Modal';
-import ConfirmationModal from './ConfirmationModal'; // 1. Importar
 import { useData } from '../contexts/DataContext';
 import { Consulta, Medico, Paciente } from '../data/mockData';
 import './Formulario.css';
@@ -39,12 +46,6 @@ const RegistroConsultas: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Omit<Consulta, 'id'> | Consulta>(formInicial);
 
-  // 2. Estado para o modal de confirmação
-  const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id: number | null }>({
-    isOpen: false,
-    id: null,
-  });
-
   const getPacienteNome = (id: number) => pacientes.find((p: Paciente) => p.id === id)?.nome || 'Não encontrado';
   const getMedicoNome = (id: number) => medicos.find((m: Medico) => m.id === id)?.nome || 'Não encontrado';
 
@@ -73,24 +74,6 @@ const RegistroConsultas: React.FC = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-  };
-
-  // 3. Abrir o modal de confirmação
-  const handleExcluirClick = (id: number) => {
-    setConfirmState({ isOpen: true, id: id });
-  };
-
-  // 4. Ação de confirmar
-  const handleConfirmarExclusao = () => {
-    if (confirmState.id !== null) {
-      deleteConsulta(confirmState.id);
-    }
-    setConfirmState({ isOpen: false, id: null });
-  };
-
-  // 5. Ação de fechar o modal de confirmação
-  const handleCloseConfirm = () => {
-    setConfirmState({ isOpen: false, id: null });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -261,13 +244,6 @@ const RegistroConsultas: React.FC = () => {
                 <td>
                   <button className="btn-icon" title="Editar" onClick={() => handleEditarConsulta(consulta)}>
                     <FaEdit />
-                  </button>
-                  <button
-                    className="btn-icon btn-delete"
-                    title="Excluir"
-                    onClick={() => handleExcluirClick(consulta.id)} // 6. Chamar o clique
-                  >
-                    <FaTrashAlt />
                   </button>
                 </td>
               </tr>
@@ -515,14 +491,6 @@ const RegistroConsultas: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 7. Renderizar o modal de confirmação */}
-      <ConfirmationModal
-        isOpen={confirmState.isOpen}
-        onClose={handleCloseConfirm}
-        onConfirm={handleConfirmarExclusao}
-        title="Excluir Consulta"
-        message="Tem certeza que deseja excluir este registro de consulta? Esta ação não pode ser desfeita."
-      />
     </div>
   );
 };

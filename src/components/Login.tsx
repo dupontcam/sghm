@@ -26,26 +26,52 @@ const Login: React.FC = () => {
         try {
             const response = await authAPI.login(email, password);
             console.log('Resposta completa do login:', response);
+            console.log('response.data:', response.data);
+            console.log('response.data.usuario:', response.data?.usuario);
+            console.log('response.data.token:', response.data?.token);
             
-            // A resposta sempre vem no formato response.data
-            if (!response.data?.usuario || !response.data?.token) {
-                console.error('Formato de resposta inválido:', response);
+            // Verificar se a resposta tem os dados necessários
+            if (!response.data) {
+                console.error('response.data não existe:', response);
+                throw new Error('Resposta inválida do servidor');
+            }
+
+            // Extrair dados do usuário (pode vir como 'usuario' ou 'user')
+            const usuarioData = response.data.usuario || response.data.user;
+            const tokenData = response.data.token;
+
+            if (!usuarioData || !tokenData) {
+                console.error('Usuário ou token ausente:', { usuarioData, tokenData });
+                console.error('Estrutura completa da resposta:', JSON.stringify(response, null, 2));
                 throw new Error('Resposta inválida do servidor');
             }
             
             // Salvar usuário e token no contexto
+            // Converter role do backend (ADMIN/OPERADOR) para o formato esperado (Admin/Operador)
+            const roleBackend = usuarioData.perfil || usuarioData.role;
+            let perfilFormatado: 'Admin' | 'Operador' = 'Operador';
+            
+            if (roleBackend) {
+                const roleUpper = roleBackend.toString().toUpperCase();
+                if (roleUpper === 'ADMIN') {
+                    perfilFormatado = 'Admin';
+                } else if (roleUpper === 'OPERADOR') {
+                    perfilFormatado = 'Operador';
+                }
+            }
+            
             const userInfo = {
-                id: response.data.usuario.id,
-                nome: response.data.usuario.nome,
-                email: response.data.usuario.email,
-                perfil: response.data.usuario.perfil as 'Admin' | 'Operador',
-                cargo: response.data.usuario.cargo,
-                telefone: response.data.usuario.telefone,
+                id: usuarioData.id,
+                nome: usuarioData.nome || usuarioData.nome_completo,
+                email: usuarioData.email,
+                perfil: perfilFormatado,
+                cargo: usuarioData.cargo,
+                telefone: usuarioData.telefone,
             };
             
             console.log('Dados do usuário processados:', userInfo);
             
-            login(userInfo, response.data.token);
+            login(userInfo, tokenData);
             navigate('/dashboard');
         } catch (err: any) {
             console.error('Erro no login:', err);

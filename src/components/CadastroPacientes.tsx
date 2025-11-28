@@ -55,9 +55,9 @@ const CadastroPacientes: React.FC = () => {
   };
 
   // 3. Lógica de exclusão atualizada
-  const handleConfirmarExclusao = () => {
+  const handleConfirmarExclusao = async () => {
     if (confirmState.id !== null) {
-      const sucesso = deletePaciente(confirmState.id); // Captura o retorno boolean
+      const sucesso = await deletePaciente(confirmState.id); // Aguarda o retorno boolean
 
       if (!sucesso) {
         // Se falhou, define a mensagem de erro e abre o modal de alerta

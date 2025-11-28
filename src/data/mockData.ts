@@ -70,9 +70,15 @@ export interface Honorario {
   valor: number;
   valorGlosa?: number; // Valor glosado (parcial ou total)
   status: 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO';
-  motivoGlosa?: string; // Motivo da glosa (quando status = GLOSADO)
+  motivoGlosa?: string | null; // Motivo da glosa (quando status = GLOSADO)
   numeroGuia?: string; // Número da guia/protocolo
   observacoes?: string; // Observações gerais
+  // Campos de recurso de glosa
+  recursoEnviado?: boolean; // Se recurso foi enviado
+  statusRecurso?: 'PENDENTE' | 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO' | null; // Status do recurso
+  dataRecurso?: string | null; // Data de envio do recurso
+  motivoRecurso?: string | null; // Justificativa do recurso
+  valorRecuperado?: number | null; // Valor recuperado (para aceite parcial)
   createdAt: string;
   updatedAt: string;
   // Dados relacionados para exibição
