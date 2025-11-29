@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Consulta, Medico, Paciente, Honorario, PlanoSaude, calcularTempoMedioPagamento } from '../data/mockData';
+import { Consulta, Medico, Paciente, Honorario, PlanoSaude, calcularTempoMedioPagamento, calcularValorLiquido } from '../data/mockData';
 import { FaPrint, FaFileDownload, FaChartBar, FaUserMd, FaHospital, FaBan, FaCheckCircle, FaClock, FaCalendarAlt } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -82,7 +82,7 @@ const Relatorios: React.FC = () => {
       stat.valorTotal += (h.valor || 0);
       
       if (h.status === 'PAGO') {
-        stat.valorPago += (h.valor || 0) - (h.valorGlosa || 0);
+        stat.valorPago += calcularValorLiquido(h);
       }
       if (h.valorGlosa) {
         stat.valorGlosado += h.valorGlosa;
@@ -130,7 +130,7 @@ const Relatorios: React.FC = () => {
       stat.valorTotal += (h.valor || 0);
       
       if (h.status === 'PAGO') {
-        stat.valorPago += (h.valor || 0) - (h.valorGlosa || 0);
+        stat.valorPago += calcularValorLiquido(h);
       } else if (h.status === 'PENDENTE' || h.status === 'ENVIADO') {
         stat.valorPendente += (h.valor || 0);
       }
@@ -192,7 +192,7 @@ const Relatorios: React.FC = () => {
       valorTotal += valor;
       
       if (h.status === 'PAGO') {
-        valorPago += valor - (h.valorGlosa || 0);
+        valorPago += calcularValorLiquido(h);
       } else if (h.status === 'PENDENTE') {
         valorPendente += valor;
       } else if (h.status === 'ENVIADO') {
@@ -343,23 +343,27 @@ const Relatorios: React.FC = () => {
         getPlanoNome(h.planoSaudeId),
         new Date(h.dataConsulta).toLocaleDateString('pt-BR'),
         h.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        (h.valorGlosa || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        calcularValorLiquido(h).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
         h.status
       ]);
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Guia', 'Médico', 'Plano', 'Data', 'Valor', 'Status']],
+        head: [['Guia', 'Médico', 'Plano', 'Data', 'Valor', 'Glosa', 'Líquido', 'Status']],
         body: honorariosData,
         theme: 'grid',
         headStyles: { fillColor: [0, 123, 255], textColor: 255 },
-        styles: { fontSize: 8, cellPadding: 2 },
+        styles: { fontSize: 7, cellPadding: 2 },
         columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 22 },
-          4: { cellWidth: 25 },
-          5: { cellWidth: 23 }
+          0: { cellWidth: 18 },  // Guia
+          1: { cellWidth: 30 },  // Médico
+          2: { cellWidth: 28 },  // Plano
+          3: { cellWidth: 18 },  // Data
+          4: { cellWidth: 22 },  // Valor
+          5: { cellWidth: 20 },  // Glosa
+          6: { cellWidth: 22 },  // Líquido
+          7: { cellWidth: 20 }   // Status
         }
       });
 
@@ -751,7 +755,7 @@ const Relatorios: React.FC = () => {
                           {honorario.valorGlosa ? honorario.valorGlosa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'}
                         </td>
                         <td style={{ fontWeight: 600 }}>
-                          {((honorario.valor || 0) - (honorario.valorGlosa || 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          {calcularValorLiquido(honorario).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </td>
                         <td>
                           <span className={`status-badge status-${honorario.status.toLowerCase()}`}>

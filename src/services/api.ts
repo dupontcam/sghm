@@ -351,6 +351,7 @@ const transformHonorarioFromBackend = (honorario: any) => ({
   planoSaudeId: honorario.plano_saude_id,
   dataConsulta: honorario.consulta?.data_consulta || honorario.created_at,
   valor: parseFloat(honorario.valor_liquido || honorario.valor_consulta || 0),
+  valorGlosa: honorario.valor_glosa !== undefined ? parseFloat(honorario.valor_glosa) : undefined,
   status: (honorario.status_pagamento === 'PENDENTE' ? 'PENDENTE' :
            honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
            honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',

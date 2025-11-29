@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { 
   Medico, Paciente, Consulta, PlanoSaude, Honorario, DashboardStats
 } from '../data/mockData';
@@ -85,7 +85,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [planosSaude, setPlanosSaude] = useState<PlanoSaude[]>([]);
-  const [honorarios, setHonorarios] = useState<Honorario[]>([]);
+  const [honorariosBackend, setHonorariosBackend] = useState<Honorario[]>([]);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     totalProcessado: 0,
     totalPendente: 0,
@@ -94,6 +94,61 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     taxaGlosa: 0,
     quantidadeHonorarios: 0
   });
+
+  // Estado para forçar refresh quando localStorage muda
+  const [localStorageVersion, setLocalStorageVersion] = useState(0);
+
+  // Listener para mudanças no localStorage de recursos
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'sghm_recursos') {
+        setLocalStorageVersion(prev => prev + 1);
+      }
+    };
+
+    // Custom event para mudanças no mesmo tab
+    const handleCustomStorageChange = () => {
+      setLocalStorageVersion(prev => prev + 1);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('sghm_recursos_updated', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('sghm_recursos_updated', handleCustomStorageChange);
+    };
+  }, []);
+
+  // Mescla honorários do backend com dados de recursos do localStorage
+  const honorarios = useMemo(() => {
+    try {
+      const recursosStorage = localStorage.getItem('sghm_recursos');
+      if (!recursosStorage) {
+        return honorariosBackend;
+      }
+
+      const recursos = JSON.parse(recursosStorage);
+      
+      return honorariosBackend.map(honorario => {
+        const recurso = recursos[honorario.id];
+        if (recurso) {
+          return {
+            ...honorario,
+            recursoEnviado: recurso.recursoEnviado,
+            statusRecurso: recurso.statusRecurso,
+            dataRecurso: recurso.dataRecurso,
+            motivoRecurso: recurso.motivoRecurso,
+            valorRecuperado: recurso.valorRecuperado
+          };
+        }
+        return honorario;
+      });
+    } catch (err) {
+      console.error('❌ Erro ao mesclar honorários com localStorage:', err);
+      return honorariosBackend;
+    }
+  }, [honorariosBackend, localStorageVersion]);
 
   // --- Funções de Refresh (buscar dados da API) ---
   const refreshMedicos = useCallback(async () => {
@@ -139,7 +194,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const refreshHonorarios = useCallback(async () => {
     try {
       const data = await honorariosAPI.getAll();
-      setHonorarios(data);
+      setHonorariosBackend(data);
     } catch (err: any) {
       console.error('Erro ao buscar honorários:', err);
       setError(err.message);

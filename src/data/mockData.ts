@@ -61,6 +61,20 @@ export interface PlanoSaude {
   totalConsultas?: number;
 }
 
+export interface HonorarioHistorico {
+  id: string; // UUID
+  honorarioId: number;
+  data: string; // ISO timestamp
+  tipo: 'CRIACAO' | 'STATUS_ALTERADO' | 'GLOSA' | 'RECURSO_ENVIADO' | 'RECURSO_RESPONDIDO' | 'PAGAMENTO';
+  statusAnterior?: string;
+  statusNovo?: string;
+  valorAnterior?: number;
+  valorNovo?: number;
+  descricao: string; // Descrição legível do que aconteceu
+  detalhes?: string; // Detalhes adicionais (motivo da glosa, motivo do recurso, etc)
+  usuario?: string; // Usuário que fez a alteração
+}
+
 export interface Honorario {
   id: number;
   medicoId: number;
@@ -79,6 +93,7 @@ export interface Honorario {
   dataRecurso?: string | null; // Data de envio do recurso
   motivoRecurso?: string | null; // Justificativa do recurso
   valorRecuperado?: number | null; // Valor recuperado (para aceite parcial)
+  historico?: HonorarioHistorico[]; // Histórico de alterações
   createdAt: string;
   updatedAt: string;
   // Dados relacionados para exibição
@@ -282,4 +297,132 @@ export const calcularTempoMedioPagamento = (consultas: Consulta[]): number => {
   }, 0);
 
   return Math.round(totalDias / consultasPagas.length);
+};
+
+/**
+ * Adiciona um registro ao histórico do honorário
+ * Armazena no localStorage sob a chave 'sghm_historico'
+ */
+export const adicionarHistorico = (
+  honorarioId: number,
+  tipo: HonorarioHistorico['tipo'],
+  descricao: string,
+  detalhes?: {
+    statusAnterior?: string;
+    statusNovo?: string;
+    valorAnterior?: number;
+    valorNovo?: number;
+    detalhes?: string;
+  }
+): void => {
+  try {
+    const historicoStorage = localStorage.getItem('sghm_historico');
+    const historico: Record<number, HonorarioHistorico[]> = historicoStorage ? JSON.parse(historicoStorage) : {};
+    
+    if (!historico[honorarioId]) {
+      historico[honorarioId] = [];
+    }
+    
+    const novoRegistro: HonorarioHistorico = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      honorarioId,
+      data: new Date().toISOString(),
+      tipo,
+      descricao,
+      statusAnterior: detalhes?.statusAnterior,
+      statusNovo: detalhes?.statusNovo,
+      valorAnterior: detalhes?.valorAnterior,
+      valorNovo: detalhes?.valorNovo,
+      detalhes: detalhes?.detalhes,
+      usuario: 'Sistema' // Pode ser substituído pelo usuário logado
+    };
+    
+    historico[honorarioId].push(novoRegistro);
+    localStorage.setItem('sghm_historico', JSON.stringify(historico));
+    
+    // Disparar evento para notificar outros componentes
+    window.dispatchEvent(new Event('sghm_historico_updated'));
+  } catch (err) {
+    console.error('Erro ao adicionar histórico:', err);
+  }
+};
+
+/**
+ * Busca o histórico de um honorário
+ */
+export const buscarHistorico = (honorarioId: number): HonorarioHistorico[] => {
+  try {
+    const historicoStorage = localStorage.getItem('sghm_historico');
+    if (!historicoStorage) return [];
+    
+    const historico: Record<number, HonorarioHistorico[]> = JSON.parse(historicoStorage);
+    return historico[honorarioId] || [];
+  } catch (err) {
+    console.error('Erro ao buscar histórico:', err);
+    return [];
+  }
+};
+
+/**
+ * Calcula o valor líquido de um honorário considerando glosas e recursos
+ * Regras:
+ * - Se recurso aceito total: valor original
+ * - Se recurso aceito parcial: valor recuperado
+ * - Se recurso negado ou sem recurso com glosa: valor - valorGlosa
+ * - Se pago: valor pago (considerando glosa se houver)
+ */
+export const calcularValorLiquido = (honorario: Honorario): number => {
+  // Se foi pago, retorna o valor - glosa
+  if (honorario.status === 'PAGO') {
+    return honorario.valor - (honorario.valorGlosa || 0);
+  }
+  
+  // Se tem recurso
+  if (honorario.recursoEnviado) {
+    if (honorario.statusRecurso === 'ACEITO_TOTAL') {
+      return honorario.valor; // Valor integral
+    } else if (honorario.statusRecurso === 'ACEITO_PARCIAL') {
+      return honorario.valorRecuperado || 0; // Valor recuperado
+    } else if (honorario.statusRecurso === 'NEGADO') {
+      return honorario.valor - (honorario.valorGlosa || 0); // Valor - glosa
+    }
+    // Recurso pendente: considera valor original
+    return honorario.valor;
+  }
+  
+  // Sem recurso: se glosado, desconta glosa
+  if (honorario.status === 'GLOSADO' && honorario.valorGlosa) {
+    return honorario.valor - honorario.valorGlosa;
+  }
+  
+  // Pendente ou enviado: valor original
+  return honorario.valor;
+};
+
+/**
+ * Gera uma descrição resumida do status atual do honorário
+ * Útil para exibir na coluna de observações/status
+ */
+export const gerarDescricaoStatus = (honorario: Honorario): string => {
+  const partes: string[] = [];
+  
+  if (honorario.motivoGlosa) {
+    partes.push(`Glosa: ${honorario.motivoGlosa}`);
+  }
+  
+  if (honorario.recursoEnviado && honorario.motivoRecurso) {
+    partes.push(`Recurso: ${honorario.motivoRecurso}`);
+  }
+  
+  if (honorario.statusRecurso) {
+    const statusMap = {
+      'PENDENTE': 'Recurso pendente de análise',
+      'ACEITO_TOTAL': 'Recurso aceito integralmente',
+      'ACEITO_PARCIAL': `Recurso parcialmente aceito (R$ ${honorario.valorRecuperado?.toFixed(2)})`,
+      'NEGADO': 'Recurso negado'
+    };
+    partes.push(statusMap[honorario.statusRecurso]);
+  }
+  
+  return partes.join('. ');
 };

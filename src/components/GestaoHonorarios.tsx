@@ -9,11 +9,12 @@
  */
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Honorario } from '../data/mockData';
+import { Honorario, adicionarHistorico, buscarHistorico, gerarDescricaoStatus } from '../data/mockData';
 import { honorariosAPI } from '../services/api';
 import Modal from './Modal';
+import HistoricoModal from './HistoricoModal';
 import { 
-  FaFilter, FaFileAlt,
+  FaFilter, FaFileAlt, FaHistory,
   FaClock, FaPaperPlane, FaCheck, FaTimes, FaSearch, FaCheckSquare, FaSquare 
 } from 'react-icons/fa';
 import './GestaoHonorarios.css';
@@ -35,13 +36,13 @@ const GestaoHonorarios: React.FC = () => {
   // Estados para recurso de glosa
   const [isRecursoModalOpen, setIsRecursoModalOpen] = useState(false);
   const [isStatusRecursoModalOpen, setIsStatusRecursoModalOpen] = useState(false);
+  const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
   const [honorarioSelecionado, setHonorarioSelecionado] = useState<Honorario | null>(null);
   const [recursoData, setRecursoData] = useState({ motivoRecurso: '', dataRecurso: '' });
   const [statusRecursoData, setStatusRecursoData] = useState({ 
     statusRecurso: 'ACEITO_TOTAL' as 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO',
     valorRecuperado: 0 
   });
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   // Filtros
   const [filtros, setFiltros] = useState({
@@ -54,29 +55,8 @@ const GestaoHonorarios: React.FC = () => {
   });
 
   // Honorários filtrados
-  // Mesclar honorários com dados de recursos do localStorage
-  const honorariosComRecursos = useMemo(() => {
-    const recursosStorage = localStorage.getItem('sghm_recursos');
-    if (!recursosStorage) return honorarios;
-    
-    const recursos = JSON.parse(recursosStorage);
-    return honorarios.map(honorario => {
-      const recursoData = recursos[honorario.id];
-      if (!recursoData) return honorario;
-      
-      return {
-        ...honorario,
-        recursoEnviado: recursoData.recursoEnviado || honorario.recursoEnviado,
-        statusRecurso: recursoData.statusRecurso || honorario.statusRecurso,
-        dataRecurso: recursoData.dataRecurso || honorario.dataRecurso,
-        motivoRecurso: recursoData.motivoRecurso || honorario.motivoRecurso,
-        valorRecuperado: recursoData.valorRecuperado || honorario.valorRecuperado
-      };
-    });
-  }, [honorarios, refreshTrigger]);
-
   const honorariosFiltrados = useMemo(() => {
-    return honorariosComRecursos.filter(honorario => {
+    return honorarios.filter(honorario => {
       const medico = medicos.find(m => m.id === honorario.medicoId);
       const plano = planosSaude.find(p => p.id === honorario.planoSaudeId);
       
@@ -95,7 +75,7 @@ const GestaoHonorarios: React.FC = () => {
       
       return matchMedico && matchPlano && matchStatus && matchDataInicio && matchDataFim && matchBusca;
     });
-  }, [honorariosComRecursos, filtros, medicos, planosSaude]);
+  }, [honorarios, filtros, medicos, planosSaude]);
 
   // Estatísticas dos honorários filtrados
   const estatisticasFiltradas = useMemo(() => {
@@ -110,6 +90,12 @@ const GestaoHonorarios: React.FC = () => {
   // Abrir modal para novo honorário
   // Nota: Honorários não podem ser editados/excluídos diretamente
   // Use "Registrar Glosa" para atualizar status e motivo de glosa
+
+  // Função para ver histórico
+  const handleVerHistorico = (honorario: Honorario) => {
+    setHonorarioSelecionado(honorario);
+    setIsHistoricoModalOpen(true);
+  };
 
   // Funções de recurso de glosa
   const handleEnviarRecurso = (honorario: Honorario) => {
@@ -144,10 +130,21 @@ const GestaoHonorarios: React.FC = () => {
     };
     localStorage.setItem('sghm_recursos', JSON.stringify(recursos));
     
-    await updateHonorario(honorarioAtualizado);
+    // Buscar valorGlosa atualizado do honorário
+    const honorarioAtual = honorarios.find(h => h.id === honorarioSelecionado.id);
+    adicionarHistorico(
+      honorarioSelecionado.id,
+      'RECURSO_ENVIADO',
+      `Recurso enviado contra glosa de R$ ${(honorarioAtual?.valorGlosa || 0).toFixed(2)}`,
+      {
+        detalhes: recursoData.motivoRecurso
+      }
+    );
     
-    // Forçar refresh da interface
-    setRefreshTrigger(prev => prev + 1);
+    // Disparar evento para notificar DataContext
+    window.dispatchEvent(new Event('sghm_recursos_updated'));
+    
+    await updateHonorario(honorarioAtualizado);
     
     setIsRecursoModalOpen(false);
     setRecursoData({ motivoRecurso: '', dataRecurso: '' });
@@ -186,10 +183,34 @@ const GestaoHonorarios: React.FC = () => {
     };
     localStorage.setItem('sghm_recursos', JSON.stringify(recursos));
     
-    await updateHonorario(honorarioAtualizado);
+    // Registrar no histórico
+    let descricaoStatus = '';
+    let detalhesStatus = '';
+    const honorarioAtual = honorarios.find(h => h.id === honorarioSelecionado.id);
+    if (statusRecursoData.statusRecurso === 'ACEITO_TOTAL') {
+      descricaoStatus = 'Recurso aceito integralmente';
+      detalhesStatus = `Valor integral de R$ ${honorarioSelecionado.valor.toFixed(2)} recuperado`;
+    } else if (statusRecursoData.statusRecurso === 'ACEITO_PARCIAL') {
+      descricaoStatus = 'Recurso parcialmente aceito';
+      detalhesStatus = `Valor recuperado: R$ ${valorRecuperado.toFixed(2)} de R$ ${honorarioSelecionado.valor.toFixed(2)}`;
+    } else {
+      descricaoStatus = 'Recurso negado';
+      detalhesStatus = `Glosa mantida. Perda de R$ ${(honorarioAtual?.valorGlosa || 0).toFixed(2)}`;
+    }
+    adicionarHistorico(
+      honorarioSelecionado.id,
+      'RECURSO_RESPONDIDO',
+      descricaoStatus,
+      {
+        statusNovo: statusRecursoData.statusRecurso,
+        detalhes: detalhesStatus
+      }
+    );
     
-    // Forçar refresh da interface
-    setRefreshTrigger(prev => prev + 1);
+    // Disparar evento para notificar DataContext
+    window.dispatchEvent(new Event('sghm_recursos_updated'));
+    
+    await updateHonorario(honorarioAtualizado);
     
     setIsStatusRecursoModalOpen(false);
     setStatusRecursoData({ statusRecurso: 'ACEITO_TOTAL', valorRecuperado: 0 });
@@ -198,11 +219,24 @@ const GestaoHonorarios: React.FC = () => {
 
   // Alterar status do honorário
   const handleAlterarStatus = (honorario: Honorario, novoStatus: Honorario['status']) => {
+    const statusAnterior = honorario.status;
     const honorarioAtualizado: Honorario = {
       ...honorario,
       status: novoStatus,
       updatedAt: new Date().toISOString()
     };
+    
+    // Registrar no histórico
+    adicionarHistorico(
+      honorario.id,
+      'STATUS_ALTERADO',
+      `Status alterado de ${statusAnterior} para ${novoStatus}`,
+      {
+        statusAnterior,
+        statusNovo: novoStatus
+      }
+    );
+    
     updateHonorario(honorarioAtualizado);
   };
 
@@ -355,25 +389,40 @@ const GestaoHonorarios: React.FC = () => {
     try {
       let sucesso = 0;
       let erros = 0;
-      
       for (const id of selecionados) {
         try {
           await honorariosAPI.updateGlosa(id, {
             valor_glosa: glosaData.valorGlosa,
             motivo_glosa: glosaData.motivoGlosa
           });
+          // Atualizar localmente para garantir consistência imediata
+          const honorario = honorarios.find(h => h.id === id);
+          if (honorario) {
+            honorario.valorGlosa = glosaData.valorGlosa;
+            honorario.motivoGlosa = glosaData.motivoGlosa;
+            honorario.status = 'GLOSADO';
+            honorario.updatedAt = new Date().toISOString();
+            // Adicionar histórico
+            adicionarHistorico(
+              id,
+              'GLOSA',
+              `Glosa registrada: R$ ${glosaData.valorGlosa.toFixed(2)}`,
+              {
+                valorNovo: glosaData.valorGlosa,
+                detalhes: glosaData.motivoGlosa
+              }
+            );
+          }
           sucesso++;
         } catch (err) {
           console.error(`Erro ao registrar glosa no honorário ${id}:`, err);
           erros++;
         }
       }
-      
       await refreshHonorarios();
       setSelecionados([]);
       setIsGlosaModalOpen(false);
       setGlosaData({ valorGlosa: 0, motivoGlosa: '' });
-      
       if (erros === 0) {
         alert(`Glosa registrada em ${sucesso} honorário(s) com sucesso!`);
       } else {
@@ -558,8 +607,9 @@ const GestaoHonorarios: React.FC = () => {
                 <th>Plano de Saúde</th>
                 <th>Valor</th>
                 <th>Status</th>
-                <th>Motivo</th>
+                <th>Observações</th>
                 <th>Recurso</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -586,7 +636,11 @@ const GestaoHonorarios: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  <td>{honorario.motivoGlosa || '-'}</td>
+                  <td className="observacoes-cell">
+                    <div className="observacoes-content">
+                      {gerarDescricaoStatus(honorario) || '-'}
+                    </div>
+                  </td>
                   <td>
                     {honorario.status === 'GLOSADO' && (
                       <div className="recurso-container">
@@ -620,6 +674,15 @@ const GestaoHonorarios: React.FC = () => {
                       </div>
                     )}
                     {honorario.status !== 'GLOSADO' && '-'}
+                  </td>
+                  <td>
+                    <button
+                      className="btn-icon secondary"
+                      onClick={() => handleVerHistorico(honorario)}
+                      title="Ver Histórico"
+                    >
+                      <FaHistory />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -790,6 +853,17 @@ const GestaoHonorarios: React.FC = () => {
           </button>
         </div>
       </Modal>
+
+      {/* Modal de Histórico */}
+      <HistoricoModal
+        isOpen={isHistoricoModalOpen}
+        onClose={() => {
+          setIsHistoricoModalOpen(false);
+          setHonorarioSelecionado(null);
+        }}
+        historico={honorarioSelecionado ? buscarHistorico(honorarioSelecionado.id) : []}
+        numeroGuia={honorarioSelecionado?.numeroGuia}
+      />
     </div>
   );
 };
