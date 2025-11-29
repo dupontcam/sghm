@@ -15,28 +15,28 @@ export const tokenManager = {
 // Helper para fazer requisições
 const fetchAPI = async (endpoint: string, options?: RequestInit) => {
   const token = tokenManager.getToken();
-  
+
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🔑 fetchAPI chamado');
   console.log('📍 Endpoint:', endpoint);
   console.log('📍 URL completa:', `${API_URL}${endpoint}`);
   console.log('🔑 Token no localStorage:', token ? '✅ SIM' : '❌ NÃO');
-  
+
   if (token) {
     console.log('🔑 Token (primeiros 30 chars):', token.substring(0, 30) + '...');
     console.log('🔑 Token (últimos 10 chars):', '...' + token.substring(token.length - 10));
     console.log('🔑 Tamanho do token:', token.length, 'caracteres');
   }
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options?.headers,
   };
-  
+
   console.log('📤 Headers que serão enviados:', headers);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
@@ -50,12 +50,12 @@ const fetchAPI = async (endpoint: string, options?: RequestInit) => {
   }
 
   console.log('✅ Requisição bem-sucedida:', endpoint);
-  
+
   // DELETE geralmente retorna 204 No Content sem body
   if (response.status === 204 || response.headers.get('content-length') === '0') {
     return { success: true };
   }
-  
+
   return response.json();
 };
 
@@ -96,15 +96,15 @@ export const medicosAPI = {
     const data = await fetchAPI(`/medicos/${id}`);
     return transformMedicoFromBackend(data);
   },
-  create: (data: any) => 
-    fetchAPI('/medicos', { 
-      method: 'POST', 
-      body: JSON.stringify(transformMedicoToBackend(data)) 
+  create: (data: any) =>
+    fetchAPI('/medicos', {
+      method: 'POST',
+      body: JSON.stringify(transformMedicoToBackend(data))
     }).then(transformMedicoFromBackend),
-  update: (id: number, data: any) => 
-    fetchAPI(`/medicos/${id}`, { 
-      method: 'PUT', 
-      body: JSON.stringify(transformMedicoToBackend(data)) 
+  update: (id: number, data: any) =>
+    fetchAPI(`/medicos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(transformMedicoToBackend(data))
     }).then(transformMedicoFromBackend),
   delete: (id: number) => fetchAPI(`/medicos/${id}`, { method: 'DELETE' }),
 };
@@ -147,15 +147,15 @@ export const pacientesAPI = {
     const data = await fetchAPI(`/pacientes/${id}`);
     return transformPacienteFromBackend(data);
   },
-  create: (data: any) => 
-    fetchAPI('/pacientes', { 
-      method: 'POST', 
-      body: JSON.stringify(transformPacienteToBackend(data)) 
+  create: (data: any) =>
+    fetchAPI('/pacientes', {
+      method: 'POST',
+      body: JSON.stringify(transformPacienteToBackend(data))
     }).then(transformPacienteFromBackend),
-  update: (id: number, data: any) => 
-    fetchAPI(`/pacientes/${id}`, { 
-      method: 'PUT', 
-      body: JSON.stringify(transformPacienteToBackend(data)) 
+  update: (id: number, data: any) =>
+    fetchAPI(`/pacientes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(transformPacienteToBackend(data))
     }).then(transformPacienteFromBackend),
   delete: (id: number) => fetchAPI(`/pacientes/${id}`, { method: 'DELETE' }),
 };
@@ -205,9 +205,9 @@ const transformConsultaFromBackend = (consulta: any) => ({
   pacienteId: consulta.paciente_id,
   planoSaudeId: consulta.plano_saude_id,
   numeroCarteirinha: consulta.numero_carteirinha || '',
-  status: (consulta.status_pagamento === 'PENDENTE' ? 'Pendente' : 
-           consulta.status_pagamento === 'PAGO' ? 'Pago' : 
-           consulta.status_pagamento === 'GLOSA' ? 'Glosado' : '') as 'Pendente' | 'Pago' | 'Glosado' | '',
+  status: (consulta.status_pagamento === 'PENDENTE' ? 'Pendente' :
+    consulta.status_pagamento === 'PAGO' ? 'Pago' :
+      consulta.status_pagamento === 'GLOSA' ? 'Glosado' : '') as 'Pendente' | 'Pago' | 'Glosado' | '',
   usuarioInclusao: consulta.usuario_inclusao?.email || '',
   dataInclusao: consulta.created_at,
   usuarioAlteracao: consulta.usuario_alteracao?.email || '',
@@ -234,15 +234,15 @@ export const consultasAPI = {
     const data = await fetchAPI(`/consultas/${id}`);
     return transformConsultaFromBackend(data);
   },
-  create: (data: any) => 
-    fetchAPI('/consultas', { 
-      method: 'POST', 
-      body: JSON.stringify(transformConsultaToBackend(data)) 
+  create: (data: any) =>
+    fetchAPI('/consultas', {
+      method: 'POST',
+      body: JSON.stringify(transformConsultaToBackend(data))
     }).then(transformConsultaFromBackend),
-  update: (id: number, data: any) => 
-    fetchAPI(`/consultas/${id}`, { 
-      method: 'PUT', 
-      body: JSON.stringify(transformConsultaToBackend(data)) 
+  update: (id: number, data: any) =>
+    fetchAPI(`/consultas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(transformConsultaToBackend(data))
     }).then(transformConsultaFromBackend),
   delete: (id: number) => fetchAPI(`/consultas/${id}`, { method: 'DELETE' }),
 };
@@ -286,12 +286,12 @@ export const planosAPI = {
     try {
       const response = await fetchAPI('/planos');
       const planos = response.data?.planos || response.planos || response.data || response;
-      
+
       if (!Array.isArray(planos)) {
         console.warn('Resposta de planos não é um array:', planos);
         throw new Error('Formato inválido');
       }
-      
+
       const transformed = planos
         .map(transformPlanoFromBackend)
         .filter((p): p is NonNullable<typeof p> => p !== null);
@@ -307,15 +307,15 @@ export const planosAPI = {
     const response = await fetchAPI(`/planos/${id}`);
     return transformPlanoFromBackend(response.data?.plano || response);
   },
-  create: (data: any) => 
-    fetchAPI('/planos', { 
-      method: 'POST', 
-      body: JSON.stringify(transformPlanoToBackend(data)) 
+  create: (data: any) =>
+    fetchAPI('/planos', {
+      method: 'POST',
+      body: JSON.stringify(transformPlanoToBackend(data))
     }).then(res => transformPlanoFromBackend(res.data?.plano || res)),
-  update: (id: number, data: any) => 
-    fetchAPI(`/planos/${id}`, { 
-      method: 'PUT', 
-      body: JSON.stringify(transformPlanoToBackend(data)) 
+  update: (id: number, data: any) =>
+    fetchAPI(`/planos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(transformPlanoToBackend(data))
     }).then(res => transformPlanoFromBackend(res.data?.plano || res)),
   delete: (id: number) => fetchAPI(`/planos/${id}`, { method: 'DELETE' }),
 };
@@ -353,8 +353,8 @@ const transformHonorarioFromBackend = (honorario: any) => ({
   valor: parseFloat(honorario.valor_liquido || honorario.valor_consulta || 0),
   valorGlosa: honorario.valor_glosa !== undefined ? parseFloat(honorario.valor_glosa) : undefined,
   status: (honorario.status_pagamento === 'PENDENTE' ? 'PENDENTE' :
-           honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
-           honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',
+    honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
+      honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',
   motivoGlosa: honorario.motivo_glosa || null,  // Corrigido: usar motivoGlosa (camelCase)
   recursoEnviado: honorario.recurso_enviado || false,
   statusRecurso: honorario.status_recurso || null,
@@ -390,41 +390,41 @@ export const honorariosAPI = {
     // Tenta PATCH primeiro, se falhar tenta PUT, se falhar usa updateStatus
     const payload = transformHonorarioToBackend(data);
     console.log('📤 Payload sendo enviado para backend:', payload);
-    
+
     try {
-      return await fetchAPI(`/honorarios/${id}`, { 
-        method: 'PATCH', 
-        body: JSON.stringify(payload) 
+      return await fetchAPI(`/honorarios/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
       });
     } catch (patchError: any) {
       console.warn('⚠️ PATCH falhou (404), tentando PUT...', patchError.message);
       try {
-        return await fetchAPI(`/honorarios/${id}`, { 
-          method: 'PUT', 
-          body: JSON.stringify(payload) 
+        return await fetchAPI(`/honorarios/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
         });
       } catch (putError: any) {
         console.warn('⚠️ PUT falhou, tentando updateStatus...', putError.message);
         // Como último recurso, atualiza apenas o status
         if (data.status) {
           console.log('🔄 Usando updateStatus como fallback');
-          return await fetchAPI(`/honorarios/${id}/status`, { 
-            method: 'PUT', 
-            body: JSON.stringify({ status_pagamento: payload.status_pagamento }) 
+          return await fetchAPI(`/honorarios/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status_pagamento: payload.status_pagamento })
           });
         }
         throw putError;
       }
     }
   },
-  updateStatus: (id: number, status: string) => fetchAPI(`/honorarios/${id}/status`, { 
-    method: 'PUT', 
-    body: JSON.stringify({ status_pagamento: status }) 
+  updateStatus: (id: number, status: string) => fetchAPI(`/honorarios/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status_pagamento: status })
   }),
-  updateGlosa: (id: number, data: { valor_glosa: number; motivo_glosa: string }) => 
-    fetchAPI(`/honorarios/${id}/glosa`, { 
-      method: 'PUT', 
-      body: JSON.stringify(data) 
+  updateGlosa: (id: number, data: { valor_glosa: number; motivo_glosa: string }) =>
+    fetchAPI(`/honorarios/${id}/glosa`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
     }),
   delete: (id: number) => fetchAPI(`/honorarios/${id}`, { method: 'DELETE' }),
 };
@@ -434,7 +434,7 @@ export const estatisticasAPI = {
   getDashboard: async () => {
     const response = await fetchAPI('/estatisticas/resumo');
     const data = response.data || response;
-    
+
     // Transformar para o formato esperado pelo frontend
     if (data.financeiro) {
       return {
@@ -446,7 +446,7 @@ export const estatisticasAPI = {
         quantidadeHonorarios: data.contadores?.totalConsultas || 0,
       };
     }
-    
+
     // Fallback para evitar erros
     return {
       totalProcessado: 0,
@@ -464,7 +464,7 @@ export const authAPI = {
   login: async (email: string, senha: string) => {
     console.log('🔐 Iniciando processo de login...');
     console.log('📧 Email:', email);
-    
+
     try {
       // Fazer chamada ao backend real
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -484,30 +484,30 @@ export const authAPI = {
       const data = await response.json();
       console.log('✅ Login bem-sucedido no backend!');
       console.log('📦 Resposta do backend:', data);
-      
+
       // Salvar token no localStorage
       if (data.data?.token) {
         tokenManager.setToken(data.data.token);
         console.log('🔑 Token salvo:', data.data.token.substring(0, 30) + '...');
       }
-      
+
       return data;
-      
+
     } catch (error: any) {
       console.error('💥 Erro na autenticação:', error);
-      
+
       // Fallback para mock apenas se backend não estiver disponível
       if (error.message.includes('fetch')) {
         console.warn('⚠️ Backend não disponível, usando fallback mock');
         const usuario = usuariosService.validatePassword(email, senha);
-        
+
         if (!usuario) {
           throw new Error('Email ou senha inválidos');
         }
-        
+
         const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
         tokenManager.setToken(mockToken);
-        
+
         return {
           success: true,
           data: {
@@ -523,7 +523,7 @@ export const authAPI = {
           }
         };
       }
-      
+
       throw error;
     }
   },
@@ -537,4 +537,55 @@ export const authAPI = {
     }
   },
   me: () => fetchAPI('/auth/me'),
+  changePassword: (senha_atual: string, nova_senha: string) =>
+    fetchAPI('/auth/change-password', {
+      method: 'PUT',
+      body: JSON.stringify({ senha_atual, nova_senha })
+    }),
+};
+
+const transformUsuarioToBackend = (usuario: any) => ({
+  nome_completo: usuario.nome,
+  email: usuario.email,
+  senha: usuario.senha,
+  role: usuario.perfil === 'Admin' ? 'ADMIN' : 'OPERADOR',
+  telefone: usuario.telefone || null,
+  // cargo e ativo não existem no backend ainda, ignorando por enquanto
+});
+
+const transformUsuarioFromBackend = (usuario: any) => ({
+  id: usuario.id,
+  nome: usuario.nome_completo,
+  email: usuario.email,
+  senha: '', // Senha não retorna do backend
+  perfil: (usuario.role === 'ADMIN' ? 'Admin' : 'Operador') as 'Admin' | 'Operador',
+  cargo: usuario.role === 'ADMIN' ? 'Administrador' : 'Operador', // Valor default
+  telefone: usuario.telefone || '',
+  ativo: true, // Valor default
+});
+
+// --- API de Usuários ---
+export const usuariosAPI = {
+  getAll: async () => {
+    try {
+      const response = await fetchAPI('/auth/users');
+      const data = response.data || response;
+      return Array.isArray(data) ? data.map(transformUsuarioFromBackend) : [];
+    } catch (error) {
+      console.warn('Backend não disponível ou erro ao listar usuários', error);
+      throw error;
+    }
+  },
+  create: (data: any) =>
+    fetchAPI('/auth/create-user', {
+      method: 'POST',
+      body: JSON.stringify(transformUsuarioToBackend(data))
+    }).then(res => transformUsuarioFromBackend(res.user || res.data?.user)),
+  update: (id: number, data: any) =>
+    fetchAPI(`/auth/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(transformUsuarioToBackend(data))
+    }).then(res => transformUsuarioFromBackend(res.user || res.data?.user)),
+  // Delete não implementado no backend ainda
+  delete: (id: number) => Promise.reject(new Error('Exclusão não suportada pelo backend')),
 };

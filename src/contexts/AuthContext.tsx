@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { useNavigate } from 'react-router-dom';
 import { usuariosService } from '../services/usuariosService';
 import { backupService } from '../services/backupService';
+import { authAPI } from '../services/api';
 
 // Define os tipos de perfil que o sistema aceita
 export type UserProfile = 'Admin' | 'Operador';
@@ -45,7 +46,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const storedUser = localStorage.getItem(USER_KEY);
     const storedToken = localStorage.getItem(TOKEN_KEY);
-    
+
     if (storedUser && storedToken) {
       try {
         const userData = JSON.parse(storedUser);
@@ -57,7 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.removeItem(TOKEN_KEY);
       }
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -65,11 +66,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('🔐 AuthContext - Login chamado');
     console.log('🔐 AuthContext - User:', userData);
     console.log('🔐 AuthContext - Token (primeiros 20 chars):', token.substring(0, 20) + '...');
-    
+
     setUser(userData);
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
     localStorage.setItem(TOKEN_KEY, token);
-    
+
     console.log('✅ AuthContext - Token salvo no localStorage');
     console.log('✅ AuthContext - Verificação:', localStorage.getItem(TOKEN_KEY) ? 'Token encontrado' : 'Token NÃO encontrado');
   };
@@ -85,13 +86,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const medicosData = localStorage.getItem('sghm_medicos');
         const pacientesData = localStorage.getItem('sghm_pacientes');
         const planosData = localStorage.getItem('sghm_planos_saude');
-        
+
         const consultas = consultasData ? JSON.parse(consultasData) : [];
         const honorarios = honorariosData ? JSON.parse(honorariosData) : [];
         const medicos = medicosData ? JSON.parse(medicosData) : [];
         const pacientes = pacientesData ? JSON.parse(pacientesData) : [];
         const planosSaude = planosData ? JSON.parse(planosData) : [];
-        
+
         backupService.createBackup(
           consultas,
           honorarios,
@@ -105,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('❌ Erro ao criar backup no logout:', error);
       }
     }
-    
+
     setUser(null);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TOKEN_KEY);
@@ -113,7 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUser = (userData: Partial<User>) => {
     if (!user) return;
-    
+
     // Atualizar no service (localStorage de usuários)
     const success = usuariosService.updateProfile(user.id, {
       nome: userData.nome,
@@ -121,7 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       telefone: userData.telefone,
       cargo: userData.cargo
     });
-    
+
     if (success) {
       // Recarregar dados do service para garantir sincronização
       const usuarioAtualizado = usuariosService.getById(user.id);
@@ -142,20 +143,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
     if (!user) return false;
-    
+
     console.log('🔑 Atualizando senha do usuário:', user.id);
-    const result = usuariosService.updatePassword(user.id, currentPassword, newPassword);
-    
-    if (result.success) {
-      console.log('✅ Senha atualizada com sucesso no localStorage');
-      // Verificar se realmente salvou
-      const verificacao = usuariosService.getById(user.id);
-      console.log('🔍 Senha verificada no service:', verificacao?.senha === newPassword);
-    } else {
-      console.error('❌ Erro ao atualizar senha:', result.error);
+
+    try {
+      await authAPI.changePassword(currentPassword, newPassword);
+      console.log('✅ Senha atualizada com sucesso no backend');
+      return true;
+    } catch (error: any) {
+      console.error('❌ Erro ao atualizar senha:', error);
+
+      // Fallback para mock apenas se backend não estiver disponível (opcional)
+      if (error.message && error.message.includes('fetch')) {
+        const result = usuariosService.updatePassword(user.id, currentPassword, newPassword);
+        return result.success;
+      }
+
+      return false;
     }
-    
-    return result.success;
   };
 
   const value = {

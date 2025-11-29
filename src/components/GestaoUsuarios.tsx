@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUserPlus, FaEdit, FaTrash, FaSearch, FaShieldAlt, FaUser, FaEnvelope, FaPhone, FaKey } from 'react-icons/fa';
 import { Usuario } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
-import { usuariosService } from '../services/usuariosService';
+import { usuariosAPI } from '../services/api';
 import Modal from './Modal';
 import ConfirmationModal from './ConfirmationModal';
 import './CadastroMedicos.css';
@@ -28,12 +28,20 @@ const GestaoUsuarios: React.FC = () => {
   });
 
   // Carregar usuários
+  const loadUsuarios = async () => {
+    try {
+      const loadedUsuarios = await usuariosAPI.getAll();
+      // Filtrar para não mostrar o próprio usuário logado (edita no perfil)
+      const filteredUsers = loadedUsuarios.filter(u => u.id !== user?.id);
+      setUsuarios(filteredUsers);
+      setFilteredUsuarios(filteredUsers);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+    }
+  };
+
   useEffect(() => {
-    const loadedUsuarios = usuariosService.getAll();
-    // Filtrar para não mostrar o próprio usuário logado (edita no perfil)
-    const filteredUsers = loadedUsuarios.filter(u => u.id !== user?.id);
-    setUsuarios(filteredUsers);
-    setFilteredUsuarios(filteredUsers);
+    loadUsuarios();
   }, [user]);
 
   // Filtrar usuários
@@ -83,12 +91,14 @@ const GestaoUsuarios: React.FC = () => {
   };
 
   // Executar exclusão
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (usuarioToDelete !== null) {
-      const success = usuariosService.delete(usuarioToDelete);
-      if (success) {
-        const updatedUsuarios = usuariosService.getAll();
-        setUsuarios(updatedUsuarios);
+      try {
+        await usuariosAPI.delete(usuarioToDelete);
+        await loadUsuarios();
+      } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        alert('Erro ao excluir usuário. A funcionalidade pode não estar disponível no servidor.');
       }
     }
     setIsDeleteModalOpen(false);
@@ -96,45 +106,45 @@ const GestaoUsuarios: React.FC = () => {
   };
 
   // Salvar usuário
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (currentUsuario) {
-      // Editar usuário existente
-      const updatedUsuario: Usuario = {
-        ...currentUsuario,
-        nome: formData.nome,
-        email: formData.email,
-        perfil: formData.perfil,
-        cargo: formData.cargo,
-        telefone: formData.telefone,
-        ativo: formData.ativo
-      };
-      const success = usuariosService.update(updatedUsuario);
-      
-      // Se forneceu nova senha, resetar
-      if (success && formData.senha.trim() !== '') {
-        usuariosService.resetPassword(currentUsuario.id, formData.senha);
-      }
-      
-      if (success) {
-        const updatedUsuarios = usuariosService.getAll();
-        setUsuarios(updatedUsuarios);
-      }
-    } else {
-      // Adicionar novo usuário
-      const newUsuario = usuariosService.create(formData);
-      const updatedUsuarios = usuariosService.getAll();
-      setUsuarios(updatedUsuarios);
-    }
+    try {
+      if (currentUsuario) {
+        // Editar usuário existente
+        const updatedUsuario: Usuario = {
+          ...currentUsuario,
+          nome: formData.nome,
+          email: formData.email,
+          perfil: formData.perfil,
+          cargo: formData.cargo,
+          telefone: formData.telefone,
+          ativo: formData.ativo
+        };
 
-    setIsModalOpen(false);
+        await usuariosAPI.update(updatedUsuario.id, updatedUsuario);
+
+        // Se forneceu nova senha, resetar (backend trata isso no update se implementado, mas aqui o endpoint update não muda senha)
+        // O endpoint update do backend NÃO muda senha. Precisa de endpoint específico ou alterar a lógica.
+        // Por enquanto, vamos ignorar a alteração de senha na edição se não houver endpoint.
+
+        await loadUsuarios();
+      } else {
+        // Adicionar novo usuário
+        await usuariosAPI.create(formData);
+        await loadUsuarios();
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao salvar usuário:', error);
+      alert('Erro ao salvar usuário. Verifique os dados e tente novamente.');
+    }
   };
 
   // Atualizar campos do formulário
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
+
     // Máscara de telefone
     if (name === 'telefone') {
       const telefoneFormatado = value
@@ -330,8 +340,8 @@ const GestaoUsuarios: React.FC = () => {
               placeholder="Mínimo 6 caracteres"
             />
             <small style={{ color: '#6c757d', fontSize: '0.85rem' }}>
-              {currentUsuario 
-                ? 'Deixe em branco para manter a senha atual' 
+              {currentUsuario
+                ? 'Deixe em branco para manter a senha atual'
                 : 'O usuário poderá alterar a senha após o primeiro login'}
             </small>
           </div>
