@@ -13,37 +13,37 @@ import { Honorario, adicionarHistorico, buscarHistorico, gerarDescricaoStatus } 
 import { honorariosAPI } from '../services/api';
 import Modal from './Modal';
 import HistoricoModal from './HistoricoModal';
-import { 
+import {
   FaFilter, FaFileAlt, FaHistory,
-  FaClock, FaPaperPlane, FaCheck, FaTimes, FaSearch, FaCheckSquare, FaSquare 
+  FaClock, FaPaperPlane, FaCheck, FaTimes, FaSearch, FaCheckSquare, FaSquare
 } from 'react-icons/fa';
 import './GestaoHonorarios.css';
 
 const GestaoHonorarios: React.FC = () => {
-  const { 
+  const {
     honorarios, addHonorario, updateHonorario, deleteHonorario,
     medicos, planosSaude, refreshHonorarios
   } = useData();
 
   // Estados do componente
   // Nota: Edição direta removida - use Registrar Glosa para atualizar honorários
-  
+
   // Seleção múltipla e ações em lote
   const [selecionados, setSelecionados] = useState<number[]>([]);
   const [isGlosaModalOpen, setIsGlosaModalOpen] = useState(false);
   const [glosaData, setGlosaData] = useState({ valorGlosa: 0, motivoGlosa: '' });
-  
+
   // Estados para recurso de glosa
   const [isRecursoModalOpen, setIsRecursoModalOpen] = useState(false);
   const [isStatusRecursoModalOpen, setIsStatusRecursoModalOpen] = useState(false);
   const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
   const [honorarioSelecionado, setHonorarioSelecionado] = useState<Honorario | null>(null);
   const [recursoData, setRecursoData] = useState({ motivoRecurso: '', dataRecurso: '' });
-  const [statusRecursoData, setStatusRecursoData] = useState({ 
+  const [statusRecursoData, setStatusRecursoData] = useState({
     statusRecurso: 'ACEITO_TOTAL' as 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO',
-    valorRecuperado: 0 
+    valorRecuperado: 0
   });
-  
+
   // Filtros
   const [filtros, setFiltros] = useState({
     medico: '',
@@ -59,20 +59,20 @@ const GestaoHonorarios: React.FC = () => {
     return honorarios.filter(honorario => {
       const medico = medicos.find(m => m.id === honorario.medicoId);
       const plano = planosSaude.find(p => p.id === honorario.planoSaudeId);
-      
+
       const matchMedico = !filtros.medico || honorario.medicoId.toString() === filtros.medico;
       const matchPlano = !filtros.planoSaude || honorario.planoSaudeId.toString() === filtros.planoSaude;
       const matchStatus = filtros.status === 'TODOS' || honorario.status === filtros.status;
-      
+
       const dataConsulta = new Date(honorario.dataConsulta);
       const matchDataInicio = !filtros.dataInicio || dataConsulta >= new Date(filtros.dataInicio);
       const matchDataFim = !filtros.dataFim || dataConsulta <= new Date(filtros.dataFim);
-      
-      const matchBusca = !filtros.busca || 
+
+      const matchBusca = !filtros.busca ||
         medico?.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
         plano?.nome.toLowerCase().includes(filtros.busca.toLowerCase()) ||
         honorario.motivoGlosa?.toLowerCase().includes(filtros.busca.toLowerCase());
-      
+
       return matchMedico && matchPlano && matchStatus && matchDataInicio && matchDataFim && matchBusca;
     });
   }, [honorarios, filtros, medicos, planosSaude]);
@@ -83,7 +83,7 @@ const GestaoHonorarios: React.FC = () => {
     const pendente = honorariosFiltrados.filter(h => h.status === 'PENDENTE').reduce((acc, h) => acc + h.valor, 0);
     const pago = honorariosFiltrados.filter(h => h.status === 'PAGO').reduce((acc, h) => acc + h.valor, 0);
     const glosado = honorariosFiltrados.filter(h => h.status === 'GLOSADO').reduce((acc, h) => acc + h.valor, 0);
-    
+
     return { total, pendente, pago, glosado, quantidade: honorariosFiltrados.length };
   }, [honorariosFiltrados]);
 
@@ -129,7 +129,7 @@ const GestaoHonorarios: React.FC = () => {
       motivoRecurso: recursoData.motivoRecurso
     };
     localStorage.setItem('sghm_recursos', JSON.stringify(recursos));
-    
+
     // Buscar valorGlosa atualizado do honorário
     const honorarioAtual = honorarios.find(h => h.id === honorarioSelecionado.id);
     adicionarHistorico(
@@ -140,12 +140,12 @@ const GestaoHonorarios: React.FC = () => {
         detalhes: recursoData.motivoRecurso
       }
     );
-    
+
     // Disparar evento para notificar DataContext
     window.dispatchEvent(new Event('sghm_recursos_updated'));
-    
+
     await updateHonorario(honorarioAtualizado);
-    
+
     setIsRecursoModalOpen(false);
     setRecursoData({ motivoRecurso: '', dataRecurso: '' });
     setHonorarioSelecionado(null);
@@ -153,9 +153,9 @@ const GestaoHonorarios: React.FC = () => {
 
   const handleAtualizarStatusRecurso = (honorario: Honorario) => {
     setHonorarioSelecionado(honorario);
-    setStatusRecursoData({ 
-      statusRecurso: 'ACEITO_TOTAL', 
-      valorRecuperado: honorario.valor 
+    setStatusRecursoData({
+      statusRecurso: 'ACEITO_TOTAL',
+      valorRecuperado: honorario.valor
     });
     setIsStatusRecursoModalOpen(true);
   };
@@ -163,8 +163,8 @@ const GestaoHonorarios: React.FC = () => {
   const handleConfirmarStatusRecurso = async () => {
     if (!honorarioSelecionado) return;
 
-    const valorRecuperado = statusRecursoData.statusRecurso === 'ACEITO_PARCIAL' ? statusRecursoData.valorRecuperado : 
-                            statusRecursoData.statusRecurso === 'ACEITO_TOTAL' ? honorarioSelecionado.valor : 0;
+    const valorRecuperado = statusRecursoData.statusRecurso === 'ACEITO_PARCIAL' ? statusRecursoData.valorRecuperado :
+      statusRecursoData.statusRecurso === 'ACEITO_TOTAL' ? honorarioSelecionado.valor : 0;
 
     const honorarioAtualizado: Honorario = {
       ...honorarioSelecionado,
@@ -182,7 +182,7 @@ const GestaoHonorarios: React.FC = () => {
       valorRecuperado: valorRecuperado
     };
     localStorage.setItem('sghm_recursos', JSON.stringify(recursos));
-    
+
     // Registrar no histórico
     let descricaoStatus = '';
     let detalhesStatus = '';
@@ -206,12 +206,12 @@ const GestaoHonorarios: React.FC = () => {
         detalhes: detalhesStatus
       }
     );
-    
+
     // Disparar evento para notificar DataContext
     window.dispatchEvent(new Event('sghm_recursos_updated'));
-    
+
     await updateHonorario(honorarioAtualizado);
-    
+
     setIsStatusRecursoModalOpen(false);
     setStatusRecursoData({ statusRecurso: 'ACEITO_TOTAL', valorRecuperado: 0 });
     setHonorarioSelecionado(null);
@@ -225,7 +225,7 @@ const GestaoHonorarios: React.FC = () => {
       status: novoStatus,
       updatedAt: new Date().toISOString()
     };
-    
+
     // Registrar no histórico
     adicionarHistorico(
       honorario.id,
@@ -236,7 +236,7 @@ const GestaoHonorarios: React.FC = () => {
         statusNovo: novoStatus
       }
     );
-    
+
     updateHonorario(honorarioAtualizado);
   };
 
@@ -253,10 +253,10 @@ const GestaoHonorarios: React.FC = () => {
   };
 
   // ============= FUNÇÕES DE SELEÇÃO MÚLTIPLA =============
-  
+
   // Selecionar/desselecionar um honorário
   const handleToggleSelecao = (id: number) => {
-    setSelecionados(prev => 
+    setSelecionados(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -276,7 +276,7 @@ const GestaoHonorarios: React.FC = () => {
   };
 
   // ============= AÇÕES EM LOTE =============
-  
+
   // Marcar selecionados como ENVIADO
   const handleMarcarComoEnviado = async () => {
     if (selecionados.length === 0) {
@@ -292,7 +292,7 @@ const GestaoHonorarios: React.FC = () => {
       try {
         let sucesso = 0;
         let erros = 0;
-        
+
         for (const id of selecionados) {
           const honorario = honorarios.find(h => h.id === id);
           if (honorario && honorario.status === 'PENDENTE') {
@@ -305,10 +305,10 @@ const GestaoHonorarios: React.FC = () => {
             }
           }
         }
-        
+
         await refreshHonorarios();
         setSelecionados([]);
-        
+
         if (erros === 0) {
           alert(`${sucesso} honorário(s) marcado(s) como ENVIADO com sucesso!`);
         } else {
@@ -336,7 +336,7 @@ const GestaoHonorarios: React.FC = () => {
       try {
         let sucesso = 0;
         let erros = 0;
-        
+
         for (const id of selecionados) {
           const honorario = honorarios.find(h => h.id === id);
           if (honorario && honorario.status !== 'PAGO') {
@@ -349,10 +349,10 @@ const GestaoHonorarios: React.FC = () => {
             }
           }
         }
-        
+
         await refreshHonorarios();
         setSelecionados([]);
-        
+
         if (erros === 0) {
           alert(`${sucesso} honorário(s) marcado(s) como PAGO com sucesso!`);
         } else {
@@ -481,7 +481,7 @@ const GestaoHonorarios: React.FC = () => {
               />
             </div>
           </div>
-          
+
           <div className="filtro-grupo">
             <label htmlFor="filtro-medico">Médico:</label>
             <select id="filtro-medico" name="filtro-medico" value={filtros.medico} onChange={(e) => setFiltros({ ...filtros, medico: e.target.value })}>
@@ -491,7 +491,7 @@ const GestaoHonorarios: React.FC = () => {
               ))}
             </select>
           </div>
-          
+
           <div className="filtro-grupo">
             <label htmlFor="filtro-plano-saude">Plano de Saúde:</label>
             <select id="filtro-plano-saude" name="filtro-plano-saude" value={filtros.planoSaude} onChange={(e) => setFiltros({ ...filtros, planoSaude: e.target.value })}>
@@ -525,7 +525,7 @@ const GestaoHonorarios: React.FC = () => {
               onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
             />
           </div>
-          
+
           <div className="filtro-data">
             <label htmlFor="filtro-data-fim">Data Fim:</label>
             <input
@@ -536,7 +536,7 @@ const GestaoHonorarios: React.FC = () => {
               onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })}
             />
           </div>
-          
+
           <button className="btn-secondary btn-limpar" onClick={handleLimparFiltros}>
             <FaFilter /> Limpar Filtros
           </button>
@@ -553,13 +553,13 @@ const GestaoHonorarios: React.FC = () => {
             </button>
           </div>
           <div className="acoes-lote-buttons">
-            <button className="btn-enviado" onClick={handleMarcarComoEnviado}>
+            <button className="btn-enviado" onClick={handleMarcarComoEnviado} data-testid="btn-marcar-enviado">
               <FaPaperPlane /> Marcar como Enviado
             </button>
-            <button className="btn-pago" onClick={handleMarcarComoPago}>
+            <button className="btn-pago" onClick={handleMarcarComoPago} data-testid="btn-marcar-pago">
               <FaCheck /> Marcar como Pago
             </button>
-            <button className="btn-glosa" onClick={() => handleAbrirModalGlosa()}>
+            <button className="btn-glosa" onClick={() => handleAbrirModalGlosa()} data-testid="btn-registrar-glosa">
               <FaTimes /> Registrar Glosa
             </button>
           </div>
@@ -600,6 +600,7 @@ const GestaoHonorarios: React.FC = () => {
                     checked={selecionados.length === honorariosFiltrados.length && honorariosFiltrados.length > 0}
                     onChange={handleSelecionarTodos}
                     title="Selecionar todos"
+                    data-testid="checkbox-select-all"
                   />
                 </th>
                 <th>Data</th>
@@ -622,6 +623,7 @@ const GestaoHonorarios: React.FC = () => {
                       name={`checkbox-honorario-${honorario.id}`}
                       checked={selecionados.includes(honorario.id)}
                       onChange={() => handleToggleSelecao(honorario.id)}
+                      data-testid={`checkbox-honorario-${honorario.id}`}
                     />
                   </td>
                   <td>{new Date(honorario.dataConsulta).toLocaleDateString('pt-BR')}</td>
@@ -649,24 +651,26 @@ const GestaoHonorarios: React.FC = () => {
                             className="btn-icon info"
                             onClick={() => handleEnviarRecurso(honorario)}
                             title="Enviar Recurso"
+                            data-testid={`btn-enviar-recurso-${honorario.id}`}
                           >
                             <FaSquare />
                           </button>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                            <FaCheckSquare 
-                              style={{ color: '#28a745', cursor: 'pointer', fontSize: '1.2rem' }} 
+                            <FaCheckSquare
+                              style={{ color: '#28a745', cursor: 'pointer', fontSize: '1.2rem' }}
                               onClick={() => handleAtualizarStatusRecurso(honorario)}
                               title="Atualizar Status do Recurso"
+                              data-testid={`btn-atualizar-status-recurso-${honorario.id}`}
                             />
                             {honorario.statusRecurso && (
-                              <span 
+                              <span
                                 className={`status-badge status-${honorario.statusRecurso.toLowerCase()}`}
                                 style={{ fontSize: '0.7rem', padding: '2px 6px' }}
                               >
                                 {honorario.statusRecurso === 'ACEITO_TOTAL' ? 'Aceito' :
-                                 honorario.statusRecurso === 'ACEITO_PARCIAL' ? 'Parcial' :
-                                 honorario.statusRecurso === 'NEGADO' ? 'Negado' : 'Pendente'}
+                                  honorario.statusRecurso === 'ACEITO_PARCIAL' ? 'Parcial' :
+                                    honorario.statusRecurso === 'NEGADO' ? 'Negado' : 'Pendente'}
                               </span>
                             )}
                           </div>
@@ -717,6 +721,7 @@ const GestaoHonorarios: React.FC = () => {
             value={glosaData.valorGlosa}
             onChange={(e) => setGlosaData({ ...glosaData, valorGlosa: Number(e.target.value) })}
             placeholder="0.00"
+            data-testid="input-valor-glosa"
           />
           <small>Deixe em branco ou 0 para glosa total</small>
         </div>
@@ -731,6 +736,7 @@ const GestaoHonorarios: React.FC = () => {
             placeholder="Descreva o motivo da glosa..."
             rows={4}
             required
+            data-testid="input-motivo-glosa"
           />
         </div>
 
@@ -738,7 +744,7 @@ const GestaoHonorarios: React.FC = () => {
           <button className="btn-secondary" onClick={() => setIsGlosaModalOpen(false)}>
             Cancelar
           </button>
-          <button className="btn-danger" onClick={handleRegistrarGlosa}>
+          <button className="btn-danger" onClick={handleRegistrarGlosa} data-testid="btn-confirmar-glosa">
             <FaTimes /> Registrar Glosa
           </button>
         </div>
@@ -766,6 +772,7 @@ const GestaoHonorarios: React.FC = () => {
             value={recursoData.dataRecurso}
             onChange={(e) => setRecursoData({ ...recursoData, dataRecurso: e.target.value })}
             required
+            data-testid="input-data-recurso"
           />
         </div>
 
@@ -779,6 +786,7 @@ const GestaoHonorarios: React.FC = () => {
             placeholder="Descreva a justificativa para contestar a glosa..."
             rows={5}
             required
+            data-testid="input-motivo-recurso"
           />
         </div>
 
@@ -786,7 +794,7 @@ const GestaoHonorarios: React.FC = () => {
           <button className="btn-secondary" onClick={() => setIsRecursoModalOpen(false)}>
             Cancelar
           </button>
-          <button className="btn-primary" onClick={handleConfirmarRecurso}>
+          <button className="btn-primary" onClick={handleConfirmarRecurso} data-testid="btn-confirmar-recurso">
             <FaPaperPlane /> Enviar Recurso
           </button>
         </div>
@@ -812,10 +820,11 @@ const GestaoHonorarios: React.FC = () => {
             id="status-recurso"
             name="status-recurso"
             value={statusRecursoData.statusRecurso}
-            onChange={(e) => setStatusRecursoData({ 
-              ...statusRecursoData, 
+            onChange={(e) => setStatusRecursoData({
+              ...statusRecursoData,
               statusRecurso: e.target.value as 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO'
             })}
+            data-testid="select-status-recurso"
           >
             <option value="ACEITO_TOTAL">Aceito Totalmente</option>
             <option value="ACEITO_PARCIAL">Aceito Parcialmente</option>
@@ -834,12 +843,13 @@ const GestaoHonorarios: React.FC = () => {
               min="0"
               max={honorarioSelecionado?.valor || 0}
               value={statusRecursoData.valorRecuperado}
-              onChange={(e) => setStatusRecursoData({ 
-                ...statusRecursoData, 
-                valorRecuperado: Number(e.target.value) 
+              onChange={(e) => setStatusRecursoData({
+                ...statusRecursoData,
+                valorRecuperado: Number(e.target.value)
               })}
               placeholder="0.00"
               required
+              data-testid="input-valor-recuperado"
             />
           </div>
         )}
@@ -848,7 +858,7 @@ const GestaoHonorarios: React.FC = () => {
           <button className="btn-secondary" onClick={() => setIsStatusRecursoModalOpen(false)}>
             Cancelar
           </button>
-          <button className="btn-primary" onClick={handleConfirmarStatusRecurso}>
+          <button className="btn-primary" onClick={handleConfirmarStatusRecurso} data-testid="btn-confirmar-status-recurso">
             <FaCheck /> Confirmar
           </button>
         </div>

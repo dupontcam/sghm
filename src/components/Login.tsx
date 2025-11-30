@@ -29,7 +29,7 @@ const Login: React.FC = () => {
             console.log('response.data:', response.data);
             console.log('response.data.usuario:', response.data?.usuario);
             console.log('response.data.token:', response.data?.token);
-            
+
             // Verificar se a resposta tem os dados necessários
             if (!response.data) {
                 console.error('response.data não existe:', response);
@@ -45,12 +45,12 @@ const Login: React.FC = () => {
                 console.error('Estrutura completa da resposta:', JSON.stringify(response, null, 2));
                 throw new Error('Resposta inválida do servidor');
             }
-            
+
             // Salvar usuário e token no contexto
             // Converter role do backend (ADMIN/OPERADOR) para o formato esperado (Admin/Operador)
             const roleBackend = usuarioData.perfil || usuarioData.role;
             let perfilFormatado: 'Admin' | 'Operador' = 'Operador';
-            
+
             if (roleBackend) {
                 const roleUpper = roleBackend.toString().toUpperCase();
                 if (roleUpper === 'ADMIN') {
@@ -59,7 +59,7 @@ const Login: React.FC = () => {
                     perfilFormatado = 'Operador';
                 }
             }
-            
+
             const userInfo = {
                 id: usuarioData.id,
                 nome: usuarioData.nome || usuarioData.nome_completo,
@@ -68,9 +68,9 @@ const Login: React.FC = () => {
                 cargo: usuarioData.cargo,
                 telefone: usuarioData.telefone,
             };
-            
+
             console.log('Dados do usuário processados:', userInfo);
-            
+
             login(userInfo, tokenData);
             navigate('/dashboard');
         } catch (err: any) {
@@ -90,17 +90,17 @@ const Login: React.FC = () => {
                 <div className="login-form-column">
                     <div className="login-form-wrapper">
                         <h1 className="login-title">
-                            SISTEMA DE GERENCIAMENTO<br/>DE HONORÁRIOS MÉDICOS
+                            SISTEMA DE GERENCIAMENTO<br />DE HONORÁRIOS MÉDICOS
                         </h1>
                         <span className="login-subtitle">DESDE 2021</span>
-                        
+
                         <h2 className="login-header">LOGIN</h2>
                         {error && (
-                            <div style={{ 
-                                color: '#d32f2f', 
-                                backgroundColor: '#ffebee', 
-                                padding: '10px', 
-                                borderRadius: '4px', 
+                            <div style={{
+                                color: '#d32f2f',
+                                backgroundColor: '#ffebee',
+                                padding: '10px',
+                                borderRadius: '4px',
                                 marginBottom: '15px',
                                 fontSize: '14px'
                             }}>
@@ -109,7 +109,7 @@ const Login: React.FC = () => {
                         )}
                         <form onSubmit={handleLogin}>
                             <div className="input-group">
-                                <input 
+                                <input
                                     type="email"
                                     id="email"
                                     name="email"
@@ -118,11 +118,12 @@ const Login: React.FC = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={loading}
-                                    required 
+                                    required
+                                    data-testid="input-email"
                                 />
                             </div>
                             <div className="input-group">
-                                <input 
+                                <input
                                     type="password"
                                     id="password"
                                     name="password"
@@ -131,23 +132,24 @@ const Login: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={loading}
-                                    required 
+                                    required
+                                    data-testid="input-password"
                                 />
                             </div>
-                            <button type="submit" className="login-button" disabled={loading}>
+                            <button type="submit" className="login-button" disabled={loading} data-testid="btn-entrar">
                                 {loading ? 'Entrando...' : 'Entrar'}
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
-            
-            {/* 4. Renderizar o Modal de Alerta */}         
+
+            {/* 4. Renderizar o Modal de Alerta */}
             <AlertModal
-                    isOpen={isHelpModalOpen}
-                    onClose={() => setIsHelpModalOpen(false)}
-                    title="Bem-vindo ao Protótipo SGHM"
-                    message={`Este é um protótipo interativo. Siga estas dicas para testar:
+                isOpen={isHelpModalOpen}
+                onClose={() => setIsHelpModalOpen(false)}
+                title="Bem-vindo ao Protótipo SGHM"
+                message={`Este é um protótipo interativo. Siga estas dicas para testar:
 
 1. LOGIN: Você pode usar qualquer e-mail e senha para entrar.
 

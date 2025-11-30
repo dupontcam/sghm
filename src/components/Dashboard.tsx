@@ -5,8 +5,8 @@ import { useData } from '../contexts/DataContext';
 import { calcularTempoMedioPagamento } from '../data/mockData';
 import { avaliacoesService } from '../services/avaliacoesService';
 import { FaStar } from 'react-icons/fa';
-import { 
-    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, 
+import {
+    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
     PieChart, Pie, Cell, Tooltip as PieTooltip,
     AreaChart, Area, LineChart, Line
 } from 'recharts';
@@ -45,7 +45,7 @@ const PIE_COLORS = {
 // Dados por plano de saúde
 const processPlanoData = (honorarios: any[], planosSaude: any[]) => {
     const planoStats: { [key: string]: { total: number, quantidade: number } } = {};
-    
+
     honorarios.forEach(honorario => {
         const plano = planosSaude.find(p => p.id === honorario.planoSaudeId);
         if (plano) {
@@ -78,13 +78,13 @@ const monthlyData = [
 
 const Dashboard: React.FC = () => {
     const { userProfile, user } = useAuth();
-    const { 
-        consultas, honorarios, planosSaude, medicos, 
+    const {
+        consultas, honorarios, planosSaude, medicos,
         getDashboardStats
     } = useData();
-    
+
     const [estatisticasSatisfacao, setEstatisticasSatisfacao] = useState<any>(null);
-    
+
     const dashboardStats = getDashboardStats();
     const pieData = processPieData(honorarios);
     const planoData = processPlanoData(honorarios, planosSaude);
@@ -104,7 +104,7 @@ const Dashboard: React.FC = () => {
     // Ranking de médicos por valor
     const rankingMedicos = useMemo(() => {
         const medicoStats: { [key: number]: { nome: string, total: number, quantidade: number } } = {};
-        
+
         honorarios.forEach(honorario => {
             const medico = medicos.find(m => m.id === honorario.medicoId);
             if (medico) {
@@ -134,41 +134,41 @@ const Dashboard: React.FC = () => {
 
             {/* Cards de estatísticas principais */}
             <div className="stats-cards">
-                <div className="card card-1">
+                <div className="card card-1" data-testid="card-total-processado">
                     <span>Total Processado</span>
                     <strong>R$ {dashboardStats.totalProcessado.toFixed(2)}</strong>
                     <small>{dashboardStats.quantidadeHonorarios} honorários</small>
                 </div>
-                
+
                 {userProfile === 'Admin' && (
                     <>
-                        <div className="card card-2">
+                        <div className="card card-2" data-testid="card-taxa-glosa">
                             <span>Taxa de Glosa</span>
                             <strong>{dashboardStats.taxaGlosa.toFixed(2)}%</strong>
                             <small>R$ {dashboardStats.totalGlosado.toFixed(2)} glosado</small>
                         </div>
-                        
-                        <div className="card card-3">
+
+                        <div className="card card-3" data-testid="card-valores-pagos">
                             <span>Valores Pagos</span>
                             <strong>R$ {dashboardStats.totalPago.toFixed(2)}</strong>
                             <small>Confirmados</small>
                         </div>
-                        
-                        <div className="card card-4">
+
+                        <div className="card card-4" data-testid="card-tempo-medio">
                             <span>Tempo Médio Pagamento</span>
                             <strong>{tempoMedioPagamento} dias</strong>
                             <small>Da consulta ao recebimento</small>
                         </div>
-                        
-                        <div className="card card-5">
+
+                        <div className="card card-5" data-testid="card-pendente">
                             <span>Pendente</span>
                             <strong>R$ {dashboardStats.totalPendente.toFixed(2)}</strong>
                             <small>Aguardando processamento</small>
                         </div>
                     </>
                 )}
-                
-                <div className="card card-info">
+
+                <div className="card card-info" data-testid="card-consultas-registradas">
                     <span>Consultas Registradas</span>
                     <strong>{consultas.length}</strong>
                     <small>Total no sistema</small>
@@ -177,15 +177,15 @@ const Dashboard: React.FC = () => {
 
             {/* Estatísticas resumidas */}
             <div className="summary-stats">
-                <div className="summary-item">
+                <div className="summary-item" data-testid="summary-planos-ativos">
                     <h4>📋 Planos Ativos</h4>
                     <span>{planosSaude.filter(p => p.ativo).length}</span>
                 </div>
-                <div className="summary-item">
+                <div className="summary-item" data-testid="summary-medicos-cadastrados">
                     <h4>👨‍⚕️ Médicos Cadastrados</h4>
                     <span>{medicos.length}</span>
                 </div>
-                <div className="summary-item">
+                <div className="summary-item" data-testid="summary-media-honorario">
                     <h4>💰 Média por Honorário</h4>
                     <span>R$ {(dashboardStats.totalProcessado / Math.max(dashboardStats.quantidadeHonorarios, 1)).toFixed(2)}</span>
                 </div>
@@ -195,34 +195,34 @@ const Dashboard: React.FC = () => {
             {userProfile === 'Admin' && (
                 <>
                     <div className="charts-container">
-                        
+
                         {/* Gráfico de Tendência */}
-                        <div className="chart chart-large">
+                        <div className="chart chart-large" data-testid="chart-tendencia">
                             <h4>Tendência de Honorários (6 meses)</h4>
                             <div style={{ width: '100%', height: 250 }}>
                                 <ResponsiveContainer>
                                     <AreaChart data={monthlyData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
                                         <defs>
                                             <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#007bff" stopOpacity={0.8}/>
-                                                <stop offset="95%" stopColor="#007bff" stopOpacity={0}/>
+                                                <stop offset="5%" stopColor="#007bff" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#007bff" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
                                         <XAxis dataKey="mes" fontSize={12} />
                                         <YAxis fontSize={12} tickFormatter={(value) => `R$${value}`} />
                                         <Tooltip formatter={(value) => `R$${(value as number).toLocaleString('pt-BR')}`} />
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="valor" 
-                                            stroke="#007bff" 
-                                            fillOpacity={1} 
+                                        <Area
+                                            type="monotone"
+                                            dataKey="valor"
+                                            stroke="#007bff"
+                                            fillOpacity={1}
                                             fill="url(#colorValor)"
                                             name="Valor Total"
                                         />
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="glosado" 
-                                            stroke="#dc3545" 
+                                        <Area
+                                            type="monotone"
+                                            dataKey="glosado"
+                                            stroke="#dc3545"
                                             fill="#dc3545"
                                             fillOpacity={0.3}
                                             name="Glosado"
@@ -233,7 +233,7 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         {/* Gráfico de Pizza - Status */}
-                        <div className="chart chart-small">
+                        <div className="chart chart-small" data-testid="chart-status">
                             <h4>Status dos Honorários</h4>
                             <div style={{ width: '100%', height: 250 }}>
                                 <ResponsiveContainer>
@@ -249,9 +249,9 @@ const Dashboard: React.FC = () => {
                                             label={(entry) => `${entry.name} (${entry.value})`}
                                         >
                                             {pieData.map((entry) => (
-                                                <Cell 
-                                                    key={`cell-${entry.name}`} 
-                                                    fill={PIE_COLORS[entry.name as keyof typeof PIE_COLORS]} 
+                                                <Cell
+                                                    key={`cell-${entry.name}`}
+                                                    fill={PIE_COLORS[entry.name as keyof typeof PIE_COLORS]}
                                                 />
                                             ))}
                                         </Pie>
@@ -264,20 +264,20 @@ const Dashboard: React.FC = () => {
 
                     {/* Gráfico por Planos de Saúde */}
                     <div className="charts-container">
-                        <div className="chart chart-large">
+                        <div className="chart chart-large" data-testid="chart-planos">
                             <h4>Honorários por Plano de Saúde</h4>
                             <div style={{ width: '100%', height: 250 }}>
                                 <ResponsiveContainer>
                                     <BarChart data={planoData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                                        <XAxis 
-                                            dataKey="name" 
-                                            fontSize={11} 
+                                        <XAxis
+                                            dataKey="name"
+                                            fontSize={11}
                                             angle={-45}
                                             textAnchor="end"
                                             height={80}
                                         />
                                         <YAxis fontSize={12} tickFormatter={(value) => `R$${value}`} />
-                                        <Tooltip 
+                                        <Tooltip
                                             formatter={(value, name) => [
                                                 `R$${(value as number).toLocaleString('pt-BR')}`,
                                                 name === 'valor' ? 'Valor Total' : 'Quantidade'
@@ -292,7 +292,7 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         {/* Ranking de Médicos */}
-                        <div className="chart chart-small">
+                        <div className="chart chart-small" data-testid="chart-ranking-medicos">
                             <h4>Top 5 Médicos (Valor)</h4>
                             <div className="ranking-list">
                                 {rankingMedicos.map((medico, index) => (
@@ -330,27 +330,27 @@ const Dashboard: React.FC = () => {
 
                             <div className="charts-container">
                                 {/* Evolução Trimestral */}
-                                <div className="chart chart-large">
+                                <div className="chart chart-large" data-testid="chart-evolucao-satisfacao">
                                     <h4>Evolução da Satisfação (6 meses)</h4>
                                     <div style={{ width: '100%', height: 250 }}>
                                         <ResponsiveContainer>
-                                            <LineChart 
-                                                data={estatisticasSatisfacao.avaliacoesPorMes} 
+                                            <LineChart
+                                                data={estatisticasSatisfacao.avaliacoesPorMes}
                                                 margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
                                             >
                                                 <XAxis dataKey="mes" fontSize={12} />
                                                 <YAxis domain={[0, 5]} fontSize={12} />
-                                                <Tooltip 
+                                                <Tooltip
                                                     formatter={(value: any) => [
                                                         `${Number(value).toFixed(1)} estrelas`,
                                                         'Média'
                                                     ]}
                                                 />
                                                 <Legend />
-                                                <Line 
-                                                    type="monotone" 
-                                                    dataKey="media" 
-                                                    stroke="#ffc107" 
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="media"
+                                                    stroke="#ffc107"
                                                     strokeWidth={3}
                                                     name="Nota Média"
                                                     dot={{ fill: '#ffc107', r: 5 }}
@@ -361,7 +361,7 @@ const Dashboard: React.FC = () => {
                                 </div>
 
                                 {/* Distribuição por Aspecto */}
-                                <div className="chart chart-small">
+                                <div className="chart chart-small" data-testid="chart-avaliacoes-aspecto">
                                     <h4>Avaliações por Aspecto</h4>
                                     <div className="ranking-list">
                                         {estatisticasSatisfacao.avaliacoesPorCategoria.map((cat: any, index: number) => (

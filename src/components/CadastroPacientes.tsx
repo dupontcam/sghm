@@ -61,9 +61,9 @@ const CadastroPacientes: React.FC = () => {
 
       if (!sucesso) {
         // Se falhou, define a mensagem de erro e abre o modal de alerta
-        setAlertState({ 
-          isOpen: true, 
-          message: 'Este paciente não pode ser excluído, pois está associado a uma ou mais consultas registradas.' 
+        setAlertState({
+          isOpen: true,
+          message: 'Este paciente não pode ser excluído, pois está associado a uma ou mais consultas registradas.'
         });
       }
     }
@@ -78,16 +78,16 @@ const CadastroPacientes: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     let maskedValue = value;
-    
+
     // Aplica máscaras conforme o campo
     if (name === 'cpf') {
       maskedValue = maskCPF(value);
     } else if (name === 'telefone') {
       maskedValue = maskPhone(value);
     }
-    
+
     setFormData({ ...formData, [name]: maskedValue });
   };
 
@@ -105,7 +105,7 @@ const CadastroPacientes: React.FC = () => {
     <div className="page-container">
       <div className="page-header">
         <h1>Cadastro de Pacientes</h1>
-        <button className="btn btn-primary" onClick={handleNovoPaciente}>
+        <button className="btn btn-primary" onClick={handleNovoPaciente} data-testid="btn-novo-paciente">
           + Novo Paciente
         </button>
       </div>
@@ -125,7 +125,7 @@ const CadastroPacientes: React.FC = () => {
           </thead>
           <tbody>
             {pacientes.map((paciente) => (
-              <tr key={paciente.id}>
+              <tr key={paciente.id} data-testid={`row-paciente-${paciente.id}`}>
                 <td>{paciente.id}</td>
                 <td>{paciente.nome}</td>
                 <td>{paciente.cpf}</td>
@@ -133,13 +133,14 @@ const CadastroPacientes: React.FC = () => {
                 <td>{paciente.convenio}</td>
                 <td>{paciente.carteirinha}</td>
                 <td>
-                  <button className="btn-icon" title="Editar" onClick={() => handleEditarPaciente(paciente)}>
+                  <button className="btn-icon" title="Editar" onClick={() => handleEditarPaciente(paciente)} data-testid={`btn-editar-paciente-${paciente.id}`}>
                     <FaEdit />
                   </button>
                   <button
                     className="btn-icon btn-delete"
                     title="Excluir"
                     onClick={() => handleExcluirClick(paciente.id)}
+                    data-testid={`btn-excluir-paciente-${paciente.id}`}
                   >
                     <FaTrashAlt />
                   </button>
@@ -161,47 +162,50 @@ const CadastroPacientes: React.FC = () => {
           )}
           <div className="form-group">
             <label htmlFor="nome">Nome Completo</label>
-            <input id="nome" name="nome" type="text" value={formData.nome} onChange={handleChange} required />
+            <input id="nome" name="nome" type="text" value={formData.nome} onChange={handleChange} required data-testid="input-nome" />
           </div>
           <div className="form-row">
             <div className="form-group half-width">
               <label htmlFor="cpf">CPF</label>
-              <input 
-                id="cpf" 
-                name="cpf" 
-                type="text" 
-                value={formData.cpf} 
+              <input
+                id="cpf"
+                name="cpf"
+                type="text"
+                value={formData.cpf}
                 onChange={handleChange}
                 placeholder="000.000.000-00"
                 maxLength={14}
-                required 
+                required
+                data-testid="input-cpf"
               />
             </div>
             <div className="form-group half-width">
               <label htmlFor="telefone">Telefone</label>
-              <input 
-                id="telefone" 
-                name="telefone" 
-                type="tel" 
-                value={formData.telefone} 
+              <input
+                id="telefone"
+                name="telefone"
+                type="tel"
+                value={formData.telefone}
                 onChange={handleChange}
                 placeholder="(00) 00000-0000"
                 maxLength={15}
+                data-testid="input-telefone"
               />
             </div>
           </div>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} />
+            <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} data-testid="input-email" />
           </div>
           <div className="form-row">
             <div className="form-group half-width">
               <label htmlFor="convenio">Convênio</label>
-              <select 
-                id="convenio" 
-                name="convenio" 
-                value={formData.convenio} 
+              <select
+                id="convenio"
+                name="convenio"
+                value={formData.convenio}
                 onChange={handleChange}
+                data-testid="select-convenio"
               >
                 <option value="">Selecione um plano...</option>
                 {planosSaude
@@ -216,12 +220,12 @@ const CadastroPacientes: React.FC = () => {
             </div>
             <div className="form-group half-width">
               <label htmlFor="carteirinha">Nº Carteirinha</label>
-              <input id="carteirinha" name="carteirinha" type="text" value={formData.carteirinha} onChange={handleChange} />
+              <input id="carteirinha" name="carteirinha" type="text" value={formData.carteirinha} onChange={handleChange} data-testid="input-carteirinha" />
             </div>
           </div>
           <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={closeModal}>Cancelar</button>
-            <button type="submit" className="btn-primary">{isEditing ? 'Salvar Alterações' : 'Salvar Paciente'}</button>
+            <button type="button" className="btn-secondary" onClick={closeModal} data-testid="btn-cancelar">Cancelar</button>
+            <button type="submit" className="btn-primary" data-testid="btn-salvar">{isEditing ? 'Salvar Alterações' : 'Salvar Paciente'}</button>
           </div>
         </form>
       </Modal>

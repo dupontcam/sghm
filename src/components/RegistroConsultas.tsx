@@ -37,11 +37,11 @@ const formInicial: Omit<Consulta, 'id'> = {
 };
 
 const RegistroConsultas: React.FC = () => {
-  const { 
-    consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta, 
-    medicos, pacientes, planosSaude 
+  const {
+    consultas, addConsulta, addConsultaComHonorario, updateConsulta, deleteConsulta,
+    medicos, pacientes, planosSaude
   } = useData();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Omit<Consulta, 'id'> | Consulta>(formInicial);
@@ -52,22 +52,22 @@ const RegistroConsultas: React.FC = () => {
   const handleNovaConsulta = () => {
     setIsEditing(false);
     setFormData({
-        ...formInicial,
+      ...formInicial,
     });
     setIsModalOpen(true);
   };
 
   const handleEditarConsulta = (consulta: Consulta) => {
     setIsEditing(true);
-    
+
     // Formata a data para o formato YYYY-MM-DD esperado pelo input type="date"
     const dataFormatada = consulta.dataConsulta.split('T')[0];
-    
+
     setFormData({
-        ...consulta,
-        dataConsulta: dataFormatada,
-        usuarioAlteracao: 'admin@sghm.com',
-        dataAlteracao: new Date().toISOString(),
+      ...consulta,
+      dataConsulta: dataFormatada,
+      usuarioAlteracao: 'admin@sghm.com',
+      dataAlteracao: new Date().toISOString(),
     });
     setIsModalOpen(true);
   };
@@ -78,7 +78,7 @@ const RegistroConsultas: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     let valorProcessado: string | number = value;
 
     if (name === 'valorProcedimento' || name === 'pacienteId' || name === 'medicoId' || name === 'valorRecebido') {
@@ -95,10 +95,10 @@ const RegistroConsultas: React.FC = () => {
       const pacienteSelecionado = pacientes.find((p: Paciente) => p.id === parseInt(value));
       if (pacienteSelecionado) {
         novoFormData.numeroCarteirinha = pacienteSelecionado.carteirinha || '';
-        
+
         // Se o paciente tem convênio, tenta encontrar o plano correspondente
         if (pacienteSelecionado.convenio) {
-          const planoEncontrado = planosSaude.find(p => 
+          const planoEncontrado = planosSaude.find(p =>
             p.nome.toLowerCase().includes(pacienteSelecionado.convenio.toLowerCase()) ||
             pacienteSelecionado.convenio.toLowerCase().includes(p.nome.toLowerCase())
           );
@@ -124,12 +124,12 @@ const RegistroConsultas: React.FC = () => {
         novoFormData.status = 'Pendente';
         novoFormData.valorRecebido = undefined;
         novoFormData.dataRecebimento = undefined;
-        
+
         // Se ainda não tem plano vinculado, tenta buscar pelo paciente
         if (!novoFormData.planoSaudeId && novoFormData.pacienteId) {
           const pacienteSelecionado = pacientes.find((p: Paciente) => p.id === novoFormData.pacienteId);
           if (pacienteSelecionado?.convenio) {
-            const planoEncontrado = planosSaude.find(p => 
+            const planoEncontrado = planosSaude.find(p =>
               p.nome.toLowerCase().includes(pacienteSelecionado.convenio.toLowerCase()) ||
               pacienteSelecionado.convenio.toLowerCase().includes(p.nome.toLowerCase())
             );
@@ -163,18 +163,18 @@ const RegistroConsultas: React.FC = () => {
     e.preventDefault();
 
     const dadosFormatados = {
-        ...formData,
-        status: formData.status as Consulta['status'],
-        tipoPagamento: formData.tipoPagamento as Consulta['tipoPagamento'],
-        valorProcedimento: Number(formData.valorProcedimento)
+      ...formData,
+      status: formData.status as Consulta['status'],
+      tipoPagamento: formData.tipoPagamento as Consulta['tipoPagamento'],
+      valorProcedimento: Number(formData.valorProcedimento)
     };
 
     if (isEditing) {
       const consultaAtualizada = {
-          ...dadosFormatados,
-          usuarioAlteracao: 'admin@sghm.com',
-          dataAlteracao: new Date().toISOString()
-      } as Consulta; 
+        ...dadosFormatados,
+        usuarioAlteracao: 'admin@sghm.com',
+        dataAlteracao: new Date().toISOString()
+      } as Consulta;
 
       try {
         await updateConsulta(consultaAtualizada);
@@ -184,15 +184,15 @@ const RegistroConsultas: React.FC = () => {
         alert('Erro ao atualizar consulta. Verifique o console para mais detalhes.');
         return;
       }
-      
+
     } else {
       const novaConsulta = {
-          ...dadosFormatados,
-          usuarioInclusao: 'operador@sghm.com',
-          dataInclusao: new Date().toISOString(),
-          usuarioAlteracao: 'operador@sghm.com',
-          dataAlteracao: new Date().toISOString(),
-      } as Omit<Consulta, 'id'>; 
+        ...dadosFormatados,
+        usuarioInclusao: 'operador@sghm.com',
+        dataInclusao: new Date().toISOString(),
+        usuarioAlteracao: 'operador@sghm.com',
+        dataAlteracao: new Date().toISOString(),
+      } as Omit<Consulta, 'id'>;
 
       // Usar a nova função que cria honorário automaticamente
       try {
@@ -210,7 +210,7 @@ const RegistroConsultas: React.FC = () => {
     <div className="page-container">
       <div className="page-header">
         <h1>Registro de Consultas</h1>
-        <button className="btn btn-primary" onClick={handleNovaConsulta}>
+        <button className="btn btn-primary" onClick={handleNovaConsulta} data-testid="btn-nova-consulta">
           + Nova Consulta
         </button>
       </div>
@@ -254,7 +254,7 @@ const RegistroConsultas: React.FC = () => {
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={isEditing ? 'Editar Consulta' : 'Nova Consulta'}>
         <form onSubmit={handleSubmit} className="form-modal">
-          
+
           {isEditing && (
             <fieldset>
               <legend>Dados de Auditoria</legend>
@@ -277,7 +277,7 @@ const RegistroConsultas: React.FC = () => {
                   </select>
                 </div>
               </div>
-              {'id' in formData && ( 
+              {'id' in formData && (
                 <>
                   <div className="form-row">
                     <div className="form-group half-width">
@@ -307,144 +307,152 @@ const RegistroConsultas: React.FC = () => {
           <fieldset>
             <legend>Dados da Consulta</legend>
             <div className="form-row">
-                <div className="form-group half-width">
-                    <label htmlFor="pacienteId">Nome do Paciente</label>
-                    <select
-                        id="pacienteId"
-                        name="pacienteId"
-                        value={formData.pacienteId}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value={0} disabled>Selecione...</option>
-                        {pacientes.map((p: Paciente) => (
-                            <option key={p.id} value={p.id}>{p.nome}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="form-group half-width">
-                    <label htmlFor="protocolo">Protocolo</label>
-                    <input
-                        id="protocolo"
-                        name="protocolo"
-                        type="text"
-                        value={formData.protocolo}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+              <div className="form-group half-width">
+                <label htmlFor="pacienteId">Nome do Paciente</label>
+                <select
+                  id="pacienteId"
+                  name="pacienteId"
+                  value={formData.pacienteId}
+                  onChange={handleChange}
+                  required
+                  data-testid="select-paciente"
+                >
+                  <option value={0} disabled>Selecione...</option>
+                  {pacientes.map((p: Paciente) => (
+                    <option key={p.id} value={p.id}>{p.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group half-width">
+                <label htmlFor="protocolo">Protocolo</label>
+                <input
+                  id="protocolo"
+                  name="protocolo"
+                  type="text"
+                  value={formData.protocolo}
+                  onChange={handleChange}
+                  required
+                  data-testid="input-protocolo"
+                />
+              </div>
             </div>
 
             <div className="form-row">
-                <div className="form-group half-width">
-                    <label htmlFor="tipoLocal">Tipo de Local</label>
-                    <select
-                        id="tipoLocal"
-                        name="tipoLocal"
-                        value={(formData as any).tipoLocal || ''}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="" disabled>Selecione...</option>
-                        <option value="Clínica Particular">Clínica Particular</option>
-                        <option value="Hospital Particular">Hospital Particular</option>
-                        <option value="Hospital Público (SUS)">Hospital Público (SUS)</option>
-                    </select>
-                </div>
-                <div className="form-group half-width">
-                    <label htmlFor="consultorio">Nome do Estabelecimento</label>
-                    <input
-                        id="consultorio"
-                        name="consultorio"
-                        type="text"
-                        value={formData.consultorio}
-                        onChange={handleChange}
-                        placeholder="Ex: Hospital Santa Lúcia, Clínica Dr. Silva..."
-                        required
-                    />
-                </div>
+              <div className="form-group half-width">
+                <label htmlFor="tipoLocal">Tipo de Local</label>
+                <select
+                  id="tipoLocal"
+                  name="tipoLocal"
+                  value={(formData as any).tipoLocal || ''}
+                  onChange={handleChange}
+                  required
+                  data-testid="select-tipo-local"
+                >
+                  <option value="" disabled>Selecione...</option>
+                  <option value="Clínica Particular">Clínica Particular</option>
+                  <option value="Hospital Particular">Hospital Particular</option>
+                  <option value="Hospital Público (SUS)">Hospital Público (SUS)</option>
+                </select>
+              </div>
+              <div className="form-group half-width">
+                <label htmlFor="consultorio">Nome do Estabelecimento</label>
+                <input
+                  id="consultorio"
+                  name="consultorio"
+                  type="text"
+                  value={formData.consultorio}
+                  onChange={handleChange}
+                  placeholder="Ex: Hospital Santa Lúcia, Clínica Dr. Silva..."
+                  required
+                  data-testid="input-consultorio"
+                />
+              </div>
             </div>
 
             <div className="form-row">
-                <div className="form-group half-width">
-                    <label htmlFor="tipoPagamento">Tipo de Pagamento</label>
-                    <select
-                        id="tipoPagamento"
-                        name="tipoPagamento"
-                        value={formData.tipoPagamento}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="" disabled>Selecione...</option>
-                        <option value="particular">Particular</option>
-                        <option value="convenio">Convênio</option>
-                    </select>
-                </div>
-                <div className="form-group half-width">
-                    <label htmlFor="medicoId">Médico</label>
-                    <select
-                        id="medicoId"
-                        name="medicoId"
-                        value={formData.medicoId}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value={0} disabled>Selecione...</option>
-                        {medicos.map((m: Medico) => (
-                            <option key={m.id} value={m.id}>{m.nome}</option>
-                        ))}
-                    </select>
-                </div>
+              <div className="form-group half-width">
+                <label htmlFor="tipoPagamento">Tipo de Pagamento</label>
+                <select
+                  id="tipoPagamento"
+                  name="tipoPagamento"
+                  value={formData.tipoPagamento}
+                  onChange={handleChange}
+                  required
+                  data-testid="select-tipo-pagamento"
+                >
+                  <option value="" disabled>Selecione...</option>
+                  <option value="particular">Particular</option>
+                  <option value="convenio">Convênio</option>
+                </select>
+              </div>
+              <div className="form-group half-width">
+                <label htmlFor="medicoId">Médico</label>
+                <select
+                  id="medicoId"
+                  name="medicoId"
+                  value={formData.medicoId}
+                  onChange={handleChange}
+                  required
+                  data-testid="select-medico"
+                >
+                  <option value={0} disabled>Selecione...</option>
+                  {medicos.map((m: Medico) => (
+                    <option key={m.id} value={m.id}>{m.nome}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="form-row">
-                <div className="form-group half-width">
-                    <label htmlFor="dataConsulta">Data da Consulta</label>
-                    <input
-                        id="dataConsulta"
-                        name="dataConsulta"
-                        type="date"
-                        value={formData.dataConsulta}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+              <div className="form-group half-width">
+                <label htmlFor="dataConsulta">Data da Consulta</label>
+                <input
+                  id="dataConsulta"
+                  name="dataConsulta"
+                  type="date"
+                  value={formData.dataConsulta}
+                  onChange={handleChange}
+                  required
+                  data-testid="input-data-consulta"
+                />
+              </div>
             </div>
 
             <div className="form-row">
-                <div className="form-group half-width">
-                    <label htmlFor="especialidade">Especialidade</label>
-                    <input
-                        id="especialidade"
-                        name="especialidade"
-                        type="text"
-                        value={formData.especialidade}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div className="form-group half-width">
-                    <label htmlFor="valorProcedimento">Valor do Procedimento (R$)</label>
-                    <input
-                        id="valorProcedimento"
-                        name="valorProcedimento"
-                        type="number"
-                        step="0.01"
-                        value={formData.valorProcedimento}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+              <div className="form-group half-width">
+                <label htmlFor="especialidade">Especialidade</label>
+                <input
+                  id="especialidade"
+                  name="especialidade"
+                  type="text"
+                  value={formData.especialidade}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group half-width">
+                <label htmlFor="valorProcedimento">Valor do Procedimento (R$)</label>
+                <input
+                  id="valorProcedimento"
+                  name="valorProcedimento"
+                  type="number"
+                  step="0.01"
+                  value={formData.valorProcedimento}
+                  onChange={handleChange}
+                  required
+                  data-testid="input-valor-procedimento"
+                />
+              </div>
             </div>
 
             <div className="form-group">
-                <label htmlFor="descricaoProcedimento">Descrição do Procedimento</label>
-                <textarea
-                    id="descricaoProcedimento"
-                    name="descricaoProcedimento"
-                    rows={3}
-                    value={formData.descricaoProcedimento}
-                    onChange={handleChange}
-                ></textarea>
+              <label htmlFor="descricaoProcedimento">Descrição do Procedimento</label>
+              <textarea
+                id="descricaoProcedimento"
+                name="descricaoProcedimento"
+                rows={3}
+                value={formData.descricaoProcedimento}
+                onChange={handleChange}
+              ></textarea>
             </div>
           </fieldset>
 
@@ -484,7 +492,7 @@ const RegistroConsultas: React.FC = () => {
             <button type="button" className="btn-secondary" onClick={closeModal}>
               Cancelar
             </button>
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn-primary" data-testid="btn-salvar-consulta">
               {isEditing ? 'Salvar Alterações' : 'Salvar Consulta'}
             </button>
           </div>

@@ -80,7 +80,7 @@ const Relatorios: React.FC = () => {
       const stat = stats.get(h.medicoId)!;
       stat.totalHonorarios++;
       stat.valorTotal += (h.valor || 0);
-      
+
       if (h.status === 'PAGO') {
         stat.valorPago += calcularValorLiquido(h);
       }
@@ -128,13 +128,13 @@ const Relatorios: React.FC = () => {
       const stat = stats.get(planoId)!;
       stat.totalHonorarios++;
       stat.valorTotal += (h.valor || 0);
-      
+
       if (h.status === 'PAGO') {
         stat.valorPago += calcularValorLiquido(h);
       } else if (h.status === 'PENDENTE' || h.status === 'ENVIADO') {
         stat.valorPendente += (h.valor || 0);
       }
-      
+
       if (h.valorGlosa) {
         stat.valorGlosado += h.valorGlosa;
       }
@@ -190,7 +190,7 @@ const Relatorios: React.FC = () => {
     honorariosFiltrados.forEach(h => {
       const valor = h.valor || 0;
       valorTotal += valor;
-      
+
       if (h.status === 'PAGO') {
         valorPago += calcularValorLiquido(h);
       } else if (h.status === 'PENDENTE') {
@@ -198,17 +198,17 @@ const Relatorios: React.FC = () => {
       } else if (h.status === 'ENVIADO') {
         valorEnviado += valor;
       }
-      
+
       if (h.valorGlosa) {
         valorGlosado += h.valorGlosa;
       }
     });
 
-    return { 
-      valorTotal, 
-      valorPago, 
-      valorGlosado, 
-      valorPendente, 
+    return {
+      valorTotal,
+      valorPago,
+      valorGlosado,
+      valorPendente,
       valorEnviado,
       taxaGlosa: valorTotal > 0 ? (valorGlosado / valorTotal) * 100 : 0,
       totalHonorarios: honorariosFiltrados.length
@@ -225,12 +225,12 @@ const Relatorios: React.FC = () => {
 
     // Agrupar por mês
     const consultasPorMes = new Map<string, Consulta[]>();
-    
+
     consultasFiltradas.forEach(consulta => {
       if (consulta.status === 'Pago' && consulta.dataRecebimento) {
         const data = new Date(consulta.dataConsulta);
         const mesAno = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
-        
+
         if (!consultasPorMes.has(mesAno)) {
           consultasPorMes.set(mesAno, []);
         }
@@ -243,7 +243,7 @@ const Relatorios: React.FC = () => {
       const tempoMedio = calcularTempoMedioPagamento(consultasMes);
       const [ano, mes] = mesAno.split('-');
       const nomeMes = new Date(parseInt(ano), parseInt(mes) - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      
+
       return {
         mesAno,
         nomeMes: nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1),
@@ -272,10 +272,10 @@ const Relatorios: React.FC = () => {
 
   const handleExportPDF = () => {
     const doc = new jsPDF();
-    const dataAtual = new Date().toLocaleDateString('pt-BR', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const dataAtual = new Date().toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
 
     // Configurações
@@ -285,7 +285,7 @@ const Relatorios: React.FC = () => {
     // Cabeçalho
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    
+
     const titulos: { [key: string]: string } = {
       'geral': 'Relatorio Geral de Honorarios',
       'medico': 'Relatorio por Medico',
@@ -293,25 +293,25 @@ const Relatorios: React.FC = () => {
       'glosas': 'Relatorio de Glosas',
       'tempo-pagamento': 'Relatorio de Tempo Medio de Pagamento'
     };
-    
+
     doc.text(titulos[tipoRelatorio] || 'Relatorio', margemEsquerda, yPosition);
-    
+
     yPosition += 10;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(`Data: ${dataAtual}`, margemEsquerda, yPosition);
-    
+
     yPosition += 6;
     doc.text(`Médico: ${filtroMedico === 0 ? 'Todos' : getMedicoNome(filtroMedico)}`, margemEsquerda, yPosition);
-    
+
     yPosition += 6;
     doc.text(`Plano: ${filtroPlano === 0 ? 'Todos' : getPlanoNome(filtroPlano)}`, margemEsquerda, yPosition);
-    
+
     yPosition += 6;
     const periodoInicio = filtroDataInicio ? new Date(filtroDataInicio).toLocaleDateString('pt-BR') : 'Início';
     const periodoFim = filtroDataFim ? new Date(filtroDataFim).toLocaleDateString('pt-BR') : 'Hoje';
     doc.text(`Período: ${periodoInicio} a ${periodoFim}`, margemEsquerda, yPosition);
-    
+
     yPosition += 10;
     doc.setDrawColor(200, 200, 200);
     doc.line(margemEsquerda, yPosition, 196, yPosition);
@@ -324,7 +324,7 @@ const Relatorios: React.FC = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('Resumo Financeiro', margemEsquerda, yPosition);
       yPosition += 8;
-      
+
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`Total Processado: ${resumoGeral.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, margemEsquerda, yPosition);
@@ -413,7 +413,7 @@ const Relatorios: React.FC = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('Estatísticas de Glosas', margemEsquerda, yPosition);
       yPosition += 8;
-      
+
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`Total de Glosas: ${estatisticasGlosas.totalGlosas}`, margemEsquerda, yPosition);
@@ -446,7 +446,7 @@ const Relatorios: React.FC = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('Análise de Tempo de Pagamento', margemEsquerda, yPosition);
       yPosition += 8;
-      
+
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`Tempo Médio Geral: ${analiseTempoMensal.tempoMedioGeral} dias`, margemEsquerda, yPosition);
@@ -511,15 +511,16 @@ const Relatorios: React.FC = () => {
       </div>
 
       {/* Seletor de Tipo de Relatório */}
-      <div className="report-type-selector no-print" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '15px', 
-        marginBottom: '30px' 
+      <div className="report-type-selector no-print" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '15px',
+        marginBottom: '30px'
       }}>
         <button
           className={`report-type-card ${tipoRelatorio === 'geral' ? 'active' : ''}`}
           onClick={() => setTipoRelatorio('geral')}
+          data-testid="btn-relatorio-geral"
           style={{
             padding: '20px',
             border: tipoRelatorio === 'geral' ? '2px solid var(--primary-color)' : '2px solid #e1e5e9',
@@ -537,6 +538,7 @@ const Relatorios: React.FC = () => {
         <button
           className={`report-type-card ${tipoRelatorio === 'medico' ? 'active' : ''}`}
           onClick={() => setTipoRelatorio('medico')}
+          data-testid="btn-relatorio-medico"
           style={{
             padding: '20px',
             border: tipoRelatorio === 'medico' ? '2px solid var(--primary-color)' : '2px solid #e1e5e9',
@@ -554,6 +556,7 @@ const Relatorios: React.FC = () => {
         <button
           className={`report-type-card ${tipoRelatorio === 'plano' ? 'active' : ''}`}
           onClick={() => setTipoRelatorio('plano')}
+          data-testid="btn-relatorio-plano"
           style={{
             padding: '20px',
             border: tipoRelatorio === 'plano' ? '2px solid var(--primary-color)' : '2px solid #e1e5e9',
@@ -571,6 +574,7 @@ const Relatorios: React.FC = () => {
         <button
           className={`report-type-card ${tipoRelatorio === 'glosas' ? 'active' : ''}`}
           onClick={() => setTipoRelatorio('glosas')}
+          data-testid="btn-relatorio-glosas"
           style={{
             padding: '20px',
             border: tipoRelatorio === 'glosas' ? '2px solid var(--primary-color)' : '2px solid #e1e5e9',
@@ -588,6 +592,7 @@ const Relatorios: React.FC = () => {
         <button
           className={`report-type-card ${tipoRelatorio === 'tempo-pagamento' ? 'active' : ''}`}
           onClick={() => setTipoRelatorio('tempo-pagamento')}
+          data-testid="btn-relatorio-tempo"
           style={{
             padding: '20px',
             border: tipoRelatorio === 'tempo-pagamento' ? '2px solid var(--primary-color)' : '2px solid #e1e5e9',
@@ -607,7 +612,7 @@ const Relatorios: React.FC = () => {
       <div className="filter-container no-print">
         <div className="form-group">
           <label htmlFor="filtroMedico">Médico</label>
-          <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
+          <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))} data-testid="select-filtro-medico">
             <option value={0}>Todos os Médicos</option>
             {medicos.map((m: Medico) => (
               <option key={m.id} value={m.id}>{m.nome}</option>
@@ -616,7 +621,7 @@ const Relatorios: React.FC = () => {
         </div>
         <div className="form-group">
           <label htmlFor="filtroPlano">Plano de Saúde</label>
-          <select id="filtroPlano" value={filtroPlano} onChange={e => setFiltroPlano(Number(e.target.value))}>
+          <select id="filtroPlano" value={filtroPlano} onChange={e => setFiltroPlano(Number(e.target.value))} data-testid="select-filtro-plano">
             <option value={0}>Todos os Planos</option>
             {planosSaude.map((p: PlanoSaude) => (
               <option key={p.id} value={p.id}>{p.nome}</option>
@@ -625,13 +630,13 @@ const Relatorios: React.FC = () => {
         </div>
         <div className="form-group">
           <label htmlFor="filtroDataInicio">De:</label>
-          <input type="date" id="filtroDataInicio" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)} />
+          <input type="date" id="filtroDataInicio" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)} data-testid="input-data-inicio" />
         </div>
         <div className="form-group">
           <label htmlFor="filtroDataFim">Até:</label>
-          <input type="date" id="filtroDataFim" value={filtroDataFim} onChange={e => setFiltroDataFim(e.target.value)} />
+          <input type="date" id="filtroDataFim" value={filtroDataFim} onChange={e => setFiltroDataFim(e.target.value)} data-testid="input-data-fim" />
         </div>
-        <button className="btn btn-primary" onClick={handleGenerateReport}>
+        <button className="btn btn-primary" onClick={handleGenerateReport} data-testid="btn-gerar-relatorio">
           <FaChartBar /> Gerar Relatório
         </button>
       </div>
@@ -660,10 +665,10 @@ const Relatorios: React.FC = () => {
                 </p>
               </div>
               <div className="no-print" style={{ display: 'flex', gap: '10px' }}>
-                <button className="btn btn-secondary" onClick={handlePrint}>
+                <button className="btn btn-secondary" onClick={handlePrint} data-testid="btn-imprimir">
                   <FaPrint /> Imprimir
                 </button>
-                <button className="btn btn-primary" onClick={handleExportPDF}>
+                <button className="btn btn-primary" onClick={handleExportPDF} data-testid="btn-exportar-pdf">
                   <FaFileDownload /> Exportar PDF
                 </button>
               </div>
@@ -798,8 +803,8 @@ const Relatorios: React.FC = () => {
                         <td style={{ color: '#28a745' }}>{stat.valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         <td style={{ color: '#dc3545' }}>{stat.valorGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         <td>
-                          <span style={{ 
-                            padding: '4px 8px', 
+                          <span style={{
+                            padding: '4px 8px',
                             borderRadius: '4px',
                             background: stat.taxaGlosa > 15 ? '#ffebee' : '#e8f5e9',
                             color: stat.taxaGlosa > 15 ? '#c62828' : '#2e7d32',
@@ -846,8 +851,8 @@ const Relatorios: React.FC = () => {
                         <td style={{ color: '#ffc107' }}>{stat.valorPendente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         <td style={{ color: '#dc3545' }}>{stat.valorGlosado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         <td>
-                          <span style={{ 
-                            padding: '4px 8px', 
+                          <span style={{
+                            padding: '4px 8px',
                             borderRadius: '4px',
                             background: stat.taxaGlosa > 15 ? '#ffebee' : '#e8f5e9',
                             color: stat.taxaGlosa > 15 ? '#c62828' : '#2e7d32',
@@ -926,10 +931,10 @@ const Relatorios: React.FC = () => {
                         </td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ 
-                              flex: 1, 
-                              height: '20px', 
-                              background: '#f5f5f5', 
+                            <div style={{
+                              flex: 1,
+                              height: '20px',
+                              background: '#f5f5f5',
                               borderRadius: '10px',
                               overflow: 'hidden'
                             }}>
@@ -955,10 +960,10 @@ const Relatorios: React.FC = () => {
               </div>
 
               {/* Recomendações */}
-              <div style={{ 
-                marginTop: '30px', 
-                padding: '20px', 
-                background: '#fff3cd', 
+              <div style={{
+                marginTop: '30px',
+                padding: '20px',
+                background: '#fff3cd',
                 border: '1px solid #ffc107',
                 borderRadius: '8px'
               }}>
@@ -1064,10 +1069,10 @@ const Relatorios: React.FC = () => {
               </div>
 
               {/* Análise e Recomendações */}
-              <div style={{ 
-                marginTop: '30px', 
-                padding: '20px', 
-                background: '#e7f3ff', 
+              <div style={{
+                marginTop: '30px',
+                padding: '20px',
+                background: '#e7f3ff',
                 border: '1px solid #007bff',
                 borderRadius: '8px'
               }}>
@@ -1097,10 +1102,10 @@ const Relatorios: React.FC = () => {
               </div>
 
               {/* Meta de Implantação */}
-              <div style={{ 
-                marginTop: '20px', 
-                padding: '20px', 
-                background: analiseTempoMensal.tempoMedioGeral <= 30 ? '#d4edda' : '#fff3cd', 
+              <div style={{
+                marginTop: '20px',
+                padding: '20px',
+                background: analiseTempoMensal.tempoMedioGeral <= 30 ? '#d4edda' : '#fff3cd',
                 border: `1px solid ${analiseTempoMensal.tempoMedioGeral <= 30 ? '#28a745' : '#ffc107'}`,
                 borderRadius: '8px'
               }}>

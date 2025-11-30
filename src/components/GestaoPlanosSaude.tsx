@@ -8,9 +8,9 @@ import { FaPlus, FaEdit, FaTrash, FaEye, FaToggleOn, FaToggleOff } from 'react-i
 import './GestaoPlanosSaude.css';
 
 const GestaoPlanosSaude: React.FC = () => {
-  const { 
-    planosSaude, addPlanoSaude, updatePlanoSaude, deletePlanoSaude, 
-    getHonorariosByPlano 
+  const {
+    planosSaude, addPlanoSaude, updatePlanoSaude, deletePlanoSaude,
+    getHonorariosByPlano
   } = useData();
 
   // Estados do componente
@@ -47,9 +47,9 @@ const GestaoPlanosSaude: React.FC = () => {
   // Abrir modal para criar novo plano
   const handleNovoPlano = () => {
     setEditingPlano(null);
-    setFormData({ 
-      nome: '', 
-      tipo: 'PARTICULAR', 
+    setFormData({
+      nome: '',
+      tipo: 'PARTICULAR',
       ativo: true,
       codigoOperadora: '',
       valorConsultaPadrao: 100,
@@ -113,18 +113,18 @@ const GestaoPlanosSaude: React.FC = () => {
           updatedAt: new Date().toISOString()
         };
         await updatePlanoSaude(planoAtualizado);
-        
+
         setIsModalOpen(false);
-        setFormData({ 
-          nome: '', 
-          tipo: 'PARTICULAR', 
+        setFormData({
+          nome: '',
+          tipo: 'PARTICULAR',
           ativo: true,
           codigoOperadora: '',
           valorConsultaPadrao: 100,
           prazoPagamentoDias: 30,
           percentualGlosa: 5
         });
-        
+
         setFeedbackModal({
           isOpen: true,
           tipo: 'success',
@@ -133,18 +133,18 @@ const GestaoPlanosSaude: React.FC = () => {
       } else {
         // Criar novo plano
         await addPlanoSaude(planoData);
-        
+
         setIsModalOpen(false);
-        setFormData({ 
-          nome: '', 
-          tipo: 'PARTICULAR', 
+        setFormData({
+          nome: '',
+          tipo: 'PARTICULAR',
           ativo: true,
           codigoOperadora: '',
           valorConsultaPadrao: 100,
           prazoPagamentoDias: 30,
           percentualGlosa: 5
         });
-        
+
         setFeedbackModal({
           isOpen: true,
           tipo: 'success',
@@ -153,15 +153,15 @@ const GestaoPlanosSaude: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Erro capturado ao salvar plano:', error);
-      
+
       // Fechar o modal de formulário
       setIsModalOpen(false);
-      
+
       // Tratamento específico para erros de duplicidade
       let mensagemErro = error.message || 'Erro ao salvar plano de saúde.';
-      
-      if (mensagemErro.includes('já existe') || mensagemErro.includes('duplicado') || 
-          mensagemErro.toLowerCase().includes('already exists')) {
+
+      if (mensagemErro.includes('já existe') || mensagemErro.includes('duplicado') ||
+        mensagemErro.toLowerCase().includes('already exists')) {
         mensagemErro = `Já existe um plano cadastrado com o nome "${formData.nome}" ou código de operadora "${formData.codigoOperadora}".\n\nPor favor, verifique os dados e tente novamente com valores diferentes.`;
       }
 
@@ -170,7 +170,7 @@ const GestaoPlanosSaude: React.FC = () => {
         tipo: 'error',
         mensagem: mensagemErro
       });
-      
+
       console.log('FeedbackModal definido:', { isOpen: true, tipo: 'error', mensagem: mensagemErro });
     }
   };
@@ -186,10 +186,10 @@ const GestaoPlanosSaude: React.FC = () => {
     if (planoToDelete) {
       try {
         const sucesso = await deletePlanoSaude(planoToDelete.id);
-        
+
         setIsConfirmationOpen(false);
         setPlanoToDelete(null);
-        
+
         if (sucesso) {
           setFeedbackModal({
             isOpen: true,
@@ -206,7 +206,7 @@ const GestaoPlanosSaude: React.FC = () => {
       } catch (error: any) {
         setIsConfirmationOpen(false);
         setPlanoToDelete(null);
-        
+
         setFeedbackModal({
           isOpen: true,
           tipo: 'error',
@@ -225,7 +225,7 @@ const GestaoPlanosSaude: React.FC = () => {
         updatedAt: new Date().toISOString()
       };
       await updatePlanoSaude(planoAtualizado);
-      
+
       setFeedbackModal({
         isOpen: true,
         tipo: 'success',
@@ -245,7 +245,7 @@ const GestaoPlanosSaude: React.FC = () => {
     const honorarios = getHonorariosByPlano(plano.id);
     const totalHonorarios = honorarios.reduce((acc, h) => acc + h.valor, 0);
     const quantidadeHonorarios = honorarios.length;
-    
+
     return { totalHonorarios, quantidadeHonorarios };
   };
 
@@ -253,7 +253,7 @@ const GestaoPlanosSaude: React.FC = () => {
     <div className="gestao-planos-container">
       <div className="page-header">
         <h1>Gestão de Planos de Saúde</h1>
-        <button className="btn-primary" onClick={handleNovoPlano}>
+        <button className="btn-primary" onClick={handleNovoPlano} data-testid="btn-novo-plano">
           <FaPlus /> Novo Plano
         </button>
       </div>
@@ -267,11 +267,12 @@ const GestaoPlanosSaude: React.FC = () => {
             placeholder="Digite o nome do plano..."
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
+            data-testid="input-busca-plano"
           />
         </div>
         <div className="filtro-grupo">
           <label>Filtrar por tipo:</label>
-          <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}>
+          <select value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)} data-testid="select-filtro-tipo">
             <option value="TODOS">Todos os tipos</option>
             <option value="PARTICULAR">Particular</option>
             <option value="CONVENIO">Convênio</option>
@@ -284,7 +285,7 @@ const GestaoPlanosSaude: React.FC = () => {
         {planosFiltrados.map(plano => {
           const stats = getEstatisticasPlano(plano);
           return (
-            <div key={plano.id} className={`plano-card ${!plano.ativo ? 'inativo' : ''}`}>
+            <div key={plano.id} className={`plano-card ${!plano.ativo ? 'inativo' : ''}`} data-testid={`card-plano-${plano.id}`}>
               <div className="plano-header">
                 <h3>{plano.nome}</h3>
                 <div className="plano-actions">
@@ -292,20 +293,23 @@ const GestaoPlanosSaude: React.FC = () => {
                     className="btn-icon"
                     onClick={() => handleToggleStatus(plano)}
                     title={plano.ativo ? 'Desativar' : 'Ativar'}
+                    data-testid={`btn-toggle-status-${plano.id}`}
                   >
                     {plano.ativo ? <FaToggleOn className="ativo" /> : <FaToggleOff className="inativo" />}
                   </button>
-                  <button 
+                  <button
                     className="btn-icon edit"
                     onClick={() => handleEditarPlano(plano)}
                     title="Editar"
+                    data-testid={`btn-editar-plano-${plano.id}`}
                   >
                     <FaEdit />
                   </button>
-                  <button 
+                  <button
                     className="btn-icon delete"
                     onClick={() => handleConfirmarExclusao(plano)}
                     title="Excluir"
+                    data-testid={`btn-excluir-plano-${plano.id}`}
                   >
                     <FaTrash />
                   </button>
@@ -354,8 +358,8 @@ const GestaoPlanosSaude: React.FC = () => {
       )}
 
       {/* Modal de Formulário */}
-      <Modal 
-        isOpen={isModalOpen} 
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingPlano ? 'Editar Plano de Saúde' : 'Novo Plano de Saúde'}
       >
@@ -367,6 +371,7 @@ const GestaoPlanosSaude: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
             placeholder="Ex: Unimed DF, Bradesco Saúde..."
             required
+            data-testid="input-nome-plano"
           />
         </div>
 
@@ -377,6 +382,7 @@ const GestaoPlanosSaude: React.FC = () => {
             value={formData.codigoOperadora}
             onChange={(e) => setFormData({ ...formData, codigoOperadora: e.target.value })}
             placeholder="Ex: 123456"
+            data-testid="input-codigo-operadora"
           />
         </div>
 
@@ -385,6 +391,7 @@ const GestaoPlanosSaude: React.FC = () => {
           <select
             value={formData.tipo}
             onChange={(e) => setFormData({ ...formData, tipo: e.target.value as PlanoSaude['tipo'] })}
+            data-testid="select-tipo-plano"
           >
             <option value="PARTICULAR">Particular</option>
             <option value="CONVENIO">Convênio</option>
@@ -400,6 +407,7 @@ const GestaoPlanosSaude: React.FC = () => {
             value={formData.valorConsultaPadrao}
             onChange={(e) => setFormData({ ...formData, valorConsultaPadrao: parseFloat(e.target.value) || 0 })}
             required
+            data-testid="input-valor-consulta"
           />
         </div>
 
@@ -410,6 +418,7 @@ const GestaoPlanosSaude: React.FC = () => {
             min="1"
             value={formData.prazoPagamentoDias}
             onChange={(e) => setFormData({ ...formData, prazoPagamentoDias: parseInt(e.target.value) || 30 })}
+            data-testid="input-prazo-pagamento"
           />
         </div>
 
@@ -422,6 +431,7 @@ const GestaoPlanosSaude: React.FC = () => {
             max="100"
             value={formData.percentualGlosa}
             onChange={(e) => setFormData({ ...formData, percentualGlosa: parseFloat(e.target.value) || 0 })}
+            data-testid="input-percentual-glosa"
           />
         </div>
 
@@ -431,16 +441,17 @@ const GestaoPlanosSaude: React.FC = () => {
               type="checkbox"
               checked={formData.ativo}
               onChange={(e) => setFormData({ ...formData, ativo: e.target.checked })}
+              data-testid="checkbox-ativo-plano"
             />
             Plano ativo
           </label>
         </div>
 
         <div className="modal-actions">
-          <button className="btn-secondary" onClick={() => setIsModalOpen(false)}>
+          <button className="btn-secondary" onClick={() => setIsModalOpen(false)} data-testid="btn-cancelar-plano">
             Cancelar
           </button>
-          <button className="btn-primary" onClick={handleSalvarPlano}>
+          <button className="btn-primary" onClick={handleSalvarPlano} data-testid="btn-salvar-plano">
             {editingPlano ? 'Atualizar' : 'Criar'} Plano
           </button>
         </div>
@@ -462,7 +473,7 @@ const GestaoPlanosSaude: React.FC = () => {
         mensagem={feedbackModal.mensagem}
         onClose={() => setFeedbackModal({ isOpen: false, tipo: 'success', mensagem: '' })}
       />
-    </div>
+    </div >
   );
 };
 

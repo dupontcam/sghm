@@ -185,7 +185,7 @@ const GestaoUsuarios: React.FC = () => {
             Crie e gerencie operadores do sistema (edite seu próprio perfil em "Meu Perfil")
           </p>
         </div>
-        <button className="btn btn-primary" onClick={handleAdd}>
+        <button className="btn btn-primary" onClick={handleAdd} data-testid="btn-novo-usuario">
           <FaUserPlus style={{ marginRight: '5px' }} />
           Novo Usuário
         </button>
@@ -200,6 +200,7 @@ const GestaoUsuarios: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
+          data-testid="input-pesquisa-usuario"
         />
       </div>
 
@@ -227,7 +228,7 @@ const GestaoUsuarios: React.FC = () => {
               </tr>
             ) : (
               filteredUsuarios.map((usuario) => (
-                <tr key={usuario.id}>
+                <tr key={usuario.id} data-testid={`row-usuario-${usuario.id}`}>
                   <td>{usuario.id}</td>
                   <td>{usuario.nome}</td>
                   <td>{usuario.email}</td>
@@ -249,6 +250,7 @@ const GestaoUsuarios: React.FC = () => {
                         className="btn-icon btn-edit"
                         onClick={() => handleEdit(usuario)}
                         title="Editar"
+                        data-testid={`btn-editar-usuario-${usuario.id}`}
                       >
                         <FaEdit />
                       </button>
@@ -257,6 +259,7 @@ const GestaoUsuarios: React.FC = () => {
                         onClick={() => handleDeleteClick(usuario.id)}
                         title="Excluir"
                         disabled={usuario.perfil === 'Admin' && usuarios.filter(u => u.perfil === 'Admin').length === 1}
+                        data-testid={`btn-excluir-usuario-${usuario.id}`}
                       >
                         <FaTrash />
                       </button>
@@ -289,6 +292,7 @@ const GestaoUsuarios: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="Digite o nome completo"
+              data-testid="input-nome-usuario"
             />
           </div>
 
@@ -306,6 +310,7 @@ const GestaoUsuarios: React.FC = () => {
                 onChange={handleChange}
                 required
                 placeholder="usuario@exemplo.com"
+                data-testid="input-email-usuario"
               />
             </div>
             <div className="form-group half-width">
@@ -320,6 +325,7 @@ const GestaoUsuarios: React.FC = () => {
                 value={formData.telefone}
                 onChange={handleChange}
                 placeholder="(00) 00000-0000"
+                data-testid="input-telefone-usuario"
               />
             </div>
           </div>
@@ -338,6 +344,7 @@ const GestaoUsuarios: React.FC = () => {
               required={!currentUsuario}
               minLength={6}
               placeholder="Mínimo 6 caracteres"
+              data-testid="input-senha-usuario"
             />
             <small style={{ color: '#6c757d', fontSize: '0.85rem' }}>
               {currentUsuario
@@ -358,6 +365,7 @@ const GestaoUsuarios: React.FC = () => {
                 value={formData.perfil}
                 onChange={handleChange}
                 required
+                data-testid="select-perfil-usuario"
               >
                 <option value="Operador">Operador</option>
                 <option value="Admin">Administrador</option>
@@ -379,6 +387,7 @@ const GestaoUsuarios: React.FC = () => {
                 onChange={handleChange}
                 required
                 placeholder="Ex: Operador de Sistema"
+                data-testid="input-cargo-usuario"
               />
             </div>
           </div>
@@ -391,6 +400,7 @@ const GestaoUsuarios: React.FC = () => {
                 checked={formData.ativo}
                 onChange={handleChange}
                 style={{ marginRight: '8px' }}
+                data-testid="checkbox-ativo-usuario"
               />
               <span>Usuário ativo</span>
             </label>
@@ -400,10 +410,10 @@ const GestaoUsuarios: React.FC = () => {
           </div>
 
           <div className="form-footer">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary" data-testid="btn-cancelar-usuario">
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" data-testid="btn-salvar-usuario">
               {currentUsuario ? 'Salvar Alterações' : 'Criar Usuário'}
             </button>
           </div>

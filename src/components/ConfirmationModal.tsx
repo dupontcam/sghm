@@ -1,6 +1,6 @@
 import React from 'react';
 // 1. Mudando para o novo CSS genérico
-import './FeedbackModal.css'; 
+import './FeedbackModal.css';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -27,10 +27,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
           <p>{message}</p>
         </div>
         <div className="feedback-modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+          <button className="btn btn-secondary" onClick={onClose} data-testid="btn-cancelar-exclusao">
             Cancelar
           </button>
-          <button className="btn btn-danger" onClick={onConfirm}>
+          <button className="btn btn-danger" onClick={onConfirm} data-testid="btn-confirmar-exclusao">
             Confirmar Exclusão
           </button>
         </div>
