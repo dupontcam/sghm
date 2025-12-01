@@ -82,15 +82,9 @@ const transformMedicoFromBackend = (medico: any) => ({
 // --- API de Médicos ---
 export const medicosAPI = {
   getAll: async () => {
-    try {
-      const response = await fetchAPI('/medicos');
-      const data = response.data || response;
-      return Array.isArray(data) ? data.map(transformMedicoFromBackend) : [];
-    } catch (error) {
-      console.warn('Backend não disponível, usando dados mock para médicos');
-      const { mockMedicos } = await import('../data/mockData');
-      return mockMedicos;
-    }
+    const response = await fetchAPI('/medicos');
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformMedicoFromBackend) : [];
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/medicos/${id}`);
@@ -133,15 +127,9 @@ const transformPacienteFromBackend = (paciente: any) => ({
 // --- API de Pacientes ---
 export const pacientesAPI = {
   getAll: async () => {
-    try {
-      const response = await fetchAPI('/pacientes');
-      const data = response.data || response;
-      return Array.isArray(data) ? data.map(transformPacienteFromBackend) : [];
-    } catch (error) {
-      console.warn('Backend não disponível, usando dados mock para pacientes');
-      const { mockPacientes } = await import('../data/mockData');
-      return mockPacientes;
-    }
+    const response = await fetchAPI('/pacientes');
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformPacienteFromBackend) : [];
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/pacientes/${id}`);
@@ -220,15 +208,9 @@ const transformConsultaFromBackend = (consulta: any) => ({
 // --- API de Consultas ---
 export const consultasAPI = {
   getAll: async () => {
-    try {
-      const response = await fetchAPI('/consultas');
-      const data = response.data || response;
-      return Array.isArray(data) ? data.map(transformConsultaFromBackend) : [];
-    } catch (error) {
-      console.warn('Backend não disponível, usando dados mock para consultas');
-      const { mockConsultas } = await import('../data/mockData');
-      return mockConsultas;
-    }
+    const response = await fetchAPI('/consultas');
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformConsultaFromBackend) : [];
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/consultas/${id}`);
@@ -283,25 +265,19 @@ const transformPlanoFromBackend = (plano: any) => {
 // --- API de Planos de Saúde ---
 export const planosAPI = {
   getAll: async () => {
-    try {
-      const response = await fetchAPI('/planos');
-      const planos = response.data?.planos || response.planos || response.data || response;
+    const response = await fetchAPI('/planos');
+    const planos = response.data?.planos || response.planos || response.data || response;
 
-      if (!Array.isArray(planos)) {
-        console.warn('Resposta de planos não é um array:', planos);
-        throw new Error('Formato inválido');
-      }
-
-      const transformed = planos
-        .map(transformPlanoFromBackend)
-        .filter((p): p is NonNullable<typeof p> => p !== null);
-      console.log(`${transformed.length} planos carregados com sucesso`);
-      return transformed;
-    } catch (error) {
-      console.warn('Backend não disponível, usando dados mock para planos de saúde');
-      const { mockPlanosSaude } = await import('../data/mockData');
-      return mockPlanosSaude;
+    if (!Array.isArray(planos)) {
+      console.warn('Resposta de planos não é um array:', planos);
+      throw new Error('Formato inválido');
     }
+
+    const transformed = planos
+      .map(transformPlanoFromBackend)
+      .filter((p): p is NonNullable<typeof p> => p !== null);
+    console.log(`${transformed.length} planos carregados com sucesso`);
+    return transformed;
   },
   getById: async (id: number) => {
     const response = await fetchAPI(`/planos/${id}`);
@@ -368,16 +344,10 @@ const transformHonorarioFromBackend = (honorario: any) => ({
 // --- API de Honorários ---
 export const honorariosAPI = {
   getAll: async () => {
-    try {
-      const response = await fetchAPI('/honorarios');
-      // Backend retorna { success, data: { honorarios, pagination, ... } }
-      const honorarios = response.data?.honorarios || response.honorarios || [];
-      return Array.isArray(honorarios) ? honorarios.map(transformHonorarioFromBackend) : [];
-    } catch (error) {
-      console.warn('Backend não disponível, usando dados mock para honorários');
-      const { mockHonorarios } = await import('../data/mockData');
-      return mockHonorarios;
-    }
+    const response = await fetchAPI('/honorarios');
+    // Backend retorna { success, data: { honorarios, pagination, ... } }
+    const honorarios = response.data?.honorarios || response.honorarios || [];
+    return Array.isArray(honorarios) ? honorarios.map(transformHonorarioFromBackend) : [];
   },
   getById: async (id: number) => {
     const data = await fetchAPI(`/honorarios/${id}`);
@@ -426,6 +396,20 @@ export const honorariosAPI = {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
+  enviarRecurso: (id: number, data: { motivo_recurso: string; data_recurso?: string }) =>
+    fetchAPI(`/honorarios/${id}/recurso`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+  atualizarStatusRecurso: (id: number, data: { status_recurso: string; valor_recuperado?: number }) =>
+    fetchAPI(`/honorarios/${id}/recurso/status`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+  getHistorico: async (id: number) => {
+    const response = await fetchAPI(`/honorarios/${id}/historico`);
+    return response.data || response;
+  },
   delete: (id: number) => fetchAPI(`/honorarios/${id}`, { method: 'DELETE' }),
 };
 
