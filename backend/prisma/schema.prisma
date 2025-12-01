@@ -59,6 +59,7 @@ model usuarios {
   // Relacionamentos: Um usuário pode ter incluído ou alterado muitas consultas
   consultas_alteradas consultas[] @relation("consultas_alteradas_por")
   consultas_incluidas consultas[] @relation("consultas_incluidas_por")
+  historico_honorarios historico_honorarios[]
 }
 
 // Model para a tabela 'medicos'
@@ -181,6 +182,13 @@ model honorarios {
   motivo_glosa         String?          @db.VarChar(255)
   data_glosa           DateTime?        @db.Date
   
+  // Controle de recursos de glosa
+  recurso_enviado      Boolean?         @default(false)
+  status_recurso       String?          @db.VarChar(20) // PENDENTE, ACEITO_TOTAL, ACEITO_PARCIAL, NEGADO
+  data_recurso         DateTime?        @db.Date
+  motivo_recurso       String?          @db.Text
+  valor_recuperado     Decimal?         @db.Decimal(10, 2)
+  
   // Metadados
   numero_guia          String?          @db.VarChar(50)
   observacoes          String?          @db.Text
@@ -190,6 +198,7 @@ model honorarios {
   // Relacionamentos
   consulta             consultas        @relation(fields: [consulta_id], references: [id], onDelete: Cascade)
   plano_saude          planos_saude     @relation(fields: [plano_saude_id], references: [id], onDelete: Restrict)
+  historico            historico_honorarios[]
 
   // Índices essenciais
   @@index([consulta_id])
@@ -197,5 +206,26 @@ model honorarios {
   @@index([status_pagamento])
   @@index([data_pagamento])
   @@index([created_at])
+  @@index([status_recurso])
+}
+
+// Model para a tabela 'historico_honorarios' - Auditoria de Alterações
+model historico_honorarios {
+  id                Int       @id @default(autoincrement())
+  honorario_id      Int
+  tipo_evento       String    @db.VarChar(50) // STATUS_ALTERADO, GLOSA, RECURSO_ENVIADO, RECURSO_RESPONDIDO, etc
+  descricao         String    @db.Text
+  dados_adicionais  Json?     // Dados extras em formato JSON (JSONB no PostgreSQL)
+  usuario_id        Int?
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  
+  // Relacionamentos
+  honorario         honorarios @relation(fields: [honorario_id], references: [id], onDelete: Cascade)
+  usuario           usuarios?  @relation(fields: [usuario_id], references: [id], onDelete: SetNull)
+  
+  // Índices para otimizar consultas
+  @@index([honorario_id])
+  @@index([created_at])
+  @@index([tipo_evento])
 }
 
