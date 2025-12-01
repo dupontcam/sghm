@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
-import { 
+import {
   Medico, Paciente, Consulta, PlanoSaude, Honorario, DashboardStats
 } from '../data/mockData';
-import { 
-  medicosAPI, pacientesAPI, consultasAPI, planosAPI, honorariosAPI, estatisticasAPI 
+import {
+  medicosAPI, pacientesAPI, consultasAPI, planosAPI, honorariosAPI, estatisticasAPI
 } from '../services/api';
 
 // --- Definição do Tipo do Contexto ---
@@ -18,7 +18,7 @@ interface DataContextType {
   updateMedico: (medico: Medico) => Promise<void>;
   deleteMedico: (id: number) => Promise<boolean>;
   refreshMedicos: () => Promise<void>;
-  
+
   // Pacientes
   pacientes: Paciente[];
   addPaciente: (paciente: Omit<Paciente, 'id'>) => Promise<void>;
@@ -95,60 +95,10 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     quantidadeHonorarios: 0
   });
 
-  // Estado para forçar refresh quando localStorage muda
-  const [localStorageVersion, setLocalStorageVersion] = useState(0);
+  // Honorários vêm diretamente do backend (sem mesclagem com localStorage)
 
-  // Listener para mudanças no localStorage de recursos
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'sghm_recursos') {
-        setLocalStorageVersion(prev => prev + 1);
-      }
-    };
-
-    // Custom event para mudanças no mesmo tab
-    const handleCustomStorageChange = () => {
-      setLocalStorageVersion(prev => prev + 1);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('sghm_recursos_updated', handleCustomStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('sghm_recursos_updated', handleCustomStorageChange);
-    };
-  }, []);
-
-  // Mescla honorários do backend com dados de recursos do localStorage
-  const honorarios = useMemo(() => {
-    try {
-      const recursosStorage = localStorage.getItem('sghm_recursos');
-      if (!recursosStorage) {
-        return honorariosBackend;
-      }
-
-      const recursos = JSON.parse(recursosStorage);
-      
-      return honorariosBackend.map(honorario => {
-        const recurso = recursos[honorario.id];
-        if (recurso) {
-          return {
-            ...honorario,
-            recursoEnviado: recurso.recursoEnviado,
-            statusRecurso: recurso.statusRecurso,
-            dataRecurso: recurso.dataRecurso,
-            motivoRecurso: recurso.motivoRecurso,
-            valorRecuperado: recurso.valorRecuperado
-          };
-        }
-        return honorario;
-      });
-    } catch (err) {
-      console.error('❌ Erro ao mesclar honorários com localStorage:', err);
-      return honorariosBackend;
-    }
-  }, [honorariosBackend, localStorageVersion]);
+  // Honorários vêm diretamente do backend (campos de recurso já incluídos)
+  const honorarios = honorariosBackend;
 
   // --- Funções de Refresh (buscar dados da API) ---
   const refreshMedicos = useCallback(async () => {
@@ -222,7 +172,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
           refreshPacientes(),
           refreshPlanosSaude()
         ]);
-        
+
         // Carrega consultas e honorários em segundo plano (não bloqueantes)
         refreshConsultas().catch(err => console.error('Erro ao carregar consultas:', err));
         refreshHonorarios().catch(err => console.error('Erro ao carregar honorários:', err));
@@ -482,7 +432,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     // Planos de Saúde
     planosSaude, addPlanoSaude, updatePlanoSaude, deletePlanoSaude, getPlanoSaudeById, refreshPlanosSaude,
     // Honorários
-    honorarios, addHonorario, updateHonorario, deleteHonorario, 
+    honorarios, addHonorario, updateHonorario, deleteHonorario,
     getHonorariosByMedico, getHonorariosByPlano, refreshHonorarios,
     // Dashboard
     getDashboardStats, refreshDashboardStats
