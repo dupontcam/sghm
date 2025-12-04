@@ -64,15 +64,38 @@ const processPlanoData = (honorarios: any[], planosSaude: any[]) => {
     })).sort((a, b) => b.valor - a.valor);
 };
 
-// Tendência mensal (simulada)
-const monthlyData = [
-    { mes: 'Mai', valor: 820, glosado: 25 },
-    { mes: 'Jun', valor: 950, glosado: 30 },
-    { mes: 'Jul', valor: 1100, glosado: 45 },
-    { mes: 'Ago', valor: 1050, glosado: 32 },
-    { mes: 'Set', valor: 1240, glosado: 38 },
-    { mes: 'Out', valor: 1180, glosado: 42 },
-];
+// Processar tendência mensal baseado em dados reais
+const processMonthlyData = (honorarios: any[]) => {
+    const monthlyStats: { [key: string]: { valor: number, glosado: number } } = {};
+    
+    honorarios.forEach(honorario => {
+        const date = new Date(honorario.dataConsulta);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthlyStats[monthKey]) {
+            monthlyStats[monthKey] = { valor: 0, glosado: 0 };
+        }
+        
+        monthlyStats[monthKey].valor += honorario.valor || 0;
+        if (honorario.status === 'GLOSADO' || honorario.valorGlosa) {
+            monthlyStats[monthKey].glosado += honorario.valorGlosa || 0;
+        }
+    });
+    
+    // Ordenar por mês e formatar
+    return Object.entries(monthlyStats)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-6) // Últimos 6 meses
+        .map(([key, stats]) => {
+            const [year, month] = key.split('-');
+            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            return {
+                mes: monthNames[parseInt(month) - 1],
+                valor: stats.valor,
+                glosado: stats.glosado
+            };
+        });
+};
 
 // --- Componente do Dashboard ---
 
@@ -88,17 +111,20 @@ const Dashboard: React.FC = () => {
     const dashboardStats = getDashboardStats();
     const pieData = processPieData(honorarios);
     const planoData = processPlanoData(honorarios, planosSaude);
+    const monthlyData = processMonthlyData(honorarios);
     const tempoMedioPagamento = calcularTempoMedioPagamento(consultas);
-
     // Carregar estatísticas de satisfação
     useEffect(() => {
-        if (user) {
-            avaliacoesService.initialize([
-                { id: user.id, nome: user.nome, perfil: userProfile }
-            ]);
-        }
-        const stats = avaliacoesService.getEstatisticasGerais();
-        setEstatisticasSatisfacao(stats);
+        // Remover dados mockados - sistema começa vazio
+        // if (user) {
+        //     avaliacoesService.initialize([
+        //         { id: user.id, nome: user.nome, perfil: userProfile }
+        //     ]);
+        // }
+        // const stats = avaliacoesService.getEstatisticasGerais();
+        // setEstatisticasSatisfacao(stats);
+        setEstatisticasSatisfacao(null); // Sistema começa sem avaliações
+    }, [user, userProfile]);facao(stats);
     }, [user, userProfile]);
 
     // Ranking de médicos por valor
@@ -194,41 +220,45 @@ const Dashboard: React.FC = () => {
             {/* Gráficos para Admin */}
             {userProfile === 'Admin' && (
                 <>
-                    <div className="charts-container">
-                        
                         {/* Gráfico de Tendência */}
                         <div className="chart chart-large">
                             <h4>Tendência de Honorários (6 meses)</h4>
                             <div style={{ width: '100%', height: 250 }}>
-                                <ResponsiveContainer>
-                                    <AreaChart data={monthlyData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                                        <defs>
-                                            <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#007bff" stopOpacity={0.8}/>
-                                                <stop offset="95%" stopColor="#007bff" stopOpacity={0}/>
-                                            </linearGradient>
-                                        </defs>
-                                        <XAxis dataKey="mes" fontSize={12} />
-                                        <YAxis fontSize={12} tickFormatter={(value) => `R$${value}`} />
-                                        <Tooltip formatter={(value) => `R$${(value as number).toLocaleString('pt-BR')}`} />
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="valor" 
-                                            stroke="#007bff" 
-                                            fillOpacity={1} 
-                                            fill="url(#colorValor)"
-                                            name="Valor Total"
-                                        />
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="glosado" 
-                                            stroke="#dc3545" 
-                                            fill="#dc3545"
-                                            fillOpacity={0.3}
-                                            name="Glosado"
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                                {monthlyData.length > 0 ? (
+                                    <ResponsiveContainer>
+                                        <AreaChart data={monthlyData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                                            <defs>
+                                                <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#007bff" stopOpacity={0.8}/>
+                                                    <stop offset="95%" stopColor="#007bff" stopOpacity={0}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis dataKey="mes" fontSize={12} />
+                                            <YAxis fontSize={12} tickFormatter={(value) => `R$${value}`} />
+                                            <Tooltip formatter={(value) => `R$${(value as number).toLocaleString('pt-BR')}`} />
+                                            <Area 
+                                                type="monotone" 
+                                                dataKey="valor" 
+                                                stroke="#007bff" 
+                                                fillOpacity={1} 
+                                                fill="url(#colorValor)"
+                                                name="Valor Total"
+                                            />
+                                            <Area 
+                                                type="monotone" 
+                                                dataKey="glosado" 
+                                                stroke="#dc3545" 
+                                                fill="#dc3545"
+                                                fillOpacity={0.3}
+                                                name="Glosado"
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="no-data">Nenhum dado disponível</div>
+                                )}
+                            </div>
+                        </div>  </ResponsiveContainer>
                             </div>
                         </div>
 
