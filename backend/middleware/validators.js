@@ -105,7 +105,7 @@ const validateMedico = {
  */
 const validatePaciente = {
   create: [
-    body('nome')
+    body('nome_paciente')
       .trim()
       .notEmpty().withMessage('Nome do paciente é obrigatório')
       .isLength({ min: 3, max: 255 }).withMessage('Nome deve ter entre 3 e 255 caracteres'),
@@ -115,8 +115,8 @@ const validatePaciente = {
       .isISO8601().withMessage('Data de nascimento inválida'),
     
     body('cpf')
-      .optional()
       .trim()
+      .notEmpty().withMessage('CPF é obrigatório')
       .matches(/^\d{11}$/).withMessage('CPF deve ter 11 dígitos'),
     
     body('telefone')
@@ -141,10 +141,15 @@ const validatePaciente = {
     param('id')
       .isInt({ min: 1 }).withMessage('ID inválido'),
     
-    body('nome')
+    body('nome_paciente')
       .optional()
       .trim()
       .isLength({ min: 3, max: 255 }).withMessage('Nome deve ter entre 3 e 255 caracteres'),
+    
+    body('cpf')
+      .optional()
+      .trim()
+      .matches(/^\d{11}$/).withMessage('CPF deve ter 11 dígitos'),
     
     body('email')
       .optional()
