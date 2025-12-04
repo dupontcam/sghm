@@ -200,14 +200,12 @@ class AvaliacoesService {
     localStorage.removeItem(AVALIACOES_KEY);
   }
 
-  // Inicializar com dados mock (primeira vez)
+  // Inicializar (remover dados mockados - sistema começa vazio)
   initialize(usuarios: { id: number; nome: string; perfil: 'Admin' | 'Operador' }[]): void {
     const avaliacoes = this.getAvaliacoes();
     
     // Verificar se há avaliações antigas sem perfilUsuario (formato antigo)
     const temAvaliacoesAntigas = avaliacoes.some(a => !a.perfilUsuario);
-    
-    if (avaliacoes.length > 0 && !temAvaliacoesAntigas) return; // Já inicializado com formato correto
     
     // Limpar dados antigos incompatíveis
     if (temAvaliacoesAntigas) {
@@ -215,48 +213,8 @@ class AvaliacoesService {
       this.clearAvaliacoes();
     }
 
-    // Criar 12 avaliações mockadas sobre o sistema
-    const categorias: Array<'usabilidade' | 'interface' | 'relatorios' | 'desempenho' | 'geral'> = ['usabilidade', 'interface', 'relatorios', 'desempenho', 'geral'];
-    const notas: Array<1 | 2 | 3 | 4 | 5> = [5, 5, 4, 4, 4, 3, 5, 5, 4, 4, 3, 5];
-    const comentariosMock = [
-      'Sistema muito intuitivo e fácil de usar!',
-      'Interface moderna e agradável.',
-      'Relatórios muito completos e úteis.',
-      'Desempenho excelente, rápido e eficiente.',
-      'Adorei a organização geral do sistema!',
-      'Interface poderia ter mais opções de personalização.',
-      'Dashboard muito informativo!',
-      'Gráficos muito claros e objetivos.',
-      'Sistema atende todas as minhas necessidades.',
-      'Transparência total nos dados apresentados.',
-      '',
-      'Recomendo fortemente este sistema!'
-    ];
-
-    const agora = new Date();
-    const mockAvaliacoes: Avaliacao[] = [];
-
-    for (let i = 0; i < 12; i++) {
-      const usuarioAleatorio = usuarios[i % usuarios.length];
-      const diasAtras = Math.floor(Math.random() * 90); // Últimos 90 dias
-      const dataAvaliacao = new Date(agora);
-      dataAvaliacao.setDate(dataAvaliacao.getDate() - diasAtras);
-
-      mockAvaliacoes.push({
-        id: this.gerarId(),
-        data: dataAvaliacao.toISOString(),
-        nota: notas[i],
-        categoria: categorias[i % categorias.length],
-        comentario: comentariosMock[i] || undefined,
-        respondidoPor: usuarioAleatorio.nome,
-        respondidoPorId: usuarioAleatorio.id,
-        perfilUsuario: usuarioAleatorio.perfil,
-        createdAt: dataAvaliacao.toISOString()
-      });
-    }
-
-    this.saveAvaliacoes(mockAvaliacoes);
-    console.log('✅ Avaliações do sistema inicializadas:', mockAvaliacoes.length);
+    // Sistema começa vazio - sem dados mockados
+    // Usuários podem adicionar suas próprias avaliações quando quiserem
   }
 }
 

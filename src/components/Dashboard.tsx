@@ -113,18 +113,11 @@ const Dashboard: React.FC = () => {
     const planoData = processPlanoData(honorarios, planosSaude);
     const monthlyData = processMonthlyData(honorarios);
     const tempoMedioPagamento = calcularTempoMedioPagamento(consultas);
+    
     // Carregar estatísticas de satisfação
     useEffect(() => {
-        // Remover dados mockados - sistema começa vazio
-        // if (user) {
-        //     avaliacoesService.initialize([
-        //         { id: user.id, nome: user.nome, perfil: userProfile }
-        //     ]);
-        // }
-        // const stats = avaliacoesService.getEstatisticasGerais();
-        // setEstatisticasSatisfacao(stats);
-        setEstatisticasSatisfacao(null); // Sistema começa sem avaliações
-    }, [user, userProfile]);facao(stats);
+        // Sistema começa sem avaliações - sem dados mockados
+        setEstatisticasSatisfacao(null);
     }, [user, userProfile]);
 
     // Ranking de médicos por valor
