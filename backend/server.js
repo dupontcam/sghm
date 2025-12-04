@@ -5,6 +5,8 @@ console.log('[DEBUG] 1. Iniciando servidor...');
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { PrismaClient } = require('@prisma/client');
 
 console.log('[DEBUG] 2. Pacotes carregados');
@@ -21,11 +23,50 @@ const PORT = process.env.PORT || 5000;
 console.log('[DEBUG] 4. Express inicializado');
 console.log(`[DEBUG] 4.1. PORT configurado para: ${PORT}`);
 
-// --- Middlewares ---
-// Habilita o CORS para permitir que o frontend React faça requisições
-app.use(cors());
-// Habilita o Express para entender JSON no corpo das requisições
+// --- Middlewares de Segurança ---
+
+// Helmet: Protege headers HTTP
+app.use(helmet({
+  contentSecurityPolicy: false, // Desabilitar CSP para permitir recursos externos
+  crossOriginEmbedderPolicy: false
+}));
+
+// CORS: Configuração restrita
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['https://sghm.vercel.app'])
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Rate Limiting Global: Proteção contra DDoS
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // Limite de 100 requisições por IP
+  message: {
+    error: 'Muitas requisições deste IP, tente novamente em 15 minutos'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// Rate Limiting para Autenticação: Proteção contra brute force
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5, // Apenas 5 tentativas de login
+  message: {
+    error: 'Muitas tentativas de login, tente novamente em 15 minutos'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Middleware para parsing de JSON
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 console.log('[DEBUG] 5. Middlewares configurados');
 
@@ -40,7 +81,7 @@ console.log('[DEBUG] 6. Carregando rotas...');
 // Importa e usa as rotas de Autenticação (SEM middleware de auth)
 console.log('[DEBUG] 6.1. Carregando auth routes');
 const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes); // Aplica rate limiting específico
 
 // Importa e usa as rotas de Médicos
 console.log('[DEBUG] 6.2. Carregando medicos routes');

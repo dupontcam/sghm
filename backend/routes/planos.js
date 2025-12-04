@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
-const { authenticateToken, requireAuth, requireAdmin } = require('../middleware/auth');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { validatePlano } = require('../middleware/validators');
 
 const prisma = new PrismaClient();
 
@@ -170,7 +171,7 @@ router.get('/:id', authenticateToken, requireAuth, async (req, res) => {
  * ACESSO: Apenas administradores
  * ====================================================================
  */
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, validatePlano.create, async (req, res) => {
   try {
     console.log('POST /planos - Body recebido:', JSON.stringify(req.body, null, 2));
     
@@ -256,7 +257,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
  * ACESSO: Apenas administradores
  * ====================================================================
  */
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, validatePlano.update, async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -353,7 +354,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
  * ACESSO: Apenas administradores
  * ====================================================================
  */
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, validatePlano.delete, async (req, res) => {
   try {
     const { id } = req.params;
 

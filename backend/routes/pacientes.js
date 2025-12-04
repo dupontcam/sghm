@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { authenticateToken } = require('../middleware/auth');
+const { validatePaciente } = require('../middleware/validators');
 
 // Inicializa o Prisma Client
 const prisma = new PrismaClient();
@@ -12,7 +13,7 @@ const prisma = new PrismaClient();
  * DESCRIÇÃO: Cria um novo paciente
  * ====================================================================
  */
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, validatePaciente.create, async (req, res) => {
   const {
     nome_paciente,
     cpf,
@@ -111,7 +112,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
  * DESCRIÇÃO: Atualiza um paciente existente
  * ====================================================================
  */
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, validatePaciente.update, async (req, res) => {
   const { id } = req.params;
   const {
     nome_paciente,
@@ -163,7 +164,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
  * DESCRIÇÃO: Deleta um paciente
  * ====================================================================
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, validatePaciente.delete, async (req, res) => {
   const { id } = req.params;
 
   console.log('DELETE /pacientes/:id - ID recebido:', id);

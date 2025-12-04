@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { authenticateToken, requireAuth, requireAdmin } = require('../middleware/auth');
+const { validateHonorario } = require('../middleware/validators');
 
 const prisma = new PrismaClient();
 
@@ -316,7 +317,7 @@ router.get('/:id', authenticateToken, requireAuth, async (req, res) => {
  * ACESSO: Usuários autenticados
  * ====================================================================
  */
-router.post('/', authenticateToken, requireAuth, async (req, res) => {
+router.post('/', authenticateToken, requireAuth, validateHonorario.create, async (req, res) => {
   try {
     const {
       consulta_id,
@@ -442,7 +443,7 @@ router.post('/', authenticateToken, requireAuth, async (req, res) => {
  * ACESSO: Usuários autenticados
  * ====================================================================
  */
-router.put('/:id/status', authenticateToken, requireAuth, async (req, res) => {
+router.put('/:id/status', authenticateToken, requireAuth, validateHonorario.updateStatus, async (req, res) => {
   try {
     const { id } = req.params;
     const { status_pagamento, data_pagamento, observacoes } = req.body;
@@ -537,7 +538,7 @@ router.put('/:id/status', authenticateToken, requireAuth, async (req, res) => {
  * ACESSO: Usuários autenticados
  * ====================================================================
  */
-router.put('/:id/glosa', authenticateToken, requireAuth, async (req, res) => {
+router.put('/:id/glosa', authenticateToken, requireAuth, validateHonorario.updateGlosa, async (req, res) => {
   try {
     const { id } = req.params;
     const { valor_glosa, motivo_glosa, data_glosa } = req.body;

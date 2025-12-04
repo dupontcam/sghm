@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const { authenticateToken, requireAdmin, requireAuth } = require('../middleware/auth');
+const { validateAuth } = require('../middleware/validators');
 
 const prisma = new PrismaClient();
 
@@ -13,17 +14,8 @@ const prisma = new PrismaClient();
  * DESCRIÇÃO: Autentica usuário e retorna token JWT
  * ====================================================================
  */
-router.post('/login', async (req, res) => {
+router.post('/login', validateAuth.login, async (req, res) => {
   const { email, senha } = req.body;
-
-  // Validação básica
-  if (!email || !senha) {
-    return res.status(400).json({
-      success: false,
-      error: 'Email e senha são obrigatórios',
-      code: 'MISSING_CREDENTIALS'
-    });
-  }
 
   try {
     // Buscar usuário por email
@@ -384,28 +376,9 @@ router.post('/logout', authenticateToken, async (req, res) => {
  * ACESSO: Apenas ADMIN
  * ====================================================================
  */
-router.post('/create-user', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/create-user', authenticateToken, requireAdmin, validateAuth.createUser, async (req, res) => {
   try {
     const { email, senha, nome_completo, role = 'OPERADOR' } = req.body;
-
-    // Validação de entrada
-    if (!email || !senha || !nome_completo) {
-      return res.status(400).json({
-        success: false,
-        error: 'Email, senha e nome completo são obrigatórios',
-        code: 'MISSING_FIELDS'
-      });
-    }
-
-    // Validar formato do email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Formato de email inválido',
-        code: 'INVALID_EMAIL'
-      });
-    }
 
     // Validar força da senha
     if (senha.length < 6) {

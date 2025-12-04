@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import ErrorNotification from './components/ErrorNotification';
 import Login from './components/Login';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -24,47 +26,50 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <DataProvider> 
-        <Router>
-          <div className="App">
-            <Routes>
-              {/* Rotas Públicas */}
-              <Route path="/" element={<Navigate replace to="/login" />} />
-              <Route path="/login" element={<Login />} />
-              
-              {/* Rotas Protegidas (requerem autenticação) */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<Layout />}>
-                  
-                  {/* Rotas para TODOS os usuários autenticados */}
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/consultas" element={<RegistroConsultas />} />
-                  <Route path="/medicos" element={<CadastroMedicos />} />
-                  <Route path="/pacientes" element={<CadastroPacientes />} />
-                  <Route path="/planos-saude" element={<GestaoPlanosSaude />} />
-                  <Route path="/honorarios" element={<GestaoHonorarios />} />
-                  <Route path="/notificacoes" element={<Notifications />} />
-                  <Route path="/satisfacao" element={<Satisfacao />} />
-                  <Route path="/perfil" element={<UserProfile />} />
-                  
-                  {/* Rotas EXCLUSIVAS DO ADMIN */}
-                  <Route element={<AdminRoute />}>
-                    <Route path="/financeiro" element={<ControleFinanceiro />} />
-                    <Route path="/relatorios" element={<Relatorios />} />
-                    <Route path="/usuarios" element={<GestaoUsuarios />} />
-                    <Route path="/backup" element={<Backup />} />
-                  </Route>
+    <ErrorBoundary>
+      <AuthProvider>
+        <DataProvider> 
+          <ErrorNotification />
+          <Router>
+            <div className="App">
+              <Routes>
+                {/* Rotas Públicas */}
+                <Route path="/" element={<Navigate replace to="/login" />} />
+                <Route path="/login" element={<Login />} />
+                
+                {/* Rotas Protegidas (requerem autenticação) */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<Layout />}>
+                    
+                    {/* Rotas para TODOS os usuários autenticados */}
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/consultas" element={<RegistroConsultas />} />
+                    <Route path="/medicos" element={<CadastroMedicos />} />
+                    <Route path="/pacientes" element={<CadastroPacientes />} />
+                    <Route path="/planos-saude" element={<GestaoPlanosSaude />} />
+                    <Route path="/honorarios" element={<GestaoHonorarios />} />
+                    <Route path="/notificacoes" element={<Notifications />} />
+                    <Route path="/satisfacao" element={<Satisfacao />} />
+                    <Route path="/perfil" element={<UserProfile />} />
+                    
+                    {/* Rotas EXCLUSIVAS DO ADMIN */}
+                    <Route element={<AdminRoute />}>
+                      <Route path="/financeiro" element={<ControleFinanceiro />} />
+                      <Route path="/relatorios" element={<Relatorios />} />
+                      <Route path="/usuarios" element={<GestaoUsuarios />} />
+                      <Route path="/backup" element={<Backup />} />
+                    </Route>
 
+                  </Route>
                 </Route>
-              </Route>
-              
-              <Route path="*" element={<Navigate replace to="/login" />} />
-            </Routes>
-          </div>
-        </Router>
-      </DataProvider>
-    </AuthProvider>
+                
+                <Route path="*" element={<Navigate replace to="/login" />} />
+              </Routes>
+            </div>
+          </Router>
+        </DataProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { authenticateToken } = require('../middleware/auth');
+const { validateMedico } = require('../middleware/validators');
 
 // Inicializa o Prisma Client
-// (Assumindo que está no mesmo nível do server.js que inicializa o prisma)
 const prisma = new PrismaClient();
 
 /*
@@ -13,16 +13,8 @@ const prisma = new PrismaClient();
  * DESCRIÇÃO: Cria um novo médico
  * ====================================================================
  */
-router.post('/', authenticateToken, async (req, res) => {
-  // Pega os dados do corpo da requisição (JSON)
+router.post('/', authenticateToken, validateMedico.create, async (req, res) => {
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
-
-  // Validação básica (Exemplo: CRM é obrigatório)
-  if (!nome_medico || !crm) {
-    return res.status(400).json({
-      error: 'Campos obrigatórios (nome_medico, crm) não foram preenchidos.',
-    });
-  }
 
   try {
     // Tenta criar o novo médico no banco de dados
@@ -107,7 +99,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
  * DESCRIÇÃO: Atualiza um médico existente
  * ====================================================================
  */
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, validateMedico.update, async (req, res) => {
   const { id } = req.params;
   const { nome_medico, especialidade, crm, cnpj_cpf, email, telefone } = req.body;
 
@@ -154,7 +146,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
  * DESCRIÇÃO: Deleta um médico
  * ====================================================================
  */
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, validateMedico.delete, async (req, res) => {
   const { id } = req.params;
 
   try {
