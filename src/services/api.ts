@@ -60,14 +60,21 @@ const fetchAPI = async (endpoint: string, options?: RequestInit) => {
 };
 
 // --- Transformadores de dados ---
-const transformMedicoToBackend = (medico: any) => ({
-  nome_medico: medico.nome,
-  especialidade: medico.especialidade,
-  crm: medico.crm,
-  cnpj_cpf: medico.cpf,
-  email: medico.email,
-  telefone: medico.telefone,
-});
+const transformMedicoToBackend = (medico: any) => {
+  // Remover formatação de CPF e CRM (manter apenas números)
+  const cpfLimpo = medico.cpf ? medico.cpf.replace(/\D/g, '') : '';
+  const crmLimpo = medico.crm ? medico.crm.replace(/\D/g, '') : '';
+  
+  return {
+    nome_medico: medico.nome,
+    especialidade: medico.especialidade,
+    crm: crmLimpo,
+    cnpj_cpf: cpfLimpo,
+    email: medico.email,
+    telefone: medico.telefone,
+    percentual_repasse: medico.percentual_repasse
+  };
+};
 
 const transformMedicoFromBackend = (medico: any) => ({
   id: medico.id,
@@ -103,15 +110,20 @@ export const medicosAPI = {
   delete: (id: number) => fetchAPI(`/medicos/${id}`, { method: 'DELETE' }),
 };
 
-const transformPacienteToBackend = (paciente: any) => ({
-  nome_paciente: paciente.nome,
-  data_nascimento: paciente.dataNascimento || null,
-  cpf: paciente.cpf,
-  email: paciente.email,
-  telefone: paciente.telefone,
-  convenio: paciente.convenio || null,
-  numero_carteirinha: paciente.carteirinha || null,
-});
+const transformPacienteToBackend = (paciente: any) => {
+  // Remover formatação de CPF (manter apenas números)
+  const cpfLimpo = paciente.cpf ? paciente.cpf.replace(/\D/g, '') : '';
+  
+  return {
+    nome_paciente: paciente.nome,
+    data_nascimento: paciente.dataNascimento || null,
+    cpf: cpfLimpo,
+    email: paciente.email,
+    telefone: paciente.telefone,
+    convenio: paciente.convenio || null,
+    numero_carteirinha: paciente.carteirinha || null,
+  };
+};
 
 const transformPacienteFromBackend = (paciente: any) => ({
   id: paciente.id,
