@@ -181,8 +181,15 @@ const transformConsultaToBackend = (consulta: any) => {
     'Glosado': 'GLOSA'
   };
 
+  // Ajustar data para evitar problema de fuso horário
+  // Se a data vem como "2025-11-10", adicionar horário meio-dia no fuso local
+  let dataAjustada = consulta.dataConsulta;
+  if (dataAjustada && !dataAjustada.includes('T')) {
+    dataAjustada = dataAjustada + 'T12:00:00.000Z';
+  }
+
   const payload: any = {
-    data_consulta: consulta.dataConsulta,
+    data_consulta: dataAjustada,
     protocolo: consulta.protocolo,
     consultorio: consulta.consultorio,
     tipo_local: consulta.tipoLocal || null,
@@ -199,7 +206,11 @@ const transformConsultaToBackend = (consulta: any) => {
   // Adiciona campos de pagamento se status for Pago
   if (consulta.status === 'Pago') {
     payload.valor_recebido = consulta.valorRecebido || consulta.valorProcedimento;
-    payload.data_recebimento = consulta.dataRecebimento || consulta.dataConsulta;
+    let dataRecebimentoAjustada = consulta.dataRecebimento || consulta.dataConsulta;
+    if (dataRecebimentoAjustada && !dataRecebimentoAjustada.includes('T')) {
+      dataRecebimentoAjustada = dataRecebimentoAjustada + 'T12:00:00.000Z';
+    }
+    payload.data_recebimento = dataRecebimentoAjustada;
   }
 
   return payload;

@@ -56,7 +56,7 @@ router.post('/', authenticateToken, validateConsulta.create, async (req, res) =>
       usuario_alteracao: { connect: { id: usuario_id } },
 
       // Outros campos da consulta
-      data_consulta: new Date(data_consulta + 'T12:00:00'),
+      data_consulta: new Date(data_consulta),
       tipo_pagamento: tipo_pagamento || 'PARTICULAR',
       status_pagamento: status_pagamento || 'PENDENTE',
       valor_bruto: parseFloat(valor_bruto),
@@ -64,7 +64,7 @@ router.post('/', authenticateToken, validateConsulta.create, async (req, res) =>
       // Campos opcionais de pagamento
       valor_recebido: valor_recebido ? parseFloat(valor_recebido) : null,
       valor_glosa: valor_glosa ? parseFloat(valor_glosa) : null,
-      data_recebimento: data_recebimento ? new Date(data_recebimento + 'T12:00:00') : null,
+      data_recebimento: data_recebimento ? new Date(data_recebimento) : null,
 
       // Campos diretos
       numero_carteirinha: numero_carteirinha || null,
@@ -275,7 +275,7 @@ router.put('/:id', authenticateToken, validateConsulta.update, async (req, res) 
     usuario_alteracao: { connect: { id: usuario_id } },
 
     // Campos normais
-    data_consulta: data_consulta ? new Date(data_consulta + 'T12:00:00') : undefined,
+    data_consulta: data_consulta ? new Date(data_consulta) : undefined,
     tipo_pagamento,
     status_pagamento,
     valor_bruto: valor_bruto ? parseFloat(valor_bruto) : undefined,
