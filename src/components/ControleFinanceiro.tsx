@@ -86,20 +86,9 @@ const ControleFinanceiro: React.FC = () => {
     let aReceber = 0;
     let enviado = 0;
 
-    // Somar consultas
-    consultasFiltradas.forEach(c => {
-      faturado += c.valorProcedimento;
-      if (c.status === 'Pago') {
-        pago += c.valorProcedimento;
-      } else if (c.status === 'Glosado') {
-        glosado += c.valorProcedimento;
-      } else if (c.status === 'Pendente') {
-        aReceber += c.valorProcedimento;
-      }
-    });
-
-    // Somar honorários (se exibir honorários está ativo)
     if (exibirHonorarios) {
+      // Quando honorários está ativo, usar APENAS os honorários (não duplicar com consultas)
+      // pois honorários já representam as consultas de convênio
       honorariosFiltrados.forEach(h => {
         const valor = h.valor || 0;
         faturado += valor;
@@ -112,6 +101,32 @@ const ControleFinanceiro: React.FC = () => {
           aReceber += valor;
         } else if (h.status === 'ENVIADO') {
           enviado += valor;
+        }
+      });
+      
+      // Adicionar consultas particulares (que não geram honorários)
+      consultasFiltradas.forEach(c => {
+        if (!c.planoSaudeId) { // Apenas consultas particulares
+          faturado += c.valorProcedimento;
+          if (c.status === 'Pago') {
+            pago += c.valorProcedimento;
+          } else if (c.status === 'Glosado') {
+            glosado += c.valorProcedimento;
+          } else if (c.status === 'Pendente') {
+            aReceber += c.valorProcedimento;
+          }
+        }
+      });
+    } else {
+      // Quando honorários está desativado, usar apenas consultas
+      consultasFiltradas.forEach(c => {
+        faturado += c.valorProcedimento;
+        if (c.status === 'Pago') {
+          pago += c.valorProcedimento;
+        } else if (c.status === 'Glosado') {
+          glosado += c.valorProcedimento;
+        } else if (c.status === 'Pendente') {
+          aReceber += c.valorProcedimento;
         }
       });
     }
@@ -142,8 +157,8 @@ const ControleFinanceiro: React.FC = () => {
       </div>
 
       {/* Seção de Filtros */}
-      <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div className="filter-row" style={{ display: 'flex', gap: '20px', flexWrap: 'nowrap' }}>
+      <div className="filter-container-two-rows">
+        <div className="filter-row-first">
           <div className="form-group">
             <label htmlFor="filtroMedico">Médico:</label>
             <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
@@ -173,7 +188,7 @@ const ControleFinanceiro: React.FC = () => {
           </div>
         </div>
         
-        <div className="filter-row" style={{ display: 'flex', gap: '20px', flexWrap: 'nowrap' }}>
+        <div className="filter-row-second">
           <div className="form-group">
             <label htmlFor="filtroDataInicio">Data Início:</label>
             <input type="date" id="filtroDataInicio" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)} />
