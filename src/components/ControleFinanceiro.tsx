@@ -142,8 +142,8 @@ const ControleFinanceiro: React.FC = () => {
       </div>
 
       {/* Seção de Filtros */}
-      <div className="filter-container">
-        <div className="filter-row">
+      <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div className="filter-row" style={{ display: 'flex', gap: '20px', flexWrap: 'nowrap' }}>
           <div className="form-group">
             <label htmlFor="filtroMedico">Médico:</label>
             <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
@@ -173,7 +173,7 @@ const ControleFinanceiro: React.FC = () => {
           </div>
         </div>
         
-        <div className="filter-row">
+        <div className="filter-row" style={{ display: 'flex', gap: '20px', flexWrap: 'nowrap' }}>
           <div className="form-group">
             <label htmlFor="filtroDataInicio">Data Início:</label>
             <input type="date" id="filtroDataInicio" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)} />
