@@ -291,9 +291,9 @@ const validateHonorario = {
     param('id')
       .isInt({ min: 1 }).withMessage('ID inválido'),
     
-    body('status')
+    body('status_pagamento')
       .notEmpty().withMessage('Status é obrigatório')
-      .isIn(['PENDENTE', 'ENVIADO', 'PAGO', 'GLOSADO']).withMessage('Status inválido'),
+      .isIn(['PENDENTE', 'ENVIADO', 'PAGO', 'GLOSADO', 'CANCELADO']).withMessage('Status inválido'),
     
     handleValidationErrors
   ],
