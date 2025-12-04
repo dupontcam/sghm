@@ -622,6 +622,26 @@ router.put('/:id/glosa', authenticateToken, requireAuth, validateHonorario.updat
       }
     });
 
+    // Registrar no histórico
+    await prisma.historico_honorarios.create({
+      data: {
+        honorario_id: parseInt(id),
+        tipo_evento: 'GLOSA_REGISTRADA',
+        descricao: parseFloat(valor_glosa) > 0 
+          ? `Glosa de R$ ${parseFloat(valor_glosa).toFixed(2)} registrada`
+          : 'Glosa removida (valor zerado)',
+        dados_adicionais: {
+          valor_glosa: parseFloat(valor_glosa),
+          motivo: motivo_glosa?.trim() || null,
+          valor_original: parseFloat(honorario.valor_consulta),
+          valor_liquido: valorLiquido,
+          status_anterior: honorario.status_pagamento,
+          status_novo: novoStatus
+        },
+        usuario_id: req.user.id
+      }
+    });
+
     res.status(200).json({
       success: true,
       message: 'Glosa registrada com sucesso',
