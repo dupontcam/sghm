@@ -183,7 +183,7 @@ const validateConsulta = {
       .notEmpty().withMessage('Data da consulta é obrigatória')
       .isISO8601().withMessage('Data da consulta inválida'),
     
-    body('valor_consulta')
+    body('valor_bruto')
       .isFloat({ min: 0 }).withMessage('Valor da consulta deve ser um número positivo'),
     
     body('plano_saude_id')
@@ -201,7 +201,7 @@ const validateConsulta = {
       .optional()
       .isISO8601().withMessage('Data da consulta inválida'),
     
-    body('valor_consulta')
+    body('valor_bruto')
       .optional()
       .isFloat({ min: 0 }).withMessage('Valor da consulta deve ser um número positivo'),
     

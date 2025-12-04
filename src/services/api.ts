@@ -241,11 +241,15 @@ export const consultasAPI = {
     const data = await fetchAPI(`/consultas/${id}`);
     return transformConsultaFromBackend(data);
   },
-  create: (data: any) =>
-    fetchAPI('/consultas', {
+  create: (data: any) => {
+    const transformed = transformConsultaToBackend(data);
+    console.log('📤 Consulta original:', data);
+    console.log('📤 Consulta transformada para backend:', transformed);
+    return fetchAPI('/consultas', {
       method: 'POST',
-      body: JSON.stringify(transformConsultaToBackend(data))
-    }).then(transformConsultaFromBackend),
+      body: JSON.stringify(transformed)
+    }).then(transformConsultaFromBackend);
+  },
   update: (id: number, data: any) =>
     fetchAPI(`/consultas/${id}`, {
       method: 'PUT',
