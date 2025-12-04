@@ -49,7 +49,10 @@ const fetchAPI = async (endpoint: string, options?: RequestInit) => {
     
     // Log detalhado se houver erros de validação
     if (error.details) {
-      console.error('📋 Detalhes da validação:', error.details);
+      console.error('📋 Detalhes da validação:', JSON.stringify(error.details, null, 2));
+      error.details.forEach((detail: any, index: number) => {
+        console.error(`   ${index + 1}. Campo: ${detail.campo} - Erro: ${detail.mensagem}`);
+      });
     }
     
     throw new Error(errorMessage);
