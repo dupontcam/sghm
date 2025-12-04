@@ -221,20 +221,22 @@ const validateConsulta = {
  */
 const validatePlano = {
   create: [
-    body('nome')
+    body('nome_plano')
       .trim()
       .notEmpty().withMessage('Nome do plano é obrigatório')
       .isLength({ min: 2, max: 255 }).withMessage('Nome deve ter entre 2 e 255 caracteres'),
     
-    body('cnpj')
+    body('codigo_operadora')
       .optional()
-      .trim()
-      .matches(/^\d{14}$/).withMessage('CNPJ deve ter 14 dígitos'),
+      .trim(),
     
-    body('telefone')
+    body('tipo_plano')
       .optional()
-      .trim()
-      .matches(/^[\d\s\(\)\-\+]*$/).withMessage('Telefone em formato inválido'),
+      .isIn(['PARTICULAR', 'CONVENIO', 'SUS']).withMessage('Tipo de plano inválido'),
+    
+    body('valor_consulta_padrao')
+      .optional()
+      .isFloat({ min: 0 }).withMessage('Valor da consulta deve ser um número positivo'),
     
     handleValidationErrors
   ],
@@ -243,10 +245,14 @@ const validatePlano = {
     param('id')
       .isInt({ min: 1 }).withMessage('ID inválido'),
     
-    body('nome')
+    body('nome_plano')
       .optional()
       .trim()
       .isLength({ min: 2, max: 255 }).withMessage('Nome deve ter entre 2 e 255 caracteres'),
+    
+    body('tipo_plano')
+      .optional()
+      .isIn(['PARTICULAR', 'CONVENIO', 'SUS']).withMessage('Tipo de plano inválido'),
     
     handleValidationErrors
   ],
