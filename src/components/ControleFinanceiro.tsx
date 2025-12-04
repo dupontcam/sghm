@@ -143,40 +143,61 @@ const ControleFinanceiro: React.FC = () => {
 
       {/* Seção de Filtros */}
       <div className="filter-container">
-        <div className="form-group">
-          <label htmlFor="filtroMedico">Médico</label>
-          <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
-            <option value={0}>Todos os Médicos</option>
-            {medicos.map((m: Medico) => (
-              <option key={m.id} value={m.id}>{m.nome}</option>
-            ))}
-          </select>
+        <div className="filter-row">
+          <div className="form-group">
+            <label htmlFor="filtroMedico">Médico:</label>
+            <select id="filtroMedico" value={filtroMedico} onChange={e => setFiltroMedico(Number(e.target.value))}>
+              <option value={0}>Todos os médicos</option>
+              {medicos.map((m: Medico) => (
+                <option key={m.id} value={m.id}>{m.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="filtroPlano">Plano de Saúde:</label>
+            <select id="filtroPlano" value={filtroPlano} onChange={e => setFiltroPlano(Number(e.target.value))}>
+              <option value={0}>Todos os planos</option>
+              {planosSaude.map((p: PlanoSaude) => (
+                <option key={p.id} value={p.id}>{p.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="filtroStatus">Status:</label>
+            <select id="filtroStatus" value={filtroStatus} onChange={e => setFiltroStatus(e.target.value as StatusConsulta | '')}>
+              <option value="">Todos</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Pago">Pago</option>
+              <option value="Glosado">Glosado</option>
+            </select>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="filtroPlano">Plano de Saúde</label>
-          <select id="filtroPlano" value={filtroPlano} onChange={e => setFiltroPlano(Number(e.target.value))}>
-            <option value={0}>Todos os Planos</option>
-            {planosSaude.map((p: PlanoSaude) => (
-              <option key={p.id} value={p.id}>{p.nome}</option>
-            ))}
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="filtroStatus">Status</label>
-          <select id="filtroStatus" value={filtroStatus} onChange={e => setFiltroStatus(e.target.value as StatusConsulta | '')}>
-            <option value="">Todos os Status</option>
-            <option value="Pendente">Pendente</option>
-            <option value="Pago">Pago</option>
-            <option value="Glosado">Glosado</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="filtroDataInicio">De:</label>
-          <input type="date" id="filtroDataInicio" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label htmlFor="filtroDataFim">Até:</label>
-          <input type="date" id="filtroDataFim" value={filtroDataFim} onChange={e => setFiltroDataFim(e.target.value)} />
+        
+        <div className="filter-row">
+          <div className="form-group">
+            <label htmlFor="filtroDataInicio">Data Início:</label>
+            <input type="date" id="filtroDataInicio" value={filtroDataInicio} onChange={e => setFiltroDataInicio(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="filtroDataFim">Data Fim:</label>
+            <input type="date" id="filtroDataFim" value={filtroDataFim} onChange={e => setFiltroDataFim(e.target.value)} />
+          </div>
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <label style={{ opacity: 0 }}>.</label>
+            <button 
+              className="btn btn-secondary"
+              onClick={() => {
+                setFiltroMedico(0);
+                setFiltroPlano(0);
+                setFiltroStatus('');
+                setFiltroDataInicio('');
+                setFiltroDataFim('');
+              }}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              🗑️ Limpar Filtros
+            </button>
+          </div>
         </div>
       </div>
 
