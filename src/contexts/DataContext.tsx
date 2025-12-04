@@ -96,6 +96,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     quantidadeHonorarios: 0
   });
 
+  // Usar honorários do backend diretamente
+  const honorarios = useMemo(() => honorariosBackend, [honorariosBackend]);
+
   // --- Função para limpar erro ---
   const clearError = useCallback(() => {
     setError(null);
@@ -103,58 +106,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   // --- Funções de Refresh (buscar dados da API) ---
   const refreshMedicos = useCallback(async () => {
-    const result = await handleAPICall(
-      () => medicosAPI.getAll(),
-      'Erro ao buscar médicos',
-      { showLoading: false, onSuccess: setMedicos }
-    );
-    return result.success;
-  }, [handleAPICall]);
-
-  const refreshPacientes = useCallback(async () => {
-    const result = await handleAPICall(
-      () => pacientesAPI.getAll(),
-      'Erro ao buscar pacientes',
-      { showLoading: false, onSuccess: setPacientes }
-    );
-    return result.success;
-  }, [handleAPICall]);
-
-  const refreshConsultas = useCallback(async () => {
-    const result = await handleAPICall(
-      () => consultasAPI.getAll(),
-      'Erro ao buscar consultas',
-      { showLoading: false, onSuccess: setConsultas }
-    );
-    return result.success;
-  }, [handleAPICall]);
-
-  const refreshPlanosSaude = useCallback(async () => {
-    const result = await handleAPICall(
-      () => planosAPI.getAll(),
-      'Erro ao buscar planos de saúde',
-      { showLoading: false, onSuccess: setPlanosSaude }
-    );
-    return result.success;
-  }, [handleAPICall]);
-
-  const refreshHonorarios = useCallback(async () => {
-    const result = await handleAPICall(
-      () => honorariosAPI.getAll(),
-      'Erro ao buscar honorários',
-      { showLoading: false, onSuccess: setHonorariosBackend }
-    );
-    return result.success;
-  }, [handleAPICall]);
-
-  const refreshDashboardStats = useCallback(async () => {
-    const result = await handleAPICall(
-      () => estatisticasAPI.getDashboard(),
-      'Erro ao buscar estatísticas do dashboard',
-      { showLoading: false, onSuccess: setDashboardStats }
-    );
-    return result.success;
-  }, [handleAPICall]);Medicos(data);
+    try {
+      const data = await medicosAPI.getAll();
+      setMedicos(data);
     } catch (err: any) {
       console.error('Erro ao buscar médicos:', err);
       setError(err.message);
@@ -243,92 +197,75 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       await medicosAPI.create(medico);
       await refreshMedicos();
     } catch (err: any) {
-  // --- Funções CRUD: Médicos ---
-  const addMedico = async (medico: Omit<Medico, 'id'>) => {
-    const result = await handleAPICall(
-      () => medicosAPI.create(medico),
-      'Erro ao adicionar médico',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
-      await refreshMedicos();
-    } else {
-      throw new Error(result.error || 'Falha ao adicionar médico');
+      console.error('Erro ao adicionar médico:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const updateMedico = async (medicoAtualizado: Medico) => {
-    const result = await handleAPICall(
-      () => medicosAPI.update(medicoAtualizado.id, medicoAtualizado),
-      'Erro ao atualizar médico',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await medicosAPI.update(medicoAtualizado.id, medicoAtualizado);
       await refreshMedicos();
-    } else {
-      throw new Error(result.error || 'Falha ao atualizar médico');
+    } catch (err: any) {
+      console.error('Erro ao atualizar médico:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const deleteMedico = async (id: number): Promise<boolean> => {
-    const result = await handleAPICall(
-      () => medicosAPI.delete(id),
-      'Erro ao excluir médico'
-    );
-    
-    if (result.success) {
+    try {
+      await medicosAPI.delete(id);
       await refreshMedicos();
       return true;
+    } catch (err: any) {
+      console.error('Erro ao excluir médico:', err);
+      setError(err.message);
+      return false;
     }
+  };
+
   // --- Funções CRUD: Pacientes ---
   const addPaciente = async (paciente: Omit<Paciente, 'id'>) => {
-    const result = await handleAPICall(
-      () => pacientesAPI.create(paciente),
-      'Erro ao adicionar paciente',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await pacientesAPI.create(paciente);
       await refreshPacientes();
-    } else {
-      throw new Error(result.error || 'Falha ao adicionar paciente');
+    } catch (err: any) {
+      console.error('Erro ao adicionar paciente:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const updatePaciente = async (pacienteAtualizado: Paciente) => {
-    const result = await handleAPICall(
-      () => pacientesAPI.update(pacienteAtualizado.id, pacienteAtualizado),
-      'Erro ao atualizar paciente',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await pacientesAPI.update(pacienteAtualizado.id, pacienteAtualizado);
       await refreshPacientes();
-    } else {
-      throw new Error(result.error || 'Falha ao atualizar paciente');
+    } catch (err: any) {
+      console.error('Erro ao atualizar paciente:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const deletePaciente = async (id: number): Promise<boolean> => {
-    const result = await handleAPICall(
-      () => pacientesAPI.delete(id),
-      'Erro ao excluir paciente'
+    try {
+      await pacientesAPI.delete(id);
+      await refreshPacientes();
+      return true;
+    } catch (err: any) {
+      console.error('Erro ao excluir paciente:', err);
+      setError(err.message);
+      return false;
+    }
+  };
+
   // --- Funções CRUD: Consultas ---
   const addConsulta = async (consulta: Omit<Consulta, 'id'>) => {
-    const result = await handleAPICall(
-      () => consultasAPI.create(consulta),
-      'Erro ao adicionar consulta',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await consultasAPI.create(consulta);
       await refreshConsultas();
-    } else {
-      throw new Error(result.error || 'Falha ao adicionar consulta');
-    }
-  };  await refreshConsultas();
     } catch (err: any) {
       console.error('Erro ao adicionar consulta:', err);
       setError(err.message);
@@ -338,86 +275,71 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   // Nova função para criar consulta com honorário automático
   const addConsultaComHonorario = async (consulta: Omit<Consulta, 'id'>) => {
-    const result = await handleAPICall(
-      () => consultasAPI.create(consulta),
-      'Erro ao adicionar consulta com honorário',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await consultasAPI.create(consulta);
       await Promise.all([refreshConsultas(), refreshHonorarios()]);
-    } else {
-      throw new Error(result.error || 'Falha ao adicionar consulta com honorário');
+    } catch (err: any) {
+      console.error('Erro ao adicionar consulta com honorário:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const updateConsulta = async (consultaAtualizada: Consulta) => {
-    const result = await handleAPICall(
-      () => consultasAPI.update(consultaAtualizada.id, consultaAtualizada),
-      'Erro ao atualizar consulta',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await consultasAPI.update(consultaAtualizada.id, consultaAtualizada);
       await refreshConsultas();
-    } else {
-      throw new Error(result.error || 'Falha ao atualizar consulta');
+    } catch (err: any) {
+      console.error('Erro ao atualizar consulta:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const deleteConsulta = async (id: number) => {
-    const result = await handleAPICall(
-      () => consultasAPI.delete(id),
-      'Erro ao excluir consulta'
-    );
-    
-    if (result.success) {
+    try {
+      await consultasAPI.delete(id);
       await refreshConsultas();
-    } else {
-      throw new Error(result.error || 'Falha ao excluir consulta');
+    } catch (err: any) {
+      console.error('Erro ao excluir consulta:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   // --- Funções CRUD: Planos de Saúde ---
   const addPlanoSaude = async (plano: Omit<PlanoSaude, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const result = await handleAPICall(
-      () => planosAPI.create(plano),
-      'Erro ao adicionar plano de saúde',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await planosAPI.create(plano);
       await refreshPlanosSaude();
-    } else {
-      throw new Error(result.error || 'Falha ao adicionar plano de saúde');
+    } catch (err: any) {
+      console.error('Erro ao adicionar plano de saúde:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const updatePlanoSaude = async (planoAtualizado: PlanoSaude) => {
-    const result = await handleAPICall(
-      () => planosAPI.update(planoAtualizado.id, planoAtualizado),
-      'Erro ao atualizar plano de saúde',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await planosAPI.update(planoAtualizado.id, planoAtualizado);
       await refreshPlanosSaude();
-    } else {
-      throw new Error(result.error || 'Falha ao atualizar plano de saúde');
+    } catch (err: any) {
+      console.error('Erro ao atualizar plano de saúde:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const deletePlanoSaude = async (id: number): Promise<boolean> => {
-    const result = await handleAPICall(
-      () => planosAPI.delete(id),
-      'Erro ao excluir plano de saúde'
-    );
-    
-    if (result.success) {
+    try {
+      await planosAPI.delete(id);
       await refreshPlanosSaude();
       return true;
+    } catch (err: any) {
+      console.error('Erro ao excluir plano de saúde:', err);
+      setError(err.message);
+      return false;
     }
-    return false;
   };
 
   const getPlanoSaudeById = (id: number): PlanoSaude | undefined => {
@@ -426,43 +348,35 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   // --- Funções CRUD: Honorários ---
   const addHonorario = async (honorario: Omit<Honorario, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const result = await handleAPICall(
-      () => honorariosAPI.create(honorario),
-      'Erro ao adicionar honorário',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await honorariosAPI.create(honorario);
       await refreshHonorarios();
-    } else {
-      throw new Error(result.error || 'Falha ao adicionar honorário');
+    } catch (err: any) {
+      console.error('Erro ao adicionar honorário:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const updateHonorario = async (honorarioAtualizado: Honorario) => {
-    const result = await handleAPICall(
-      () => honorariosAPI.update(honorarioAtualizado.id, honorarioAtualizado),
-      'Erro ao atualizar honorário',
-      { retryCount: 1 }
-    );
-    
-    if (result.success) {
+    try {
+      await honorariosAPI.update(honorarioAtualizado.id, honorarioAtualizado);
       await refreshHonorarios();
-    } else {
-      throw new Error(result.error || 'Falha ao atualizar honorário');
+    } catch (err: any) {
+      console.error('Erro ao atualizar honorário:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
   const deleteHonorario = async (id: number) => {
-    const result = await handleAPICall(
-      () => honorariosAPI.delete(id),
-      'Erro ao excluir honorário'
-    );
-    
-    if (result.success) {
+    try {
+      await honorariosAPI.delete(id);
       await refreshHonorarios();
-    } else {
-      throw new Error(result.error || 'Falha ao excluir honorário');
+    } catch (err: any) {
+      console.error('Erro ao excluir honorário:', err);
+      setError(err.message);
+      throw err;
     }
   };
 
