@@ -111,7 +111,7 @@ const validatePaciente = {
       .isLength({ min: 3, max: 255 }).withMessage('Nome deve ter entre 3 e 255 caracteres'),
     
     body('data_nascimento')
-      .optional()
+      .optional({ nullable: true, checkFalsy: true })
       .isISO8601().withMessage('Data de nascimento inválida'),
     
     body('cpf')
