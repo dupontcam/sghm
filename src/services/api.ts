@@ -46,6 +46,12 @@ const fetchAPI = async (endpoint: string, options?: RequestInit) => {
     const error = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
     const errorMessage = error.error || error.message || `Erro ${response.status}`;
     console.error('❌ Erro na API:', { endpoint, status: response.status, error });
+    
+    // Log detalhado se houver erros de validação
+    if (error.details) {
+      console.error('📋 Detalhes da validação:', error.details);
+    }
+    
     throw new Error(errorMessage);
   }
 
@@ -147,11 +153,15 @@ export const pacientesAPI = {
     const data = await fetchAPI(`/pacientes/${id}`);
     return transformPacienteFromBackend(data);
   },
-  create: (data: any) =>
-    fetchAPI('/pacientes', {
+  create: (data: any) => {
+    const transformed = transformPacienteToBackend(data);
+    console.log('📤 Paciente original:', data);
+    console.log('📤 Paciente transformado para backend:', transformed);
+    return fetchAPI('/pacientes', {
       method: 'POST',
-      body: JSON.stringify(transformPacienteToBackend(data))
-    }).then(transformPacienteFromBackend),
+      body: JSON.stringify(transformed)
+    }).then(transformPacienteFromBackend);
+  },
   update: (id: number, data: any) =>
     fetchAPI(`/pacientes/${id}`, {
       method: 'PUT',
