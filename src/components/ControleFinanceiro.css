@@ -1,29 +1,32 @@
 /* Estilos para a página de Controle Financeiro (Tema Azul) */
 
 .filter-container {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 15px;
     padding: 20px;
     background-color: var(--bg-white);
     border-radius: 8px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    max-width: 100%;
 }
 
 .filter-row {
-    display: flex;
-    flex-wrap: wrap;
+    display: flex !important;
+    flex-wrap: nowrap !important;
     gap: 20px;
     align-items: flex-end;
+    width: 100%;
 }
 
 .filter-container .form-group {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    flex: 1;
-    min-width: 150px;
+    flex: 1 1 auto;
+    min-width: 180px;
+    max-width: 300px;
 }
 
 .filter-container label {
