@@ -168,6 +168,13 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   // --- Carregamento inicial ---
   useEffect(() => {
     const loadInitialData = async () => {
+      // Só carrega dados se houver token (usuário autenticado)
+      const token = localStorage.getItem('sghm_token');
+      if (!token) {
+        console.log('⚠️ DataContext: Sem token, aguardando login...');
+        return;
+      }
+
       setLoading(true);
       try {
         // Carrega apenas dados essenciais na inicialização

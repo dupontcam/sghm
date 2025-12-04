@@ -72,7 +72,9 @@ const Login: React.FC = () => {
             console.log('Dados do usuário processados:', userInfo);
             
             login(userInfo, tokenData);
-            navigate('/dashboard');
+            
+            // Recarregar a página para garantir que o DataContext carregue os dados
+            window.location.href = '/dashboard';
         } catch (err: any) {
             console.error('Erro no login:', err);
             setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
