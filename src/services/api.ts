@@ -263,6 +263,7 @@ const transformPlanoToBackend = (plano: any) => {
     prazo_pagamento_dias: plano.prazoPagamentoDias || 30,
     valor_consulta_padrao: plano.valorConsultaPadrao || 100,
     percentual_glosa_historica: plano.percentualGlosa || 5,
+    ativo: plano.ativo !== undefined ? plano.ativo : true,
   };
 };
 
