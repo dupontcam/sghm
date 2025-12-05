@@ -1033,9 +1033,26 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
     //          Recurso aceito parcial R$ 50 → Nova glosa R$ 50
     //          Total final recebido: R$ 350 (300 inicial + 50 recuperado)
     
+    console.log('📊 PROCESSAR RECURSO - Valores ANTES:', {
+      honorario_id: honorario.id,
+      valor_consulta: honorario.valor_consulta,
+      glosa_original: honorario.valor_glosa,
+      status_recurso: status_recurso,
+      valor_recuperado_enviado: valor_recuperado,
+      valor_recuperado_final: valorRecuperadoFinal
+    });
+    
     const glosaOriginal = parseFloat(honorario.valor_glosa);
     const novaGlosa = glosaOriginal - valorRecuperadoFinal; // Glosa mantida após recurso
     const novoValorLiquido = parseFloat(honorario.valor_consulta) - novaGlosa; // Total que será recebido
+    
+    console.log('🧮 PROCESSAR RECURSO - Cálculos:', {
+      glosa_original: glosaOriginal,
+      valor_recuperado: valorRecuperadoFinal,
+      nova_glosa: novaGlosa,
+      valor_consulta_base: parseFloat(honorario.valor_consulta),
+      novo_valor_liquido: novoValorLiquido
+    });
     
     // Buscar percentual de repasse do médico
     const consultaComMedico = await prisma.consultas.findUnique({
@@ -1059,6 +1076,7 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
     }
 
     // Atualizar honorário com valores recalculados
+    // CRÍTICO: valor_consulta NÃO é atualizado aqui - permanece imutável!
     const honorarioAtualizado = await prisma.honorarios.update({
       where: { id: parseInt(id) },
       data: {
@@ -1078,6 +1096,14 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
         },
         plano_saude: { select: { nome_plano: true } }
       }
+    });
+    
+    console.log('✅ PROCESSAR RECURSO - Valores DEPOIS da atualização:', {
+      honorario_id: honorarioAtualizado.id,
+      valor_consulta: honorarioAtualizado.valor_consulta,
+      valor_glosa: honorarioAtualizado.valor_glosa,
+      valor_liquido: honorarioAtualizado.valor_liquido,
+      valor_recuperado: honorarioAtualizado.valor_recuperado
     });
 
     // Registrar no histórico
