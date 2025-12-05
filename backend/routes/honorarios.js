@@ -1210,4 +1210,97 @@ router.get('/:id/historico', authenticateToken, requireAuth, async (req, res) =>
   }
 });
 
+/*
+ * ====================================================================
+ * ROTA ADMINISTRATIVA: POST /api/honorarios/corrigir-valores
+ * DESCRIÇÃO: Corrige valor_consulta de honorários inconsistentes
+ * ACESSO: Apenas ADMIN
+ * IMPORTANTE: Executar apenas UMA VEZ para corrigir dados históricos
+ * ====================================================================
+ */
+router.post('/corrigir-valores', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    console.log('🔧 INICIANDO CORREÇÃO DE VALORES DE HONORÁRIOS...');
+    
+    // Buscar todos os honorários com suas consultas
+    const honorarios = await prisma.honorarios.findMany({
+      include: {
+        consulta: {
+          select: {
+            id: true,
+            valor_bruto: true,
+            data_consulta: true,
+            medico: { select: { nome_medico: true } }
+          }
+        }
+      }
+    });
+
+    const inconsistencias = [];
+    const correcoes = [];
+
+    // Identificar inconsistências
+    for (const h of honorarios) {
+      const valorConsultaAtual = parseFloat(h.valor_consulta);
+      const valorBrutoConsulta = parseFloat(h.consulta.valor_bruto);
+      
+      if (valorConsultaAtual !== valorBrutoConsulta) {
+        inconsistencias.push({
+          honorario_id: h.id,
+          consulta_id: h.consulta_id,
+          medico: h.consulta.medico.nome_medico,
+          data: h.consulta.data_consulta,
+          valor_atual: valorConsultaAtual,
+          valor_correto: valorBrutoConsulta,
+          diferenca: valorBrutoConsulta - valorConsultaAtual
+        });
+      }
+    }
+
+    console.log(`📊 Encontradas ${inconsistencias.length} inconsistências`);
+
+    // Corrigir cada honorário inconsistente
+    for (const inc of inconsistencias) {
+      await prisma.honorarios.update({
+        where: { id: inc.honorario_id },
+        data: {
+          valor_consulta: inc.valor_correto
+          // NÃO altera valor_glosa, valor_liquido ou valor_repasse_medico
+          // Esses valores dependem da glosa e serão recalculados conforme necessário
+        }
+      });
+
+      correcoes.push({
+        honorario_id: inc.honorario_id,
+        valor_antigo: inc.valor_atual,
+        valor_novo: inc.valor_correto,
+        corrigido: true
+      });
+
+      console.log(`✅ Honorário ${inc.honorario_id}: ${inc.valor_atual} → ${inc.valor_correto}`);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Correção concluída: ${correcoes.length} honorários corrigidos`,
+      data: {
+        total_honorarios: honorarios.length,
+        inconsistencias_encontradas: inconsistencias.length,
+        corrigidos: correcoes.length,
+        detalhes: inconsistencias,
+        correcoes
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao corrigir valores:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno ao corrigir valores',
+      code: 'INTERNAL_ERROR',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
