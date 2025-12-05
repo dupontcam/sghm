@@ -7,9 +7,9 @@
  * - Razão: Preservar histórico completo desde criação até acerto final
  * - Atualizações são primordiais para acompanhar status (PENDENTE → PAGO/GLOSADO)
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Honorario, adicionarHistorico, buscarHistorico, gerarDescricaoStatus } from '../data/mockData';
+import { Honorario, HonorarioHistorico, adicionarHistorico, gerarDescricaoStatus } from '../data/mockData';
 import { honorariosAPI } from '../services/api';
 import Modal from './Modal';
 import HistoricoModal from './HistoricoModal';
@@ -38,6 +38,7 @@ const GestaoHonorarios: React.FC = () => {
   const [isStatusRecursoModalOpen, setIsStatusRecursoModalOpen] = useState(false);
   const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
   const [honorarioSelecionado, setHonorarioSelecionado] = useState<Honorario | null>(null);
+  const [historicoAtual, setHistoricoAtual] = useState<HonorarioHistorico[]>([]);
   const [recursoData, setRecursoData] = useState({ motivoRecurso: '', dataRecurso: '' });
   const [statusRecursoData, setStatusRecursoData] = useState({
     statusRecurso: 'ACEITO_TOTAL' as 'ACEITO_TOTAL' | 'ACEITO_PARCIAL' | 'NEGADO',
@@ -92,9 +93,47 @@ const GestaoHonorarios: React.FC = () => {
   // Use "Registrar Glosa" para atualizar status e motivo de glosa
 
   // Função para ver histórico
-  const handleVerHistorico = (honorario: Honorario) => {
+  const handleVerHistorico = async (honorario: Honorario) => {
     setHonorarioSelecionado(honorario);
     setIsHistoricoModalOpen(true);
+    
+    try {
+      // Buscar histórico do backend
+      const historico = await honorariosAPI.getHistorico(honorario.id);
+      
+      // Mapeamento de tipos do backend para o frontend
+      const mapearTipoEvento = (tipo: string): HonorarioHistorico['tipo'] => {
+        const mapa: Record<string, HonorarioHistorico['tipo']> = {
+          'GLOSA_REGISTRADA': 'GLOSA',
+          'RECURSO_ENVIADO': 'RECURSO_ENVIADO',
+          'RECURSO_RESPONDIDO': 'RECURSO_RESPONDIDO',
+          'STATUS_ALTERADO': 'STATUS_ALTERADO',
+          'CRIACAO': 'CRIACAO',
+          'PAGAMENTO': 'PAGAMENTO'
+        };
+        return mapa[tipo] || 'STATUS_ALTERADO';
+      };
+      
+      // Transformar formato do backend para o formato do frontend
+      const historicoFormatado: HonorarioHistorico[] = historico.map((item: any) => ({
+        id: item.id.toString(),
+        honorarioId: item.honorario_id,
+        tipo: mapearTipoEvento(item.tipo_evento),
+        data: item.created_at,
+        descricao: item.descricao,
+        detalhes: item.dados_adicionais?.detalhes,
+        statusAnterior: item.dados_adicionais?.status_anterior,
+        statusNovo: item.dados_adicionais?.status_novo,
+        valorAnterior: item.dados_adicionais?.valor_anterior,
+        valorNovo: item.dados_adicionais?.valor_novo,
+        usuario: item.dados_adicionais?.usuario
+      }));
+      
+      setHistoricoAtual(historicoFormatado);
+    } catch (error) {
+      console.error('Erro ao buscar histórico:', error);
+      setHistoricoAtual([]);
+    }
   };
 
   // Funções de recurso de glosa
@@ -818,8 +857,9 @@ const GestaoHonorarios: React.FC = () => {
         onClose={() => {
           setIsHistoricoModalOpen(false);
           setHonorarioSelecionado(null);
+          setHistoricoAtual([]);
         }}
-        historico={honorarioSelecionado ? buscarHistorico(honorarioSelecionado.id) : []}
+        historico={historicoAtual}
         numeroGuia={honorarioSelecionado?.numeroGuia}
       />
     </div>
