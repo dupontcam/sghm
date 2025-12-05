@@ -602,6 +602,13 @@ router.put('/:id/glosa', authenticateToken, requireAuth, validateHonorario.updat
       }
     });
 
+    console.log('📊 REGISTRAR GLOSA - Honorário ANTES da atualização:', {
+      id: honorario?.id,
+      valor_consulta_atual: honorario?.valor_consulta,
+      valor_glosa_atual: honorario?.valor_glosa,
+      valor_glosa_nova: valor_glosa
+    });
+
     if (!honorario) {
       return res.status(404).json({
         success: false,
@@ -634,7 +641,7 @@ router.put('/:id/glosa', authenticateToken, requireAuth, validateHonorario.updat
       }
     }
 
-    // Atualizar honorário
+    // Atualizar honorário (IMPORTANTE: valor_consulta NÃO é alterado!)
     const honorarioAtualizado = await prisma.honorarios.update({
       where: { id: parseInt(id) },
       data: {
@@ -653,6 +660,13 @@ router.put('/:id/glosa', authenticateToken, requireAuth, validateHonorario.updat
         },
         plano_saude: { select: { nome_plano: true } }
       }
+    });
+
+    console.log('✅ REGISTRAR GLOSA - Honorário DEPOIS da atualização:', {
+      id: honorarioAtualizado.id,
+      valor_consulta: honorarioAtualizado.valor_consulta,
+      valor_glosa: honorarioAtualizado.valor_glosa,
+      valor_liquido: parseFloat(honorarioAtualizado.valor_consulta) - parseFloat(honor arioAtualizado.valor_glosa)
     });
 
     // Registrar no histórico
