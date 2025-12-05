@@ -981,9 +981,14 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
       valorRecuperadoFinal = parseFloat(valor_recuperado);
     }
 
-    // Recalcular valor líquido e repasse após recurso
-    const novaGlosa = parseFloat(honorario.valor_glosa) - valorRecuperadoFinal;
-    const novoValorLiquido = parseFloat(honorario.valor_consulta) - novaGlosa;
+    // Recalcular valores após recurso (matemática financeira correta)
+    // Exemplo: Consulta R$ 400, Glosa R$ 100 → Recebeu R$ 300
+    //          Recurso aceito parcial R$ 50 → Nova glosa R$ 50
+    //          Total final recebido: R$ 350 (300 inicial + 50 recuperado)
+    
+    const glosaOriginal = parseFloat(honorario.valor_glosa);
+    const novaGlosa = glosaOriginal - valorRecuperadoFinal; // Glosa mantida após recurso
+    const novoValorLiquido = parseFloat(honorario.valor_consulta) - novaGlosa; // Total que será recebido
     
     // Buscar percentual de repasse do médico
     const consultaComMedico = await prisma.consultas.findUnique({
@@ -993,12 +998,16 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
     const percentualRepasse = consultaComMedico.medico.percentual_repasse || 70.00;
     const novoValorRepasse = (novoValorLiquido * percentualRepasse) / 100;
 
-    // Determinar novo status
+    // Determinar novo status baseado no resultado do recurso
     let novoStatus = honorario.status_pagamento;
     if (status_recurso === 'ACEITO_TOTAL' && novaGlosa === 0) {
-      // Se recuperou tudo, volta ao status original antes da glosa
-      novoStatus = 'ENVIADO'; // ou pode ser PENDENTE dependendo do fluxo
+      // Glosa totalmente revertida - valor integral será pago
+      novoStatus = 'PAGO'; // Considera como pago pois não há mais desconto
+    } else if (status_recurso === 'ACEITO_PARCIAL' && novaGlosa > 0) {
+      // Ainda há glosa, mas menor que a original
+      novoStatus = 'GLOSADO'; // Mantém como glosado com valor reduzido
     } else if (status_recurso === 'NEGADO') {
+      // Glosa mantida integralmente
       novoStatus = 'GLOSADO';
     }
 
