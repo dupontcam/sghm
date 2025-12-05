@@ -85,6 +85,12 @@ router.post('/', authenticateToken, validateConsulta.create, async (req, res) =>
     // Se for pagamento por convênio/plano de saúde, cria automaticamente um honorário
     if (tipo_pagamento === 'PLANO_SAUDE' && plano_saude_id) {
       try {
+        console.log('🏥 CRIAR HONORÁRIO AUTOMÁTICO:', {
+          consulta_id: novaConsulta.id,
+          valor_bruto_recebido: valor_bruto,
+          valor_consulta_a_criar: parseFloat(valor_bruto)
+        });
+        
         await prisma.honorarios.create({
           data: {
             consulta: { connect: { id: novaConsulta.id } },
@@ -97,9 +103,9 @@ router.post('/', authenticateToken, validateConsulta.create, async (req, res) =>
             numero_guia: protocolo,
           }
         });
-        console.log('Honorário criado automaticamente para consulta:', novaConsulta.id);
+        console.log('✅ Honorário criado automaticamente para consulta:', novaConsulta.id);
       } catch (honorarioError) {
-        console.error('Erro ao criar honorário automaticamente:', honorarioError);
+        console.error('❌ Erro ao criar honorário automaticamente:', honorarioError);
         // Não bloqueia a criação da consulta se falhar a criação do honorário
       }
     }
@@ -329,19 +335,26 @@ router.put('/:id', authenticateToken, validateConsulta.update, async (req, res) 
         console.log('Honorário atualizado para consulta:', id);
       } else {
         // Cria novo honorário
+        const valorConsultaParaCriar = parseFloat(valor_bruto || consultaAtualizada.valor_bruto);
+        console.log('🏥 CRIAR NOVO HONORÁRIO (via update consulta):', {
+          consulta_id: id,
+          valor_bruto_recebido: valor_bruto,
+          valor_consulta_a_criar: valorConsultaParaCriar
+        });
+        
         await prisma.honorarios.create({
           data: {
             consulta: { connect: { id: parseInt(id) } },
             plano_saude: { connect: { id: parseInt(plano_saude_id) } },
-            valor_consulta: parseFloat(valor_bruto || consultaAtualizada.valor_bruto),
+            valor_consulta: valorConsultaParaCriar,
             valor_glosa: 0,
-            valor_liquido: parseFloat(valor_bruto || consultaAtualizada.valor_bruto),
-            valor_repasse_medico: parseFloat(valor_bruto || consultaAtualizada.valor_bruto),
+            valor_liquido: valorConsultaParaCriar,
+            valor_repasse_medico: valorConsultaParaCriar,
             status_pagamento: 'PENDENTE',
             numero_guia: protocolo || consultaAtualizada.protocolo,
           }
         });
-        console.log('Honorário criado automaticamente para consulta:', id);
+        console.log('✅ Honorário criado automaticamente para consulta:', id);
       }
     } else if (tipo_pagamento === 'PARTICULAR') {
       // Se mudou para particular, remove honorário se existir
