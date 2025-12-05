@@ -666,7 +666,7 @@ router.put('/:id/glosa', authenticateToken, requireAuth, validateHonorario.updat
       id: honorarioAtualizado.id,
       valor_consulta: honorarioAtualizado.valor_consulta,
       valor_glosa: honorarioAtualizado.valor_glosa,
-      valor_liquido: parseFloat(honorarioAtualizado.valor_consulta) - parseFloat(honor arioAtualizado.valor_glosa)
+      valor_liquido: parseFloat(honorarioAtualizado.valor_consulta) - parseFloat(honorarioAtualizado.valor_glosa)
     });
 
     // Registrar no histórico
