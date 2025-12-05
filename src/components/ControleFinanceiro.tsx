@@ -366,8 +366,8 @@ const ControleFinanceiro: React.FC = () => {
                     <td>{getMedicoNome(honorario.medicoId)}</td>
                     <td>{getPlanoNome(honorario.planoSaudeId)}</td>
                     <td>{new Date(honorario.dataConsulta).toLocaleDateString('pt-BR')}</td>
-                    {/* Valor Bruto = líquido + glosa atual */}
-                    <td style={{ fontWeight: 600 }}>{(((honorario.valor || 0)) + (honorario.valorGlosa || 0)).toLocaleString('pt-BR', { 
+                    {/* Valor Bruto (imutável) */}
+                    <td style={{ fontWeight: 600 }}>{(honorario.valor || 0).toLocaleString('pt-BR', { 
                       minimumFractionDigits: 2, 
                       maximumFractionDigits: 2 
                     })}</td>
@@ -377,9 +377,9 @@ const ControleFinanceiro: React.FC = () => {
                         maximumFractionDigits: 2 
                       }) : '-'}
                     </td>
-                    {/* Valor Líquido = valor recebido após glosa */}
+                    {/* Valor Líquido = bruto - glosa atual */}
                     <td style={{ fontWeight: 600, color: '#28a745' }}>
-                      {((honorario.valor || 0)).toLocaleString('pt-BR', { 
+                      {((honorario.valor || 0) - (honorario.valorGlosa || 0)).toLocaleString('pt-BR', { 
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2 
                       })}
