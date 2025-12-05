@@ -251,8 +251,6 @@ const Dashboard: React.FC = () => {
                                     <div className="no-data">Nenhum dado disponível</div>
                                 )}
                             </div>
-                        </div>  </ResponsiveContainer>
-                            </div>
                         </div>
 
                         {/* Gráfico de Pizza - Status */}
