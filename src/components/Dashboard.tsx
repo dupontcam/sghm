@@ -212,9 +212,9 @@ const Dashboard: React.FC = () => {
 
             {/* Gráficos para Admin */}
             {userProfile === 'Admin' && (
-                <>
-                        {/* Gráfico de Tendência */}
-                        <div className="chart chart-large">
+                <div className="charts-container">
+                    {/* Gráfico de Tendência */}
+                    <div className="chart chart-large">
                             <h4>Tendência de Honorários (6 meses)</h4>
                             <div style={{ width: '100%', height: 250 }}>
                                 {monthlyData.length > 0 ? (
@@ -253,9 +253,9 @@ const Dashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Gráfico de Pizza - Status */}
-                        <div className="chart chart-small">
-                            <h4>Status dos Honorários</h4>
+                    {/* Gráfico de Pizza - Status */}
+                    <div className="chart chart-small">
+                        <h4>Status dos Honorários</h4>
                             <div style={{ width: '100%', height: 250 }}>
                                 <ResponsiveContainer>
                                     <PieChart>
@@ -281,10 +281,10 @@ const Dashboard: React.FC = () => {
                                 </ResponsiveContainer>
                             </div>
                         </div>
-                    </div>
+                </div>
 
-                    {/* Gráfico por Planos de Saúde */}
-                    <div className="charts-container">
+                {/* Gráfico por Planos de Saúde */}
+                <div className="charts-container">
                         <div className="chart chart-large">
                             <h4>Honorários por Plano de Saúde</h4>
                             <div style={{ width: '100%', height: 250 }}>
@@ -333,10 +333,10 @@ const Dashboard: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                    </div>
+                </div>
 
-                    {/* Seção de Satisfação */}
-                    {estatisticasSatisfacao && (
+                {/* Seção de Satisfação */}
+                {estatisticasSatisfacao && (
                         <>
                             <div className="stats-cards" style={{ marginTop: '30px' }}>
                                 <div className="card card-satisfacao">
