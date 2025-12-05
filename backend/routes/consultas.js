@@ -317,13 +317,12 @@ router.put('/:id', authenticateToken, validateConsulta.update, async (req, res) 
 
       if (honorarioExistente) {
         // Atualiza honorário existente
+        // IMPORTANTE: valor_consulta NÃO pode ser alterado - é imutável!
+        // Apenas atualiza plano de saúde e número da guia
         await prisma.honorarios.update({
           where: { id: honorarioExistente.id },
           data: {
             plano_saude: { connect: { id: parseInt(plano_saude_id) } },
-            valor_consulta: valor_bruto ? parseFloat(valor_bruto) : undefined,
-            valor_liquido: valor_bruto ? parseFloat(valor_bruto) : undefined,
-            valor_repasse_medico: valor_bruto ? parseFloat(valor_bruto) : undefined,
             numero_guia: protocolo,
           }
         });
