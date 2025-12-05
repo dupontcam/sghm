@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext'; // 1. Importar o hook useData
-import { Consulta, Medico, Paciente, Honorario, PlanoSaude } from '../data/mockData'; // 2. Importar TIPOS
-import { FaExclamationTriangle, FaCheckCircle, FaClock, FaBan } from 'react-icons/fa';
+import { Consulta, Medico, Paciente, Honorario, PlanoSaude, HonorarioHistorico } from '../data/mockData'; // 2. Importar TIPOS
+import { FaExclamationTriangle, FaCheckCircle, FaClock, FaBan, FaHistory } from 'react-icons/fa';
+import { honorariosAPI } from '../services/api';
+import HistoricoModal from './HistoricoModal';
 import './RegistroConsultas.css'; // Reutiliza os estilos de status-badge
 import './ControleFinanceiro.css'; // Estilos próprios
 
@@ -18,6 +20,9 @@ const ControleFinanceiro: React.FC = () => {
   const [filtroDataInicio, setFiltroDataInicio] = useState<string>('');
   const [filtroDataFim, setFiltroDataFim] = useState<string>('');
   const [exibirHonorarios, setExibirHonorarios] = useState(true);
+  const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
+  const [honorarioSelecionado, setHonorarioSelecionado] = useState<Honorario | null>(null);
+  const [historicoAtual, setHistoricoAtual] = useState<HonorarioHistorico[]>([]);
 
   // 4. Funções de busca usam dados do Contexto
   const getPacienteNome = (id: number) => pacientes.find((p: Paciente) => p.id === id)?.nome || 'Não encontrado';
@@ -133,6 +138,43 @@ const ControleFinanceiro: React.FC = () => {
 
     return { faturado, pago, glosado, aReceber, enviado };
   }, [consultasFiltradas, honorariosFiltrados, exibirHonorarios]);
+
+  // Histórico: buscar no backend e abrir modal
+  const handleVerHistorico = async (hon: Honorario) => {
+    setHonorarioSelecionado(hon);
+    setIsHistoricoModalOpen(true);
+    try {
+      const historico = await honorariosAPI.getHistorico(hon.id);
+      const mapearTipoEvento = (tipo: string): HonorarioHistorico['tipo'] => {
+        const mapa: Record<string, HonorarioHistorico['tipo']> = {
+          'GLOSA_REGISTRADA': 'GLOSA',
+          'RECURSO_ENVIADO': 'RECURSO_ENVIADO',
+          'RECURSO_RESPONDIDO': 'RECURSO_RESPONDIDO',
+          'STATUS_ALTERADO': 'STATUS_ALTERADO',
+          'CRIACAO': 'CRIACAO',
+          'PAGAMENTO': 'PAGAMENTO'
+        };
+        return mapa[tipo] || 'STATUS_ALTERADO';
+      };
+      const historicoFormatado: HonorarioHistorico[] = (historico || []).map((item: any) => ({
+        id: String(item.id),
+        honorarioId: item.honorario_id,
+        tipo: mapearTipoEvento(item.tipo_evento),
+        data: item.created_at,
+        descricao: item.descricao,
+        detalhes: item.dados_adicionais?.detalhes,
+        statusAnterior: item.dados_adicionais?.status_anterior,
+        statusNovo: item.dados_adicionais?.status_novo,
+        valorAnterior: item.dados_adicionais?.valor_anterior,
+        valorNovo: item.dados_adicionais?.valor_novo,
+        usuario: item.dados_adicionais?.usuario,
+      }));
+      setHistoricoAtual(historicoFormatado);
+    } catch (error) {
+      console.error('Erro ao buscar histórico:', error);
+      setHistoricoAtual([]);
+    }
+  };
 
   return (
     <div className="page-container">
@@ -349,6 +391,7 @@ const ControleFinanceiro: React.FC = () => {
                   <th>Glosa (R$)</th>
                   <th>Líquido (R$)</th>
                   <th>Status</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -389,11 +432,21 @@ const ControleFinanceiro: React.FC = () => {
                         {honorario.status}
                       </span>
                     </td>
+                    <td>
+                      <button
+                        className="btn btn-secondary"
+                        title="Ver Histórico"
+                        onClick={() => handleVerHistorico(honorario)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <FaHistory /> Histórico
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {honorariosFiltrados.length === 0 && (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: 'center', padding: '20px', color: '#6c757d' }}>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: '20px', color: '#6c757d' }}>
                       Nenhum honorário encontrado com os filtros aplicados
                     </td>
                   </tr>
@@ -401,6 +454,17 @@ const ControleFinanceiro: React.FC = () => {
               </tbody>
             </table>
           </div>
+          {/* Modal de Histórico */}
+          <HistoricoModal
+            isOpen={isHistoricoModalOpen}
+            onClose={() => {
+              setIsHistoricoModalOpen(false);
+              setHonorarioSelecionado(null);
+              setHistoricoAtual([]);
+            }}
+            historico={historicoAtual}
+            numeroGuia={honorarioSelecionado?.numeroGuia}
+          />
         </div>
       )}
     </div>

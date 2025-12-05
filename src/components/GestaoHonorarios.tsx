@@ -9,7 +9,7 @@
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Honorario, HonorarioHistorico, adicionarHistorico, gerarDescricaoStatus } from '../data/mockData';
+import { Honorario, HonorarioHistorico, gerarDescricaoStatus } from '../data/mockData';
 import { honorariosAPI } from '../services/api';
 import Modal from './Modal';
 import HistoricoModal from './HistoricoModal';
@@ -214,28 +214,8 @@ const GestaoHonorarios: React.FC = () => {
     setHonorarioSelecionado(null);
   };
 
-  // Alterar status do honorário
-  const handleAlterarStatus = (honorario: Honorario, novoStatus: Honorario['status']) => {
-    const statusAnterior = honorario.status;
-    const honorarioAtualizado: Honorario = {
-      ...honorario,
-      status: novoStatus,
-      updatedAt: new Date().toISOString()
-    };
-
-    // Registrar no histórico
-    adicionarHistorico(
-      honorario.id,
-      'STATUS_ALTERADO',
-      `Status alterado de ${statusAnterior} para ${novoStatus}`,
-      {
-        statusAnterior,
-        statusNovo: novoStatus
-      }
-    );
-
-    updateHonorario(honorarioAtualizado);
-  };
+  // Alterar status do honorário (somente via backend; histórico persistido pelo servidor)
+  // Observação: Atualizações diretas locais foram removidas para evitar divergência de histórico
 
   // Limpar filtros
   const handleLimparFiltros = () => {
@@ -399,16 +379,7 @@ const GestaoHonorarios: React.FC = () => {
             honorario.motivoGlosa = glosaData.motivoGlosa;
             honorario.status = 'GLOSADO';
             honorario.updatedAt = new Date().toISOString();
-            // Adicionar histórico
-            adicionarHistorico(
-              id,
-              'GLOSA',
-              `Glosa registrada: R$ ${glosaData.valorGlosa.toFixed(2)}`,
-              {
-                valorNovo: glosaData.valorGlosa,
-                detalhes: glosaData.motivoGlosa
-              }
-            );
+            // Histórico agora é gerado somente pelo backend
           }
           sucesso++;
         } catch (err) {
