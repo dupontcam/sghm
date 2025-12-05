@@ -362,6 +362,15 @@ const transformHonorarioToBackend = (honorario: any) => {
 };
 
 const transformHonorarioFromBackend = (honorario: any) => {
+  // Debug: Log TODOS os honorários transformados
+  console.log('🔄 Transform Honorário:', {
+    id: honorario.id,
+    valor_consulta_backend: honorario.valor_consulta,
+    valor_liquido_backend: honorario.valor_liquido,
+    valor_glosa_backend: honorario.valor_glosa,
+    valor_recuperado_backend: honorario.valor_recuperado
+  });
+
   const transformed = {
     id: honorario.id,
     medicoId: honorario.consulta?.medico_id || 0,
@@ -383,16 +392,12 @@ const transformHonorarioFromBackend = (honorario: any) => {
     updatedAt: honorario.updated_at,
   };
   
-  // Debug: Log quando valor_consulta != valor exibido
-  if (honorario.valor_recuperado && parseFloat(honorario.valor_consulta) !== transformed.valor) {
-    console.warn('⚠️ INCONSISTÊNCIA DETECTADA:', {
-      id: transformed.id,
-      valor_consulta_backend: honorario.valor_consulta,
-      valor_frontend: transformed.valor,
-      valor_glosa: transformed.valorGlosa,
-      valor_recuperado: transformed.valorRecuperado
-    });
-  }
+  console.log('✅ Transform Resultado:', {
+    id: transformed.id,
+    valor_frontend: transformed.valor,
+    valorGlosa_frontend: transformed.valorGlosa,
+    valorRecuperado_frontend: transformed.valorRecuperado
+  });
   
   return transformed;
 };
