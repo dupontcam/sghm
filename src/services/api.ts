@@ -361,26 +361,41 @@ const transformHonorarioToBackend = (honorario: any) => {
   };
 };
 
-const transformHonorarioFromBackend = (honorario: any) => ({
-  id: honorario.id,
-  medicoId: honorario.consulta?.medico_id || 0,
-  consultaId: honorario.consulta_id,
-  planoSaudeId: honorario.plano_saude_id,
-  dataConsulta: honorario.consulta?.data_consulta || honorario.created_at,
-  valor: parseFloat(honorario.valor_consulta || 0), // SEMPRE usar valor_consulta (valor original do procedimento)
-  valorGlosa: honorario.valor_glosa !== undefined ? parseFloat(honorario.valor_glosa) : undefined,
-  status: (honorario.status_pagamento === 'PENDENTE' ? 'PENDENTE' :
-    honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
-      honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',
-  motivoGlosa: honorario.motivo_glosa || null,  // Corrigido: usar motivoGlosa (camelCase)
-  recursoEnviado: honorario.recurso_enviado || false,
-  statusRecurso: honorario.status_recurso || null,
-  dataRecurso: honorario.data_recurso || null,
-  motivoRecurso: honorario.motivo_recurso || null,
-  valorRecuperado: honorario.valor_recuperado ? parseFloat(honorario.valor_recuperado) : null,
-  createdAt: honorario.created_at,
-  updatedAt: honorario.updated_at,
-});
+const transformHonorarioFromBackend = (honorario: any) => {
+  const transformed = {
+    id: honorario.id,
+    medicoId: honorario.consulta?.medico_id || 0,
+    consultaId: honorario.consulta_id,
+    planoSaudeId: honorario.plano_saude_id,
+    dataConsulta: honorario.consulta?.data_consulta || honorario.created_at,
+    valor: parseFloat(honorario.valor_consulta || 0), // SEMPRE usar valor_consulta (valor original do procedimento)
+    valorGlosa: honorario.valor_glosa !== undefined ? parseFloat(honorario.valor_glosa) : undefined,
+    status: (honorario.status_pagamento === 'PENDENTE' ? 'PENDENTE' :
+      honorario.status_pagamento === 'ENVIADO' ? 'ENVIADO' :
+        honorario.status_pagamento === 'PAGO' ? 'PAGO' : 'GLOSADO') as 'PENDENTE' | 'ENVIADO' | 'PAGO' | 'GLOSADO',
+    motivoGlosa: honorario.motivo_glosa || null,
+    recursoEnviado: honorario.recurso_enviado || false,
+    statusRecurso: honorario.status_recurso || null,
+    dataRecurso: honorario.data_recurso || null,
+    motivoRecurso: honorario.motivo_recurso || null,
+    valorRecuperado: honorario.valor_recuperado ? parseFloat(honorario.valor_recuperado) : null,
+    createdAt: honorario.created_at,
+    updatedAt: honorario.updated_at,
+  };
+  
+  // Debug: Log quando valor_consulta != valor exibido
+  if (honorario.valor_recuperado && parseFloat(honorario.valor_consulta) !== transformed.valor) {
+    console.warn('⚠️ INCONSISTÊNCIA DETECTADA:', {
+      id: transformed.id,
+      valor_consulta_backend: honorario.valor_consulta,
+      valor_frontend: transformed.valor,
+      valor_glosa: transformed.valorGlosa,
+      valor_recuperado: transformed.valorRecuperado
+    });
+  }
+  
+  return transformed;
+};
 
 // --- API de Honorários ---
 export const honorariosAPI = {
