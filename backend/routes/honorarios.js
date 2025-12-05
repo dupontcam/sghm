@@ -420,6 +420,23 @@ router.post('/', authenticateToken, requireAuth, validateHonorario.create, async
       data: { tem_honorario: true }
     });
 
+    // Registrar criação no histórico
+    await prisma.historico_honorarios.create({
+      data: {
+        honorario_id: novoHonorario.id,
+        tipo_evento: 'CRIACAO',
+        descricao: `Honorário criado no valor de R$ ${parseFloat(valor_consulta).toFixed(2)}`,
+        dados_adicionais: {
+          valor_consulta: parseFloat(valor_consulta),
+          valor_glosa: parseFloat(valor_glosa || 0),
+          status_inicial: novoHonorario.status_pagamento,
+          numero_guia: numero_guia?.trim() || null,
+          plano_saude_id: parseInt(plano_saude_id)
+        },
+        usuario_id: req.user.id
+      }
+    });
+
     res.status(201).json({
       success: true,
       message: 'Honorário criado com sucesso',
@@ -512,6 +529,22 @@ router.put('/:id/status', authenticateToken, requireAuth, validateHonorario.upda
           }
         },
         plano_saude: { select: { nome_plano: true } }
+      }
+    });
+
+    // Registrar mudança de status no histórico
+    await prisma.historico_honorarios.create({
+      data: {
+        honorario_id: parseInt(id),
+        tipo_evento: 'STATUS_ALTERADO',
+        descricao: `Status alterado de ${honorario.status_pagamento} para ${status_pagamento}`,
+        dados_adicionais: {
+          status_anterior: honorario.status_pagamento,
+          status_novo: status_pagamento,
+          data_pagamento: data_pagamento || null,
+          observacoes: observacoes?.trim() || null
+        },
+        usuario_id: req.user.id
       }
     });
 
