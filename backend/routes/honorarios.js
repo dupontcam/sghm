@@ -981,13 +981,37 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
       valorRecuperadoFinal = parseFloat(valor_recuperado);
     }
 
+    // Recalcular valor líquido e repasse após recurso
+    const novaGlosa = parseFloat(honorario.valor_glosa) - valorRecuperadoFinal;
+    const novoValorLiquido = parseFloat(honorario.valor_consulta) - novaGlosa;
+    
+    // Buscar percentual de repasse do médico
+    const consultaComMedico = await prisma.consultas.findUnique({
+      where: { id: honorario.consulta_id },
+      include: { medico: { select: { percentual_repasse: true } } }
+    });
+    const percentualRepasse = consultaComMedico.medico.percentual_repasse || 70.00;
+    const novoValorRepasse = (novoValorLiquido * percentualRepasse) / 100;
 
-    // Atualizar honorário
+    // Determinar novo status
+    let novoStatus = honorario.status_pagamento;
+    if (status_recurso === 'ACEITO_TOTAL' && novaGlosa === 0) {
+      // Se recuperou tudo, volta ao status original antes da glosa
+      novoStatus = 'ENVIADO'; // ou pode ser PENDENTE dependendo do fluxo
+    } else if (status_recurso === 'NEGADO') {
+      novoStatus = 'GLOSADO';
+    }
+
+    // Atualizar honorário com valores recalculados
     const honorarioAtualizado = await prisma.honorarios.update({
       where: { id: parseInt(id) },
       data: {
         status_recurso,
-        valor_recuperado: valorRecuperadoFinal
+        valor_recuperado: valorRecuperadoFinal,
+        valor_glosa: novaGlosa,
+        valor_liquido: novoValorLiquido,
+        valor_repasse_medico: Math.round(novoValorRepasse * 100) / 100,
+        status_pagamento: novoStatus
       },
       include: {
         consulta: {
@@ -1009,21 +1033,27 @@ router.put('/:id/recurso/status', authenticateToken, requireAuth, async (req, re
       detalhesStatus = {
         status: status_recurso,
         valor_recuperado: valorRecuperadoFinal,
-        mensagem: `Valor integral de R$ ${valorRecuperadoFinal.toFixed(2)} recuperado`
+        valor_glosa_original: parseFloat(honorario.valor_glosa),
+        nova_glosa: novaGlosa,
+        valor_liquido_novo: novoValorLiquido,
+        mensagem: `Valor integral de R$ ${valorRecuperadoFinal.toFixed(2)} recuperado. Glosa zerada.`
       };
     } else if (status_recurso === 'ACEITO_PARCIAL') {
       descricaoStatus = 'Recurso parcialmente aceito';
       detalhesStatus = {
         status: status_recurso,
         valor_recuperado: valorRecuperadoFinal,
-        valor_glosa: parseFloat(honorario.valor_glosa),
-        mensagem: `Valor recuperado: R$ ${valorRecuperadoFinal.toFixed(2)} de R$ ${parseFloat(honorario.valor_glosa).toFixed(2)}`
+        valor_glosa_original: parseFloat(honorario.valor_glosa),
+        nova_glosa: novaGlosa,
+        valor_liquido_novo: novoValorLiquido,
+        mensagem: `Valor recuperado: R$ ${valorRecuperadoFinal.toFixed(2)} de R$ ${parseFloat(honorario.valor_glosa).toFixed(2)}. Nova glosa: R$ ${novaGlosa.toFixed(2)}`
       };
     } else {
       descricaoStatus = 'Recurso negado';
       detalhesStatus = {
         status: status_recurso,
-        valor_glosa: parseFloat(honorario.valor_glosa),
+        valor_glosa_original: parseFloat(honorario.valor_glosa),
+        nova_glosa: novaGlosa,
         mensagem: `Glosa mantida. Perda de R$ ${parseFloat(honorario.valor_glosa).toFixed(2)}`
       };
     }
