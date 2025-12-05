@@ -3,7 +3,6 @@ import '../App.css'; // Estilos dos cards vêm do App.css
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { calcularTempoMedioPagamento } from '../data/mockData';
-import { avaliacoesService } from '../services/avaliacoesService';
 import { FaStar } from 'react-icons/fa';
 import { 
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, 
@@ -212,6 +211,7 @@ const Dashboard: React.FC = () => {
 
             {/* Gráficos para Admin */}
             {userProfile === 'Admin' && (
+                <>
                 <div className="charts-container">
                     {/* Gráfico de Tendência */}
                     <div className="chart chart-large">
@@ -407,6 +407,7 @@ const Dashboard: React.FC = () => {
                             </div>
                         </>
                     )}
+                </>
             )}
         </div>
     );
