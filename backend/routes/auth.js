@@ -378,7 +378,11 @@ router.post('/logout', authenticateToken, async (req, res) => {
  */
 router.post('/create-user', authenticateToken, requireAdmin, validateAuth.createUser, async (req, res) => {
   try {
-    const { email, senha, nome_completo, role = 'OPERADOR' } = req.body;
+    // Compatibilidade: aceitar 'nome' (validador) e 'nome_completo' (payloads antigos)
+    const { email, senha, role = 'OPERADOR' } = req.body;
+    const nomeEntrada = typeof req.body.nome === 'string' && req.body.nome.trim().length > 0
+      ? req.body.nome.trim()
+      : (typeof req.body.nome_completo === 'string' ? req.body.nome_completo.trim() : '');
 
     // Validar força da senha
     if (senha.length < 6) {
@@ -419,7 +423,7 @@ router.post('/create-user', authenticateToken, requireAdmin, validateAuth.create
       data: {
         email,
         senha: hashedPassword,
-        nome_completo,
+        nome_completo: nomeEntrada,
         role
       },
       select: {
