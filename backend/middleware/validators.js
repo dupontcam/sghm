@@ -333,10 +333,20 @@ const validateAuth = {
   ],
   
   createUser: [
-    body('nome')
-      .trim()
-      .notEmpty().withMessage('Nome é obrigatório')
-      .isLength({ min: 3, max: 255 }).withMessage('Nome deve ter entre 3 e 255 caracteres'),
+    // Aceitar 'nome' ou 'nome_completo' e validar um dos dois
+    body(['nome', 'nome_completo'])
+      .custom((value, { req }) => {
+        const nome = (req.body.nome || '').trim();
+        const nomeCompleto = (req.body.nome_completo || '').trim();
+        const alvo = nome || nomeCompleto;
+        if (!alvo) {
+          throw new Error('Nome é obrigatório');
+        }
+        if (alvo.length < 3 || alvo.length > 255) {
+          throw new Error('Nome deve ter entre 3 e 255 caracteres');
+        }
+        return true;
+      }),
     
     body('email')
       .trim()
