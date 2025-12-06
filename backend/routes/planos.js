@@ -168,10 +168,11 @@ router.get('/:id', authenticateToken, requireAuth, async (req, res) => {
  * ====================================================================
  * ROTA: POST /api/planos
  * DESCRIÇÃO: Criar novo plano de saúde
- * ACESSO: Apenas administradores
+ * ACESSO: Administradores e Operadores
  * ====================================================================
  */
-router.post('/', authenticateToken, requireAdmin, validatePlano.create, async (req, res) => {
+// Permitir criação por ADMIN e OPERADOR
+router.post('/', authenticateToken, requireAuth, validatePlano.create, async (req, res) => {
   try {
     console.log('POST /planos - Body recebido:', JSON.stringify(req.body, null, 2));
     
