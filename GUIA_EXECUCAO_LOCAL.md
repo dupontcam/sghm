@@ -17,6 +17,32 @@
 
 ---
 
+## 🧩 Histórico (opcional)
+
+Para apresentação, mantenha o histórico desabilitado (evita exibir botões e modal de histórico enquanto a funcionalidade não estiver homologada).
+
+Como configurar (frontend `.env`):
+```
+REACT_APP_ENABLE_HISTORY=false
+```
+
+Reinicie o frontend após alterar o `.env`:
+```
+cd c:\SGHM\sghm
+npm start
+```
+
+Habilitar em desenvolvimento (se necessário para testes):
+```
+REACT_APP_ENABLE_HISTORY=true
+```
+
+Observações:
+- Se a variável não estiver definida, o histórico permanece desabilitado por padrão.
+- Quando desabilitado, a UI oculta os botões de histórico e o modal correspondente.
+
+---
+
 ## 🎯 Como Rodar o Sistema
 
 ### 1️⃣ Backend (já está rodando!)
