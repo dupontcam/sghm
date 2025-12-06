@@ -255,10 +255,11 @@ router.post('/', authenticateToken, requireAuth, validatePlano.create, async (re
  * ====================================================================
  * ROTA: PUT /api/planos/:id
  * DESCRIÇÃO: Atualizar plano de saúde
- * ACESSO: Apenas administradores
+ * ACESSO: Administradores e Operadores
  * ====================================================================
  */
-router.put('/:id', authenticateToken, requireAdmin, validatePlano.update, async (req, res) => {
+// Permitir atualização por ADMIN e OPERADOR
+router.put('/:id', authenticateToken, requireAuth, validatePlano.update, async (req, res) => {
   try {
     const { id } = req.params;
     const {
