@@ -12,6 +12,7 @@ type StatusConsulta = Consulta['status'];
 const ControleFinanceiro: React.FC = () => {
   // 3. Obter dados do Contexto (incluindo honorários e planos)
   const { consultas, medicos, pacientes, honorarios, planosSaude } = useData();
+  const ENABLE_HISTORY = (process.env.REACT_APP_ENABLE_HISTORY === 'true');
 
   // Estados para os filtros
   const [filtroMedico, setFiltroMedico] = useState<number>(0);
@@ -141,6 +142,7 @@ const ControleFinanceiro: React.FC = () => {
 
   // Histórico: buscar no backend e abrir modal
   const handleVerHistorico = async (hon: Honorario) => {
+    if (!ENABLE_HISTORY) return;
     setHonorarioSelecionado(hon);
     setIsHistoricoModalOpen(true);
     try {
@@ -391,7 +393,7 @@ const ControleFinanceiro: React.FC = () => {
                   <th>Glosa (R$)</th>
                   <th>Líquido (R$)</th>
                   <th>Status</th>
-                  <th>Ações</th>
+                    {ENABLE_HISTORY && <th>Ações</th>}
                 </tr>
               </thead>
               <tbody>
@@ -432,21 +434,23 @@ const ControleFinanceiro: React.FC = () => {
                         {honorario.status}
                       </span>
                     </td>
-                    <td>
-                      <button
-                        className="btn btn-secondary"
-                        title="Ver Histórico"
-                        onClick={() => handleVerHistorico(honorario)}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                      >
-                        <FaHistory /> Histórico
-                      </button>
-                    </td>
+                    {ENABLE_HISTORY && (
+                      <td>
+                        <button
+                          className="btn btn-secondary"
+                          title="Ver Histórico"
+                          onClick={() => handleVerHistorico(honorario)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                        >
+                          <FaHistory /> Histórico
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {honorariosFiltrados.length === 0 && (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '20px', color: '#6c757d' }}>
+                    <td colSpan={ENABLE_HISTORY ? 10 : 9} style={{ textAlign: 'center', padding: '20px', color: '#6c757d' }}>
                       Nenhum honorário encontrado com os filtros aplicados
                     </td>
                   </tr>
@@ -455,16 +459,18 @@ const ControleFinanceiro: React.FC = () => {
             </table>
           </div>
           {/* Modal de Histórico */}
-          <HistoricoModal
-            isOpen={isHistoricoModalOpen}
-            onClose={() => {
-              setIsHistoricoModalOpen(false);
-              setHonorarioSelecionado(null);
-              setHistoricoAtual([]);
-            }}
-            historico={historicoAtual}
-            numeroGuia={honorarioSelecionado?.numeroGuia}
-          />
+          {ENABLE_HISTORY && (
+            <HistoricoModal
+              isOpen={isHistoricoModalOpen}
+              onClose={() => {
+                setIsHistoricoModalOpen(false);
+                setHonorarioSelecionado(null);
+                setHistoricoAtual([]);
+              }}
+              historico={historicoAtual}
+              numeroGuia={honorarioSelecionado?.numeroGuia}
+            />
+          )}
         </div>
       )}
     </div>

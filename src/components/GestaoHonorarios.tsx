@@ -20,6 +20,7 @@ import {
 import './GestaoHonorarios.css';
 
 const GestaoHonorarios: React.FC = () => {
+  const ENABLE_HISTORY = (process.env.REACT_APP_ENABLE_HISTORY === 'true');
   const {
     honorarios, addHonorario, updateHonorario, deleteHonorario,
     medicos, planosSaude, refreshHonorarios
@@ -644,13 +645,15 @@ const GestaoHonorarios: React.FC = () => {
                     {honorario.status !== 'GLOSADO' && '-'}
                   </td>
                   <td>
-                    <button
-                      className="btn-icon secondary"
-                      onClick={() => handleVerHistorico(honorario)}
-                      title="Ver Histórico"
-                    >
-                      <FaHistory />
-                    </button>
+                    {ENABLE_HISTORY && (
+                      <button
+                        className="btn-icon secondary"
+                        onClick={() => handleVerHistorico(honorario)}
+                        title="Ver Histórico"
+                      >
+                        <FaHistory />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -823,16 +826,18 @@ const GestaoHonorarios: React.FC = () => {
       </Modal>
 
       {/* Modal de Histórico */}
-      <HistoricoModal
-        isOpen={isHistoricoModalOpen}
-        onClose={() => {
-          setIsHistoricoModalOpen(false);
-          setHonorarioSelecionado(null);
-          setHistoricoAtual([]);
-        }}
-        historico={historicoAtual}
-        numeroGuia={honorarioSelecionado?.numeroGuia}
-      />
+      {ENABLE_HISTORY && (
+        <HistoricoModal
+          isOpen={isHistoricoModalOpen}
+          onClose={() => {
+            setIsHistoricoModalOpen(false);
+            setHonorarioSelecionado(null);
+            setHistoricoAtual([]);
+          }}
+          historico={historicoAtual}
+          numeroGuia={honorarioSelecionado?.numeroGuia}
+        />
+      )}
     </div>
   );
 };

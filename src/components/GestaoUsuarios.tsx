@@ -110,6 +110,25 @@ const GestaoUsuarios: React.FC = () => {
     e.preventDefault();
 
     try {
+      // Validações client-side
+      const nomeValido = formData.nome && formData.nome.trim().length >= 3 && formData.nome.trim().length <= 255;
+      if (!nomeValido) {
+        alert('Nome é obrigatório e deve ter entre 3 e 255 caracteres.');
+        return;
+      }
+      if (!currentUsuario) {
+        const senha = formData.senha || '';
+        const forte = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        if (!forte.test(senha)) {
+          alert('Senha deve conter maiúsculas, minúsculas e números (mínimo 6 caracteres).');
+          return;
+        }
+      }
+      if (!formData.cargo || !formData.cargo.trim()) {
+        alert('Cargo é obrigatório.');
+        return;
+      }
+
       if (currentUsuario) {
         // Editar usuário existente
         const updatedUsuario: Usuario = {
@@ -135,9 +154,15 @@ const GestaoUsuarios: React.FC = () => {
         await loadUsuarios();
       }
       setIsModalOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar usuário:', error);
-      alert('Erro ao salvar usuário. Verifique os dados e tente novamente.');
+      // Exibir mensagens detalhadas de validação do backend, se houver
+      if (error && Array.isArray(error.details) && error.details.length > 0) {
+        const mensagens = error.details.map((d: any, i: number) => `${i + 1}. Campo: ${d.campo} - ${d.mensagem}`).join('\n');
+        alert(`Erro de validação:\n${mensagens}`);
+      } else {
+        alert(error?.message || 'Erro ao salvar usuário. Verifique os dados e tente novamente.');
+      }
     }
   };
 
