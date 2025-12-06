@@ -54,9 +54,11 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Rate Limiting para Autenticação: Proteção contra brute force
+// Em desenvolvimento, tornamos mais permissivo para facilitar testes
+const isDev = process.env.NODE_ENV !== 'production';
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // Apenas 5 tentativas de login
+  max: isDev ? 100 : 5, // Em dev: 100 tentativas; em prod: 5
   message: {
     error: 'Muitas tentativas de login, tente novamente em 15 minutos'
   },
@@ -81,7 +83,7 @@ console.log('[DEBUG] 6. Carregando rotas...');
 // Importa e usa as rotas de Autenticação (SEM middleware de auth)
 console.log('[DEBUG] 6.1. Carregando auth routes');
 const authRoutes = require('./routes/auth');
-app.use('/api/auth', authLimiter, authRoutes); // Aplica rate limiting específico
+app.use('/api/auth', authLimiter, authRoutes); // Aplica rate limiting específico (dev-friendly em NODE_ENV!=production)
 
 // Importa e usa as rotas de Médicos
 console.log('[DEBUG] 6.2. Carregando medicos routes');

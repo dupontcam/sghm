@@ -55,7 +55,11 @@ const fetchAPI = async (endpoint: string, options?: RequestInit) => {
       });
     }
     
-    throw new Error(errorMessage);
+    const err: any = new Error(errorMessage);
+    if (error.details) {
+      err.details = error.details;
+    }
+    throw err;
   }
 
   console.log('✅ Requisição bem-sucedida:', endpoint);
@@ -628,11 +632,18 @@ export const usuariosAPI = {
       method: 'POST',
       body: JSON.stringify(transformUsuarioToBackend(data))
     }).then(res => transformUsuarioFromBackend(res.user || res.data?.user)),
-  update: (id: number, data: any) =>
-    fetchAPI(`/auth/users/${id}`, {
+  update: (id: number, data: any) => {
+    const payload: any = transformUsuarioToBackend(data);
+    if (!data?.senha) {
+      delete payload.senha; // não enviar senha vazia em update
+    }
+    return fetchAPI(`/auth/users/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(transformUsuarioToBackend(data))
-    }).then(res => transformUsuarioFromBackend(res.user || res.data?.user)),
-  // Delete não implementado no backend ainda
-  delete: (id: number) => Promise.reject(new Error('Exclusão não suportada pelo backend')),
+      body: JSON.stringify(payload)
+    }).then(res => transformUsuarioFromBackend(res.user || res.data?.user));
+  },
+  delete: (id: number) =>
+    fetchAPI(`/auth/users/${id}`, {
+      method: 'DELETE'
+    }),
 };

@@ -741,4 +741,72 @@ router.put('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+/*
+ * ====================================================================
+ * ROTA: DELETE /api/auth/users/:id
+ * DESCRIÇÃO: Permite ao Admin excluir usuários
+ * REGRAS: Não pode excluir a si mesmo nem o último ADMIN
+ * ACESSO: Apenas ADMIN
+ * ====================================================================
+ */
+router.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = parseInt(id);
+
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID de usuário inválido',
+        code: 'INVALID_USER_ID'
+      });
+    }
+
+    // Impedir excluir a si mesmo
+    if (userId === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Você não pode excluir sua própria conta',
+        code: 'CANNOT_DELETE_SELF'
+      });
+    }
+
+    // Verificar se usuário existe
+    const usuario = await prisma.usuarios.findUnique({ where: { id: userId } });
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuário não encontrado',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Impedir excluir o último ADMIN
+    if (usuario.role === 'ADMIN') {
+      const totalAdmins = await prisma.usuarios.count({ where: { role: 'ADMIN' } });
+      if (totalAdmins <= 1) {
+        return res.status(400).json({
+          success: false,
+          error: 'Não é possível excluir o último administrador',
+          code: 'CANNOT_DELETE_LAST_ADMIN'
+        });
+      }
+    }
+
+    await prisma.usuarios.delete({ where: { id: userId } });
+
+    console.log(`[AUTH] Admin ${req.user.email} excluiu usuário ID ${userId}`);
+
+    return res.status(204).send();
+
+  } catch (error) {
+    console.error('Erro ao excluir usuário:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Erro interno ao excluir usuário',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
