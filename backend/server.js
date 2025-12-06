@@ -134,6 +134,11 @@ console.log('[DEBUG] 6.8. Carregando honorarios routes');
 const honorariosRoutes = require('./routes/honorarios');
 app.use('/api/honorarios', honorariosRoutes);
 
+// Rotas de Backup/Restore (stub fase 1)
+console.log('[DEBUG] 6.9. Carregando backup routes');
+const backupRoutes = require('./routes/backup');
+app.use('/api/backup', backupRoutes);
+
 console.log('[DEBUG] 7. Todas as rotas carregadas');
 
 // --- Inicialização do Servidor ---
