@@ -6,6 +6,16 @@ import './Backup.css'; // Estilos específicos
 
 const Backup: React.FC = () => {
   const { consultas, honorarios, medicos, pacientes, planosSaude } = useData();
+  const isProd = process.env.NODE_ENV === 'production';
+  const currentUser = (() => {
+    try {
+      const raw = localStorage.getItem('sghm_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const isAdmin = currentUser?.role === 'ADMIN';
   const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'idle', message: string }>({ type: 'idle', message: '' });
   const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
@@ -110,6 +120,69 @@ const Backup: React.FC = () => {
       setStatus({ type: 'success', message: 'Backup exportado com sucesso! Arquivo baixado.' });
     } catch (error: any) {
       setStatus({ type: 'error', message: `Erro ao exportar: ${error.message}` });
+    }
+  };
+
+  // --- Operações de Backup no Servidor (produção, ADMIN) ---
+  const apiBase = process.env.REACT_APP_API_URL || '/api';
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('sghm_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const handleServerExport = async () => {
+    if (!isAdmin) {
+      setStatus({ type: 'error', message: 'Ação restrita ao ADMIN.' });
+      return;
+    }
+    setStatus({ type: 'idle', message: 'Exportando backup do servidor...' });
+    try {
+      const res = await fetch(`${apiBase}/backup/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'Falha no export do servidor');
+      // Baixar payload como arquivo
+      const blob = new Blob([JSON.stringify(json.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `backup-servidor-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setStatus({ type: 'success', message: 'Export do servidor concluído e baixado.' });
+    } catch (error: any) {
+      setStatus({ type: 'error', message: `Erro no export do servidor: ${error.message}` });
+    }
+  };
+
+  const handleServerImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!isAdmin) {
+      setStatus({ type: 'error', message: 'Ação restrita ao ADMIN.' });
+      event.target.value = '';
+      return;
+    }
+    try {
+      setStatus({ type: 'idle', message: 'Enviando backup para validação (dry-run)...' });
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      const res = await fetch(`${apiBase}/backup/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'Falha no import (dry-run)');
+      setStatus({ type: 'success', message: `Import (dry-run) recebido. Tabelas: ${Object.entries(json.data.counts).map(([k,v]) => `${k}:${v}`).join(', ')}` });
+    } catch (error: any) {
+      setStatus({ type: 'error', message: `Erro no import do servidor: ${error.message}` });
+    } finally {
+      event.target.value = '';
     }
   };
 
@@ -331,6 +404,8 @@ const Backup: React.FC = () => {
       </div>
 
       {/* Backup Manual */}
+      {/* Backup Manual (Local) - ocultar em produção */}
+      {!isProd && (
       <div className="backup-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
           <FaDatabase size={20} style={{ color: '#007bff' }} />
@@ -355,8 +430,33 @@ const Backup: React.FC = () => {
           </div>
         )}
       </div>
+      )}
+
+      {/* Backup no Servidor (Produção) - apenas ADMIN */}
+      {isProd && isAdmin && (
+      <div className="backup-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <FaDatabase size={20} style={{ color: '#007bff' }} />
+          <h3 style={{ margin: 0 }}>Backup no Servidor</h3>
+        </div>
+        <p>
+          Exporta e valida backups diretamente do servidor (dry-run na importação nesta fase).
+        </p>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button className="btn btn-primary btn-backup" onClick={handleServerExport} disabled={loading}>
+            <FaDownload /> Exportar Backup do Servidor
+          </button>
+          <label className="btn btn-info btn-backup" style={{ cursor: 'pointer' }}>
+            <FaUpload /> Importar Backup (dry-run)
+            <input type="file" accept=".json" onChange={handleServerImport} style={{ display: 'none' }} />
+          </label>
+        </div>
+      </div>
+      )}
 
       {/* Importar Backup */}
+      {/* Importar Backup Local - ocultar em produção */}
+      {!isProd && (
       <div className="backup-card import-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
           <FaUpload size={20} style={{ color: '#17a2b8' }} />
@@ -377,6 +477,7 @@ const Backup: React.FC = () => {
           />
         </label>
       </div>
+      )}
 
       {/* Restauração do Sistema */}
       <div className="backup-card restore-card">
