@@ -19,6 +19,8 @@ console.log('[DEBUG] 3. Prisma Client inicializado');
 // Inicializa o aplicativo Express
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Em ambientes com proxy (Render/Cloudflare), usar IP real do cliente
+app.set('trust proxy', 1);
 
 console.log('[DEBUG] 4. Express inicializado');
 console.log(`[DEBUG] 4.1. PORT configurado para: ${PORT}`);
@@ -58,7 +60,19 @@ app.use('/api/', limiter);
 const isDev = process.env.NODE_ENV !== 'production';
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: isDev ? 100 : 5, // Em dev: 100 tentativas; em prod: 5
+  max: isDev ? 100 : 10, // Em dev: 100 tentativas; em prod: 10
+  skipSuccessfulRequests: true, // Não contar logins bem-sucedidos
+  keyGenerator: (req /*, res*/) => {
+    const xfwd = req.headers['x-forwarded-for'];
+    const ip = Array.isArray(xfwd)
+      ? xfwd[0]
+      : (xfwd?.split(',')[0]?.trim() || req.ip);
+    const email = (req.body && typeof req.body.email === 'string')
+      ? req.body.email.toLowerCase()
+      : '';
+    // Diferenciar tentativas por IP e email quando disponível
+    return email ? `${ip}:${email}` : ip;
+  },
   message: {
     error: 'Muitas tentativas de login, tente novamente em 15 minutos'
   },
