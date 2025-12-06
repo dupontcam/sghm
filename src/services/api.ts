@@ -590,12 +590,14 @@ export const authAPI = {
 };
 
 const transformUsuarioToBackend = (usuario: any) => ({
+  // Enviar ambos para compatibilidade com validações do backend
+  nome: usuario.nome,
   nome_completo: usuario.nome,
   email: usuario.email,
   senha: usuario.senha,
   role: usuario.perfil === 'Admin' ? 'ADMIN' : 'OPERADOR',
   telefone: usuario.telefone || null,
-  // cargo e ativo não existem no backend ainda, ignorando por enquanto
+  // cargo e ativo não existem no backend ainda
 });
 
 const transformUsuarioFromBackend = (usuario: any) => ({
