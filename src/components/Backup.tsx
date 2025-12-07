@@ -125,9 +125,9 @@ const Backup: React.FC = () => {
 
   // --- Operações de Backup no Servidor (produção, ADMIN) ---
   const apiBase = process.env.REACT_APP_API_URL || '/api';
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem('sghm_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return token ? { Authorization: `Bearer ${token}` } : {} as HeadersInit;
   };
 
   const handleServerExport = async () => {
@@ -137,9 +137,10 @@ const Backup: React.FC = () => {
     }
     setStatus({ type: 'idle', message: 'Exportando backup do servidor...' });
     try {
+      const headers: HeadersInit = { 'Content-Type': 'application/json', ...getAuthHeaders() };
       const res = await fetch(`${apiBase}/backup/export`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        headers,
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || 'Falha no export do servidor');
@@ -171,9 +172,10 @@ const Backup: React.FC = () => {
       setStatus({ type: 'idle', message: 'Enviando backup para validação (dry-run)...' });
       const text = await file.text();
       const payload = JSON.parse(text);
+      const headers: HeadersInit = { 'Content-Type': 'application/json', ...getAuthHeaders() };
       const res = await fetch(`${apiBase}/backup/import`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        headers,
         body: JSON.stringify(payload),
       });
       const json = await res.json();
