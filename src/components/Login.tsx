@@ -87,7 +87,6 @@ const Login: React.FC = () => {
         <>
             <div className="login-container">
                 <div className="login-art-column">
-                    <p>Imagem de fundo / Colagem</p>
                 </div>
                 <div className="login-form-column">
                     <div className="login-form-wrapper">

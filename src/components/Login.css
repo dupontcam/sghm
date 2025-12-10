@@ -12,11 +12,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     
     /* Imagem de fundo */
-    background-image: url('../assets/medical_collage.png');
+    background-image: url('../assets/medicall_collage.png');
     background-size: cover;
     background-position: center;
+}
+
+/* Overlay sutil para melhorar contraste da arte de fundo */
+.login-art-column::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+        to bottom right,
+        rgba(0, 0, 0, 0.18),
+        rgba(0, 0, 0, 0.18)
+    );
+    pointer-events: none;
 }
 
 .login-form-column {

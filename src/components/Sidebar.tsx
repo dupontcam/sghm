@@ -9,7 +9,7 @@ import {
     FaHospital, FaFileInvoiceDollar, FaBell, FaUsersCog, FaStar
 } from 'react-icons/fa';
 // Importa o logo
-import sghmLogo from '../assets/sghm_logo.png';
+import sghmLogo from '../assets/logo_sghm.png';
 
 interface SidebarProps {
     onClose?: () => void;
